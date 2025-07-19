@@ -13,8 +13,12 @@ interface GameGridProps {
   fallingBlock: FallingBlock | null;
 }
 
-const { width } = Dimensions.get("window");
-const CELL_SIZE = Math.min((width - 40) / GRID_WIDTH, 35); // Maximum 35px per cell
+const { width, height } = Dimensions.get("window");
+const AVAILABLE_WIDTH = width - 80; // Padding'ler için
+const AVAILABLE_HEIGHT = height * 0.6; // %55'ten %60'a çıkardık
+const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
+const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
+const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT); // Maximum limit kaldırdık
 
 const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
@@ -37,28 +41,32 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.grid}>
-        {grid.map((row, y) =>
-          row.map((cell, x) => {
-            // Düşen blok bu pozisyonda mı?
-            const isFallingHere =
-              fallingBlock &&
-              fallingBlock.x === cell.x &&
-              fallingBlock.y === cell.y;
+      <View style={styles.gridContainer}>
+        <View style={styles.grid}>
+          {grid.map((row, y) => (
+            <View key={y} style={styles.row}>
+              {row.map((cell, x) => {
+                // Düşen blok bu pozisyonda mı?
+                const isFallingHere =
+                  fallingBlock &&
+                  fallingBlock.x === cell.x &&
+                  fallingBlock.y === cell.y;
 
-            if (isFallingHere) {
-              // Düşen blok göster
-              const fallingCell: GridCell = {
-                ...cell,
-                value: fallingBlock.value,
-                id: fallingBlock.id,
-              };
-              return renderCell(fallingCell, true);
-            }
+                if (isFallingHere) {
+                  // Düşen blok göster
+                  const fallingCell: GridCell = {
+                    ...cell,
+                    value: fallingBlock.value,
+                    id: fallingBlock.id,
+                  };
+                  return renderCell(fallingCell, true);
+                }
 
-            return renderCell(cell);
-          })
-        )}
+                return renderCell(cell);
+              })}
+            </View>
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -69,20 +77,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  gridContainer: {
+    borderWidth: 4,
+    borderColor: "#e94560",
+    backgroundColor: "#0f3460",
+  },
   grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     width: GRID_WIDTH * CELL_SIZE,
     height: GRID_HEIGHT * CELL_SIZE,
-    borderWidth: 4, // Daha kalın sınır
-    borderColor: "#e94560", // Kırmızı sınır - belirgin olsun
     backgroundColor: "#0f3460",
+  },
+  row: {
+    flexDirection: "row",
   },
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderWidth: 0.5, // Daha ince iç sınırlar
-    borderColor: "#2a2a3e", // Daha açık renk
+    borderWidth: 0.5,
+    borderColor: "#2a2a3e",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#1a1a2e",

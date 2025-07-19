@@ -1,6 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { Operation } from '../types/GameTypes';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { Operation } from "../types/GameTypes";
 
 interface GameControlsProps {
   selectedOperation: Operation;
@@ -10,32 +16,34 @@ interface GameControlsProps {
   onSelectOperation: (operation: Operation) => void;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const GameControls: React.FC<GameControlsProps> = ({
   selectedOperation,
   onMoveLeft,
   onMoveRight,
   onDropBlock,
-  onSelectOperation
+  onSelectOperation,
 }) => {
   const renderOperationButton = (operation: Operation, symbol: string) => {
     const isSelected = selectedOperation === operation;
-    
+
     return (
       <TouchableOpacity
         key={operation}
         style={[
           styles.operationButton,
-          isSelected && styles.selectedOperationButton
+          isSelected && styles.selectedOperationButton,
         ]}
         onPress={() => onSelectOperation(operation)}
         activeOpacity={0.7}
       >
-        <Text style={[
-          styles.operationButtonText,
-          isSelected && styles.selectedOperationButtonText
-        ]}>
+        <Text
+          style={[
+            styles.operationButtonText,
+            isSelected && styles.selectedOperationButtonText,
+          ]}
+        >
           {symbol}
         </Text>
       </TouchableOpacity>
@@ -44,50 +52,42 @@ const GameControls: React.FC<GameControlsProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Sol taraf - İşlem butonları */}
-      <View style={styles.leftControls}>
-        <Text style={styles.controlLabel}>İşlemler</Text>
-        <View style={styles.operationContainer}>
-          {renderOperationButton('add', '+')}
-          {renderOperationButton('subtract', '-')}
-          {/* multiply ve divide butonları daha sonra eklenecek */}
-        </View>
+      {/* Üst sıra - 4 tuş eşit aralıklarla */}
+      <View style={styles.topRow}>
+        {/* Sol yön tuşu - en solda */}
+        <TouchableOpacity
+          style={styles.movementButton}
+          onPress={onMoveLeft}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.movementButtonText}>◀</Text>
+        </TouchableOpacity>
+
+        {/* Eksi tuşu */}
+        {renderOperationButton("subtract", "-")}
+
+        {/* Artı tuşu */}
+        {renderOperationButton("add", "+")}
+
+        {/* Sağ yön tuşu - en sağda */}
+        <TouchableOpacity
+          style={styles.movementButton}
+          onPress={onMoveRight}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.movementButtonText}>▶</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Sağ taraf - Hareket kontrolleri */}
-      <View style={styles.rightControls}>
-        <Text style={styles.controlLabel}>Hareket</Text>
-        <View style={styles.movementContainer}>
-          {/* Üst sıra - Sol ve Sağ */}
-          <View style={styles.movementRow}>
-            <TouchableOpacity
-              style={styles.movementButton}
-              onPress={onMoveLeft}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.movementButtonText}>◀</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.movementButton}
-              onPress={onMoveRight}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.movementButtonText}>▶</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Alt sıra - Aşağı */}
-          <View style={styles.movementRow}>
-            <TouchableOpacity
-              style={[styles.movementButton, styles.dropButton]}
-              onPress={onDropBlock}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.movementButtonText}>▼</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      {/* Alt sıra - Aşağı tuşu (çubuk şeklinde) */}
+      <View style={styles.bottomRow}>
+        <TouchableOpacity
+          style={[styles.dropButton]}
+          onPress={onDropBlock}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.dropButtonText}>▼</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -95,44 +95,49 @@ const GameControls: React.FC<GameControlsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
     paddingHorizontal: 20,
     paddingBottom: 30,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#1a1a2e",
     minHeight: 120,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  leftControls: {
-    alignItems: 'center',
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 10,
+    marginBottom: 20,
   },
-  rightControls: {
-    alignItems: 'center',
+  bottomRow: {
+    alignItems: "center",
+    justifyContent: "center",
   },
-  controlLabel: {
-    color: '#00d2d3',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  operationContainer: {
-    flexDirection: 'row',
-    gap: 10,
+  movementButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#16213e",
+    borderWidth: 2,
+    borderColor: "#0f3460",
+    justifyContent: "center",
+    alignItems: "center",
   },
   operationButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#16213e',
+    backgroundColor: "#16213e",
     borderWidth: 2,
-    borderColor: '#0f3460',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#0f3460",
+    justifyContent: "center",
+    alignItems: "center",
   },
   selectedOperationButton: {
-    backgroundColor: '#e94560',
-    borderColor: '#e94560',
-    shadowColor: '#e94560',
+    backgroundColor: "#e94560",
+    borderColor: "#e94560",
+    shadowColor: "#e94560",
     shadowOffset: {
       width: 0,
       height: 0,
@@ -142,39 +147,32 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   operationButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   selectedOperationButtonText: {
-    color: '#fff',
-  },
-  movementContainer: {
-    alignItems: 'center',
-  },
-  movementRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
-  },
-  movementButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#16213e',
-    borderWidth: 2,
-    borderColor: '#0f3460',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dropButton: {
-    backgroundColor: '#00d2d3',
-    borderColor: '#00d2d3',
+    color: "#fff",
   },
   movementButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+  },
+  dropButton: {
+    width: 120, // + ve - tuşlarının toplamından biraz büyük
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#00d2d3",
+    borderWidth: 2,
+    borderColor: "#00d2d3",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropButtonText: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
 

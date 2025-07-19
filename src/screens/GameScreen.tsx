@@ -6,6 +6,7 @@ import {
   Dimensions,
   Alert,
   BackHandler,
+  TouchableOpacity,
 } from "react-native";
 import GameGrid from "../components/GameGrid";
 import GameControls from "../components/GameControls";
@@ -27,6 +28,7 @@ import {
   calculateGameSpeed,
   getPlayerTitle,
 } from "../utils/GameUtils";
+import SoundManager from "../utils/SoundManager";
 
 interface GameScreenProps {
   onGameEnd: () => void;
@@ -49,11 +51,29 @@ const GameScreen: React.FC<GameScreenProps> = ({
     gameSpeed: calculateGameSpeed(1),
   });
 
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const soundManager = SoundManager.getInstance();
+
+  // Ses sistemini başlat
+  useEffect(() => {
+    const initializeSound = async () => {
+      await soundManager.initialize();
+      await soundManager.playBackgroundMusic();
+    };
+
+    initializeSound();
+
+    // Cleanup
+    return () => {
+      soundManager.cleanup();
+    };
+  }, []);
+
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Oyun döngüsü
   useEffect(() => {
-    if (gameState.isGameOver) {
+    if (gameState.isGameOver || isPaused) {
       if (gameIntervalRef.current) {
         clearInterval(gameIntervalRef.current);
         gameIntervalRef.current = null;
@@ -71,7 +91,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         clearInterval(gameIntervalRef.current);
       }
     };
-  }, [gameState.gameSpeed, gameState.isGameOver]);
+  }, [gameState.gameSpeed, gameState.isGameOver, isPaused]);
 
   // Geri tuşu kontrolü
   useEffect(() => {
@@ -103,21 +123,98 @@ const GameScreen: React.FC<GameScreenProps> = ({
       const currentBlock = prevState.fallingBlock;
       const newY = currentBlock.y + 1;
 
-      // Alt sınıra veya dolu hücreye çarptı mı?
-      if (
-        newY >= GRID_HEIGHT ||
-        prevState.grid[newY][currentBlock.x].value !== null
-      ) {
+      // Alt sınıra ulaştı mı?
+      if (newY >= GRID_HEIGHT) {
         return landBlock(prevState);
       }
 
-      // Bloğu sadece Y ekseninde aşağı taşı - X koordinatı değişmemeli!
+      // Hedef hücre dolu mu?
+      if (prevState.grid[newY][currentBlock.x].value !== null) {
+        // Dolu hücreye iniyor - işlem kontrolü yap
+        const { selectedOperation } = prevState;
+
+        if (selectedOperation === "add" || selectedOperation === "subtract") {
+          // İşlem yap ve her iki bloğu da yerleştir
+          const newGrid = prevState.grid.map((row) => [...row]);
+          const existingValue = newGrid[newY][currentBlock.x].value;
+
+          const resultValue = performOperation(
+            currentBlock.value,
+            existingValue!,
+            selectedOperation
+          );
+
+          // Alt hücreye işlem sonucunu yaz
+          newGrid[newY][currentBlock.x].value = resultValue;
+          // Üst hücreye düşen bloğun değerini yaz
+          newGrid[currentBlock.y][currentBlock.x].value = currentBlock.value;
+
+          // İşlem sonucunu kontrol et
+          let { scoreGained: scoreFromResult } = checkExplosions(
+            newGrid,
+            currentBlock.x,
+            newY,
+            resultValue
+          );
+          let totalScore = scoreFromResult;
+
+          // Gravity uygula
+          let finalGrid = applyGravity(newGrid);
+
+          // Gravity sonrası tüm grid'i kontrol et - yeni eşitlikler oluşmuş olabilir
+          let hasMoreExplosions = true;
+          while (hasMoreExplosions) {
+            hasMoreExplosions = false;
+            let explosionScore = 0;
+
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+              for (let x = 0; x < GRID_WIDTH; x++) {
+                if (finalGrid[y][x].value !== null) {
+                  const beforeExplosionGrid = finalGrid.map((row) => [...row]);
+                  let { scoreGained } = checkExplosions(
+                    finalGrid,
+                    x,
+                    y,
+                    finalGrid[y][x].value!
+                  );
+
+                  if (scoreGained > 0) {
+                    explosionScore += scoreGained;
+                    hasMoreExplosions = true;
+                    // Gravity tekrar uygula
+                    finalGrid = applyGravity(finalGrid);
+                    break; // Bir patlama oldu, döngüyü yeniden başlat
+                  }
+                }
+              }
+              if (hasMoreExplosions) break; // Dış döngüden de çık
+            }
+            totalScore += explosionScore;
+          }
+
+          return {
+            ...prevState,
+            grid: finalGrid,
+            fallingBlock: createNewFallingBlock(),
+            score: prevState.score + totalScore,
+            selectedOperation: "none",
+            level: Math.floor((prevState.score + totalScore) / 1000) + 1,
+            gameSpeed: calculateGameSpeed(
+              Math.floor((prevState.score + totalScore) / 1000) + 1
+            ),
+          };
+        } else {
+          // İşlem yok - blok mevcut pozisyonda dur
+          return landBlock(prevState);
+        }
+      }
+
+      // Hedef hücre boş - bloğu aşağı taşı
       return {
         ...prevState,
         fallingBlock: {
           ...prevState.fallingBlock,
           y: newY,
-          // x koordinatı açıkça belirtiyoruz - değişmemeli
           x: currentBlock.x,
         },
       };
@@ -127,29 +224,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const landBlock = (state: GameState): GameState => {
     if (!state.fallingBlock) return state;
 
-    const { fallingBlock, grid, selectedOperation } = state;
-
-    // Blok şu anda bulunduğu pozisyonda kalmalı - koordinatları sabit
+    const { fallingBlock, grid } = state;
     const landingY = fallingBlock.y;
     const landingX = fallingBlock.x;
 
-    // Eğer blok grid sınırları dışındaysa oyun bitti
-    if (
-      landingY < 0 ||
-      landingY >= GRID_HEIGHT ||
-      landingX < 0 ||
-      landingX >= GRID_WIDTH
-    ) {
-      return {
-        ...state,
-        isGameOver: true,
-        fallingBlock: null,
-      };
-    }
-
-    // Eğer en üstteyse ve hücre doluysa oyun bitti
-    // grid[y][x] formatında kontrol et
-    if (landingY === 0 && grid[landingY][landingX].value !== null) {
+    // Oyun bitme kontrolü - eğer en üstteyse
+    if (landingY <= 0) {
       return {
         ...state,
         isGameOver: true,
@@ -158,68 +238,63 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     const newGrid = grid.map((row) => [...row]);
-    // grid[y][x] formatında erişim
-    const existingValue = newGrid[landingY][landingX].value;
 
-    // İşlem yap
-    if (existingValue !== null && selectedOperation !== "none") {
-      // Mevcut bloktaki değeri güncelle (işlem sonucu)
-      const resultValue = performOperation(
-        fallingBlock.value,
-        existingValue,
-        selectedOperation
-      );
-      newGrid[landingY][landingX].value = resultValue;
+    // Bloğu mevcut pozisyona yerleştir
+    newGrid[landingY][landingX].value = fallingBlock.value;
 
-      // Patlamaları kontrol et
-      let { scoreGained } = checkExplosions(
-        newGrid,
-        landingX,
-        landingY,
-        resultValue
-      );
+    // Yerleştirilen bloğu kontrol et
+    let { scoreGained } = checkExplosions(
+      newGrid,
+      landingX,
+      landingY,
+      fallingBlock.value
+    );
+    let totalScore = scoreGained;
 
-      // Gravity uygula
-      let finalGrid = applyGravity(newGrid);
+    // Gravity uygula
+    let finalGrid = applyGravity(newGrid);
 
-      return {
-        ...state,
-        grid: finalGrid,
-        fallingBlock: createNewFallingBlock(),
-        score: state.score + scoreGained,
-        selectedOperation: "none",
-        level: Math.floor((state.score + scoreGained) / 1000) + 1,
-        gameSpeed: calculateGameSpeed(
-          Math.floor((state.score + scoreGained) / 1000) + 1
-        ),
-      };
-    } else {
-      // İşlem yok, sadece düşen bloğu yerleştir
-      newGrid[landingY][landingX].value = fallingBlock.value;
+    // Gravity sonrası tüm grid'i kontrol et - yeni eşitlikler oluşmuş olabilir
+    let hasMoreExplosions = true;
+    while (hasMoreExplosions) {
+      hasMoreExplosions = false;
+      let explosionScore = 0;
 
-      // Patlamaları kontrol et
-      let { scoreGained } = checkExplosions(
-        newGrid,
-        landingX,
-        landingY,
-        fallingBlock.value
-      );
+      for (let y = 0; y < GRID_HEIGHT; y++) {
+        for (let x = 0; x < GRID_WIDTH; x++) {
+          if (finalGrid[y][x].value !== null) {
+            let { scoreGained } = checkExplosions(
+              finalGrid,
+              x,
+              y,
+              finalGrid[y][x].value!
+            );
 
-      // Gravity uygula
-      let finalGrid = applyGravity(newGrid);
-
-      return {
-        ...state,
-        grid: finalGrid,
-        fallingBlock: createNewFallingBlock(),
-        score: state.score + scoreGained,
-        selectedOperation: "none",
-        level: Math.floor((state.score + scoreGained) / 1000) + 1,
-        gameSpeed: calculateGameSpeed(
-          Math.floor((state.score + scoreGained) / 1000) + 1
-        ),
-      };
+            if (scoreGained > 0) {
+              explosionScore += scoreGained;
+              hasMoreExplosions = true;
+              // Gravity tekrar uygula
+              finalGrid = applyGravity(finalGrid);
+              break; // Bir patlama oldu, döngüyü yeniden başlat
+            }
+          }
+        }
+        if (hasMoreExplosions) break; // Dış döngüden de çık
+      }
+      totalScore += explosionScore;
     }
+
+    return {
+      ...state,
+      grid: finalGrid,
+      fallingBlock: createNewFallingBlock(),
+      score: state.score + totalScore,
+      selectedOperation: "none",
+      level: Math.floor((state.score + totalScore) / 1000) + 1,
+      gameSpeed: calculateGameSpeed(
+        Math.floor((state.score + totalScore) / 1000) + 1
+      ),
+    };
   };
 
   const checkExplosions = (
@@ -230,19 +305,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
   ) => {
     let totalScore = 0;
     let cellsToExplode: Set<string> = new Set();
+    let hasNeighborMatch = false;
+    let hasPrimeExplosion = false;
 
-    // Asal sayı kontrolü - çapraz patlama
-    if (isPrime(value)) {
-      const primeCells = findPrimeCrossExplosion(grid, x, y);
-      primeCells.forEach((cell) => {
-        if (cell.value !== null) {
-          cellsToExplode.add(`${cell.x}-${cell.y}`);
-          totalScore += cell.value * 10; // Asal patlama bonusu
-        }
-      });
-    }
-
-    // Eşit sayı kontrolü - 4 yöndeki komşular
+    // 1. Önce komşu eşitlik kontrolü
     const directions = [
       [0, 1],
       [0, -1],
@@ -254,7 +320,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       const neighborX = x + dx;
       const neighborY = y + dy;
 
-      // Sınır kontrolü
       if (
         neighborX >= 0 &&
         neighborX < GRID_WIDTH &&
@@ -263,13 +328,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ) {
         const neighborValue = grid[neighborY][neighborX].value;
 
-        // Eğer komşu değer aynıysa
         if (neighborValue === value) {
-          // Her iki hücreyi de patlatma listesine ekle
-          cellsToExplode.add(`${x}-${y}`);
-          cellsToExplode.add(`${neighborX}-${neighborY}`);
-
-          // Bu eşleşen komşuların da komşularını kontrol et
+          hasNeighborMatch = true;
+          // Tüm eşleşen komşuları bul
           const matchingCells = findMatchingNeighbors(grid, x, y, value);
           matchingCells.forEach((cell) => {
             if (cell.value !== null) {
@@ -277,9 +338,21 @@ const GameScreen: React.FC<GameScreenProps> = ({
               totalScore += cell.value;
             }
           });
-          break; // Bir eşleşme bulduğumuzda yeter
+          break;
         }
       }
+    }
+
+    // 2. Eğer komşu eşleşmesi varsa VE sayı asal ise çapraz patlama da ekle
+    if (hasNeighborMatch && isPrime(value)) {
+      hasPrimeExplosion = true;
+      const primeCells = findPrimeCrossExplosion(grid, x, y);
+      primeCells.forEach((cell) => {
+        if (cell.value !== null) {
+          cellsToExplode.add(`${cell.x}-${cell.y}`);
+          totalScore += cell.value * 10; // Asal patlama bonusu
+        }
+      });
     }
 
     // Patlamaları uygula
@@ -288,6 +361,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
       grid[cellY][cellX].value = null;
     });
 
+    // Patlama seslerini çal
+    if (cellsToExplode.size > 0) {
+      if (hasPrimeExplosion) {
+        soundManager.playPrimeExplosionSound(); // Asal patlama sesi
+      } else if (hasNeighborMatch) {
+        soundManager.playExplosionSound(); // Normal patlama sesi
+      }
+    }
+
     return {
       explosions: cellsToExplode.size,
       scoreGained: totalScore,
@@ -295,6 +377,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const moveBlockLeft = () => {
+    if (isPaused) return;
+    soundManager.playMoveSound(); // Ses ekle
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -326,6 +410,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const moveBlockRight = () => {
+    if (isPaused) return;
+    soundManager.playMoveSound(); // Ses ekle
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -357,6 +443,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const dropBlock = () => {
+    if (isPaused) return;
+    soundManager.playDropSound(); // Ses ekle
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -392,11 +480,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const selectOperation = (operation: Operation) => {
+    if (isPaused) return;
+    soundManager.playButtonSound(); // Ses ekle
     setGameState((prevState) => ({
       ...prevState,
       selectedOperation:
         prevState.selectedOperation === operation ? "none" : operation,
     }));
+  };
+
+  const togglePause = () => {
+    soundManager.playButtonSound(); // Ses ekle
+    const newPauseState = !isPaused;
+    setIsPaused(newPauseState);
+
+    // Müziği pause/resume et
+    if (newPauseState) {
+      soundManager.pauseBackgroundMusic();
+    } else {
+      soundManager.playBackgroundMusic();
+    }
   };
 
   if (gameState.isGameOver) {
@@ -407,7 +510,60 @@ const GameScreen: React.FC<GameScreenProps> = ({
         <Text style={styles.gameOverTitle}>
           Unvanınız: {getPlayerTitle(gameState.score)}
         </Text>
-        {/* Burada leaderboard kaydetme ve menüye dönme butonları olacak */}
+
+        {/* Oyun Sonu Butonları */}
+        <View style={styles.gameOverButtons}>
+          <TouchableOpacity
+            style={[styles.gameOverButton, styles.playAgainButton]}
+            onPress={() => {
+              setGameState({
+                grid: createEmptyGrid(),
+                fallingBlock: createNewFallingBlock(),
+                score: 0,
+                isGameOver: false,
+                selectedOperation: "none",
+                level: 1,
+                gameSpeed: calculateGameSpeed(1),
+              });
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.gameOverButtonText}>Tekrar Oyna</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.gameOverButton, styles.menuButton]}
+            onPress={onGameEnd}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.gameOverButtonText}>Ana Menü</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (isPaused) {
+    return (
+      <View style={styles.pauseContainer}>
+        <Text style={styles.pauseTitle}>Oyun Duraklatıldı</Text>
+        <View style={styles.pauseButtons}>
+          <TouchableOpacity
+            style={[styles.gameOverButton, styles.playAgainButton]}
+            onPress={togglePause}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.gameOverButtonText}>Devam Et</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.gameOverButton, styles.menuButton]}
+            onPress={onGameEnd}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.gameOverButtonText}>Ana Menü</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -419,6 +575,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         level={gameState.level}
         playerNickname={playerNickname}
         playerTitle={getPlayerTitle(gameState.score)}
+        onPause={togglePause}
       />
 
       <View style={styles.gameArea}>
@@ -446,6 +603,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 10,
+    paddingVertical: 5, // Padding'i azalttık
   },
   gameOverContainer: {
     flex: 1,
@@ -466,6 +624,51 @@ const styles = StyleSheet.create({
     color: "#00d2d3",
     textAlign: "center",
     marginBottom: 30,
+  },
+  pauseContainer: {
+    flex: 1,
+    backgroundColor: "#1a1a2e",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  pauseTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#00d2d3",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+  pauseButtons: {
+    width: "100%",
+    alignItems: "center",
+  },
+  gameOverButtons: {
+    marginTop: 40,
+    width: "100%",
+    alignItems: "center",
+  },
+  gameOverButton: {
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginBottom: 15,
+    width: "80%",
+    alignItems: "center",
+    borderWidth: 2,
+  },
+  playAgainButton: {
+    backgroundColor: "#e94560",
+    borderColor: "#e94560",
+  },
+  menuButton: {
+    backgroundColor: "transparent",
+    borderColor: "#00d2d3",
+  },
+  gameOverButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
 

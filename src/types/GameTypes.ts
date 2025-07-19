@@ -17,7 +17,7 @@ export interface GameState {
   fallingBlock: FallingBlock | null;
   score: number;
   isGameOver: boolean;
-  selectedOperation: 'none' | 'add' | 'subtract' | 'multiply' | 'divide';
+  selectedOperation: 'none' | 'add' | 'subtract';
   level: number;
   gameSpeed: number;
 }
@@ -29,9 +29,9 @@ export interface PlayerScore {
   title: string;
 }
 
-export type Operation = 'none' | 'add' | 'subtract' | 'multiply' | 'divide';
+export type Operation = 'none' | 'add' | 'subtract';
 
-export const GRID_WIDTH = 9;
-export const GRID_HEIGHT = 16;
+export const GRID_WIDTH = 7;
+export const GRID_HEIGHT = 12;
 export const MIN_NUMBER = 1;
 export const MAX_NUMBER = 47;

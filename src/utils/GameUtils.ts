@@ -46,7 +46,7 @@ export const createNewFallingBlock = (): FallingBlock => {
   };
 };
 
-// Matematik işlemi yapma
+// Matematik işlemi yapma - sadece add ve subtract
 export const performOperation = (
   fallingValue: number,
   gridValue: number,
@@ -57,10 +57,6 @@ export const performOperation = (
       return fallingValue + gridValue;
     case 'subtract':
       return Math.abs(fallingValue - gridValue);
-    case 'multiply':
-      return fallingValue * gridValue;
-    case 'divide':
-      return gridValue === 0 ? fallingValue : Math.round(fallingValue / gridValue);
     case 'none':
     default:
       return fallingValue;
