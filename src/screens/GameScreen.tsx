@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   Alert,
-  BackHandler
-} from 'react-native';
-import GameGrid from '../components/GameGrid';
-import GameControls from '../components/GameControls';
-import GameHeader from '../components/GameHeader';
-import { GameState, Operation, GRID_WIDTH, GRID_HEIGHT } from '../types/GameTypes';
+  BackHandler,
+} from "react-native";
+import GameGrid from "../components/GameGrid";
+import GameControls from "../components/GameControls";
+import GameHeader from "../components/GameHeader";
+import {
+  GameState,
+  Operation,
+  GRID_WIDTH,
+  GRID_HEIGHT,
+} from "../types/GameTypes";
 import {
   createEmptyGrid,
   createNewFallingBlock,
@@ -20,67 +25,83 @@ import {
   applyGravity,
   isPrime,
   calculateGameSpeed,
-  getPlayerTitle
-} from '../utils/GameUtils';
+  getPlayerTitle,
+} from "../utils/GameUtils";
 
 interface GameScreenProps {
   onGameEnd: () => void;
   playerNickname: string;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
-const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) => {
+const GameScreen: React.FC<GameScreenProps> = ({
+  onGameEnd,
+  playerNickname,
+}) => {
   const [gameState, setGameState] = useState<GameState>({
     grid: createEmptyGrid(),
     fallingBlock: createNewFallingBlock(),
     score: 0,
     isGameOver: false,
-    selectedOperation: 'none',
+    selectedOperation: "none",
     level: 1,
-    gameSpeed: calculateGameSpeed(1)
+    gameSpeed: calculateGameSpeed(1),
   });
 
   const gameIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Oyun döngüsü
   useEffect(() => {
-    if (!gameState.isGameOver && gameState.fallingBlock) {
-      gameIntervalRef.current = setTimeout(() => {
-        moveBlockDown();
-      }, gameState.gameSpeed);
+    if (gameState.isGameOver) {
+      if (gameIntervalRef.current) {
+        clearInterval(gameIntervalRef.current);
+        gameIntervalRef.current = null;
+      }
+      return;
     }
+
+    // Timer başlat
+    gameIntervalRef.current = setInterval(() => {
+      moveBlockDownRef.current();
+    }, gameState.gameSpeed);
 
     return () => {
       if (gameIntervalRef.current) {
-        clearTimeout(gameIntervalRef.current);
+        clearInterval(gameIntervalRef.current);
       }
     };
-  }, [gameState.fallingBlock, gameState.gameSpeed, gameState.isGameOver]);
+  }, [gameState.gameSpeed, gameState.isGameOver]);
 
   // Geri tuşu kontrolü
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      Alert.alert(
-        'Oyundan Çık',
-        'Oyunu sonlandırmak istediğinize emin misiniz?',
-        [
-          { text: 'Hayır', style: 'cancel' },
-          { text: 'Evet', onPress: onGameEnd }
-        ]
-      );
-      return true;
-    });
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        Alert.alert(
+          "Oyundan Çık",
+          "Oyunu sonlandırmak istediğinize emin misiniz?",
+          [
+            { text: "Hayır", style: "cancel" },
+            { text: "Evet", onPress: onGameEnd },
+          ]
+        );
+        return true;
+      }
+    );
 
     return () => backHandler.remove();
   }, []);
 
-  const moveBlockDown = () => {
-    setGameState(prevState => {
+  // moveBlockDown fonksiyonunu ref olarak sakla
+  const moveBlockDownRef = useRef(() => {});
+
+  moveBlockDownRef.current = () => {
+    setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
       const newY = prevState.fallingBlock.y + 1;
-      
+
       // Alt sınıra veya dolu hücreye çarptı mı?
       if (
         newY >= GRID_HEIGHT ||
@@ -94,8 +115,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
         ...prevState,
         fallingBlock: {
           ...prevState.fallingBlock,
-          y: newY
-        }
+          y: newY,
+        },
       };
     });
   };
@@ -104,15 +125,23 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
     if (!state.fallingBlock) return state;
 
     const { fallingBlock, grid, selectedOperation } = state;
-    let landingY = fallingBlock.y;
+
+    // Blok şu anda bulunduğu pozisyonda kalmalı - ekstra aşağı indirme!
+    const landingY = fallingBlock.y;
     const landingX = fallingBlock.x;
 
-    // Eğer alt sınıra veya başka bir bloğa çarpmamışsa, bloğu daha aşağı indir
-    while (
-      landingY + 1 < GRID_HEIGHT &&
-      grid[landingY + 1][landingX].value === null
+    // Eğer blok grid sınırları dışındaysa oyun bitti
+    if (
+      landingY < 0 ||
+      landingY >= GRID_HEIGHT ||
+      landingX < 0 ||
+      landingX >= GRID_WIDTH
     ) {
-      landingY++;
+      return {
+        ...state,
+        isGameOver: true,
+        fallingBlock: null,
+      };
     }
 
     // Eğer en üstteyse ve hücre doluysa oyun bitti
@@ -120,22 +149,31 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
       return {
         ...state,
         isGameOver: true,
-        fallingBlock: null
+        fallingBlock: null,
       };
     }
 
-    const newGrid = grid.map(row => [...row]);
+    const newGrid = grid.map((row) => [...row]);
     const existingValue = newGrid[landingY][landingX].value;
 
-    // İşlem yap - Değişiklik burada!
-    if (existingValue !== null && selectedOperation !== 'none') {
+    // İşlem yap
+    if (existingValue !== null && selectedOperation !== "none") {
       // Mevcut bloktaki değeri güncelle (işlem sonucu)
-      const resultValue = performOperation(fallingBlock.value, existingValue, selectedOperation);
+      const resultValue = performOperation(
+        fallingBlock.value,
+        existingValue,
+        selectedOperation
+      );
       newGrid[landingY][landingX].value = resultValue;
-      
+
       // Patlamaları kontrol et
-      let { scoreGained } = checkExplosions(newGrid, landingX, landingY, resultValue);
-      
+      let { scoreGained } = checkExplosions(
+        newGrid,
+        landingX,
+        landingY,
+        resultValue
+      );
+
       // Gravity uygula
       let finalGrid = applyGravity(newGrid);
 
@@ -144,17 +182,24 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
         grid: finalGrid,
         fallingBlock: createNewFallingBlock(),
         score: state.score + scoreGained,
-        selectedOperation: 'none',
+        selectedOperation: "none",
         level: Math.floor((state.score + scoreGained) / 1000) + 1,
-        gameSpeed: calculateGameSpeed(Math.floor((state.score + scoreGained) / 1000) + 1)
+        gameSpeed: calculateGameSpeed(
+          Math.floor((state.score + scoreGained) / 1000) + 1
+        ),
       };
     } else {
       // İşlem yok, sadece düşen bloğu yerleştir
       newGrid[landingY][landingX].value = fallingBlock.value;
-      
+
       // Patlamaları kontrol et
-      let { scoreGained } = checkExplosions(newGrid, landingX, landingY, fallingBlock.value);
-      
+      let { scoreGained } = checkExplosions(
+        newGrid,
+        landingX,
+        landingY,
+        fallingBlock.value
+      );
+
       // Gravity uygula
       let finalGrid = applyGravity(newGrid);
 
@@ -163,21 +208,28 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
         grid: finalGrid,
         fallingBlock: createNewFallingBlock(),
         score: state.score + scoreGained,
-        selectedOperation: 'none',
+        selectedOperation: "none",
         level: Math.floor((state.score + scoreGained) / 1000) + 1,
-        gameSpeed: calculateGameSpeed(Math.floor((state.score + scoreGained) / 1000) + 1)
+        gameSpeed: calculateGameSpeed(
+          Math.floor((state.score + scoreGained) / 1000) + 1
+        ),
       };
     }
   };
 
-  const checkExplosions = (grid: any[][], x: number, y: number, value: number) => {
+  const checkExplosions = (
+    grid: any[][],
+    x: number,
+    y: number,
+    value: number
+  ) => {
     let totalScore = 0;
     let cellsToExplode: Set<string> = new Set();
 
     // Asal sayı kontrolü - çapraz patlama
     if (isPrime(value)) {
       const primeCells = findPrimeCrossExplosion(grid, x, y);
-      primeCells.forEach(cell => {
+      primeCells.forEach((cell) => {
         if (cell.value !== null) {
           cellsToExplode.add(`${cell.x}-${cell.y}`);
           totalScore += cell.value * 10; // Asal patlama bonusu
@@ -186,27 +238,35 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
     }
 
     // Eşit sayı kontrolü - 4 yöndeki komşular
-    const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]; // aşağı, yukarı, sağ, sol
-    
+    const directions = [
+      [0, 1],
+      [0, -1],
+      [1, 0],
+      [-1, 0],
+    ]; // aşağı, yukarı, sağ, sol
+
     for (const [dx, dy] of directions) {
       const neighborX = x + dx;
       const neighborY = y + dy;
-      
+
       // Sınır kontrolü
-      if (neighborX >= 0 && neighborX < GRID_WIDTH && 
-          neighborY >= 0 && neighborY < GRID_HEIGHT) {
-        
+      if (
+        neighborX >= 0 &&
+        neighborX < GRID_WIDTH &&
+        neighborY >= 0 &&
+        neighborY < GRID_HEIGHT
+      ) {
         const neighborValue = grid[neighborY][neighborX].value;
-        
+
         // Eğer komşu değer aynıysa
         if (neighborValue === value) {
           // Her iki hücreyi de patlatma listesine ekle
           cellsToExplode.add(`${x}-${y}`);
           cellsToExplode.add(`${neighborX}-${neighborY}`);
-          
+
           // Bu eşleşen komşuların da komşularını kontrol et
           const matchingCells = findMatchingNeighbors(grid, x, y, value);
-          matchingCells.forEach(cell => {
+          matchingCells.forEach((cell) => {
             if (cell.value !== null) {
               cellsToExplode.add(`${cell.x}-${cell.y}`);
               totalScore += cell.value;
@@ -218,74 +278,80 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
     }
 
     // Patlamaları uygula
-    cellsToExplode.forEach(key => {
-      const [cellX, cellY] = key.split('-').map(Number);
+    cellsToExplode.forEach((key) => {
+      const [cellX, cellY] = key.split("-").map(Number);
       grid[cellY][cellX].value = null;
     });
 
     return {
       explosions: cellsToExplode.size,
-      scoreGained: totalScore
+      scoreGained: totalScore,
     };
   };
 
   const moveBlockLeft = () => {
-    setGameState(prevState => {
+    setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
       const newX = prevState.fallingBlock.x - 1;
       const currentY = prevState.fallingBlock.y;
-      
+
       // Sol sınır kontrolü
       if (newX < 0) return prevState;
-      
+
       // Hedef pozisyon boş mu kontrolü
-      if (currentY < GRID_HEIGHT && prevState.grid[currentY][newX].value !== null) {
+      if (
+        currentY < GRID_HEIGHT &&
+        prevState.grid[currentY][newX].value !== null
+      ) {
         return prevState;
       }
-      
+
       return {
         ...prevState,
         fallingBlock: {
           ...prevState.fallingBlock,
-          x: newX
-        }
+          x: newX,
+        },
       };
     });
   };
 
   const moveBlockRight = () => {
-    setGameState(prevState => {
+    setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
       const newX = prevState.fallingBlock.x + 1;
       const currentY = prevState.fallingBlock.y;
-      
+
       // Sağ sınır kontrolü
       if (newX >= GRID_WIDTH) return prevState;
-      
+
       // Hedef pozisyon boş mu kontrolü
-      if (currentY < GRID_HEIGHT && prevState.grid[currentY][newX].value !== null) {
+      if (
+        currentY < GRID_HEIGHT &&
+        prevState.grid[currentY][newX].value !== null
+      ) {
         return prevState;
       }
-      
+
       return {
         ...prevState,
         fallingBlock: {
           ...prevState.fallingBlock,
-          x: newX
-        }
+          x: newX,
+        },
       };
     });
   };
 
   const dropBlock = () => {
-    setGameState(prevState => {
+    setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
       let newY = prevState.fallingBlock.y;
       const blockX = prevState.fallingBlock.x;
-      
+
       // Aşağıda boş yer var mı, varsa en alt noktayı bul
       while (
         newY + 1 < GRID_HEIGHT &&
@@ -300,8 +366,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
           ...prevState,
           fallingBlock: {
             ...prevState.fallingBlock,
-            y: newY
-          }
+            y: newY,
+          },
         };
       } else {
         // Zaten en alttaysa, bloğu yerleştir
@@ -311,9 +377,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
   };
 
   const selectOperation = (operation: Operation) => {
-    setGameState(prevState => ({
+    setGameState((prevState) => ({
       ...prevState,
-      selectedOperation: prevState.selectedOperation === operation ? 'none' : operation
+      selectedOperation:
+        prevState.selectedOperation === operation ? "none" : operation,
     }));
   };
 
@@ -338,12 +405,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
         playerNickname={playerNickname}
         playerTitle={getPlayerTitle(gameState.score)}
       />
-      
+
       <View style={styles.gameArea}>
-        <GameGrid
-          grid={gameState.grid}
-          fallingBlock={gameState.fallingBlock}
-        />
+        <GameGrid grid={gameState.grid} fallingBlock={gameState.fallingBlock} />
       </View>
 
       <GameControls
@@ -360,32 +424,32 @@ const GameScreen: React.FC<GameScreenProps> = ({ onGameEnd, playerNickname }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#1a1a2e",
   },
   gameArea: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 10,
   },
   gameOverContainer: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#1a1a2e",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   gameOverTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#e94560',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#e94560",
+    textAlign: "center",
     marginBottom: 20,
   },
   gameOverScore: {
     fontSize: 24,
-    color: '#00d2d3',
-    textAlign: 'center',
+    color: "#00d2d3",
+    textAlign: "center",
     marginBottom: 30,
   },
 });

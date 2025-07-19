@@ -36,9 +36,11 @@ export const createEmptyGrid = (): GridCell[][] => {
 
 // Yeni düşen blok oluşturma
 export const createNewFallingBlock = (): FallingBlock => {
+  const centerX = Math.floor(GRID_WIDTH / 2); // Her seferinde tam ortada başlasın
+  
   return {
     value: generateRandomNumber(),
-    x: Math.floor(GRID_WIDTH / 2),
+    x: centerX,
     y: 0,
     id: `falling-${Date.now()}-${Math.random()}`
   };

@@ -1,14 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { GridCell, FallingBlock, GRID_WIDTH, GRID_HEIGHT } from '../types/GameTypes';
-import { isPrime } from '../utils/GameUtils';
+import React from "react";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import {
+  GridCell,
+  FallingBlock,
+  GRID_WIDTH,
+  GRID_HEIGHT,
+} from "../types/GameTypes";
+import { isPrime } from "../utils/GameUtils";
 
 interface GameGridProps {
   grid: GridCell[][];
   fallingBlock: FallingBlock | null;
 }
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const CELL_SIZE = Math.min((width - 40) / GRID_WIDTH, 35); // Maximum 35px per cell
 
 const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
@@ -36,17 +41,17 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
         {grid.map((row, y) =>
           row.map((cell, x) => {
             // Düşen blok bu pozisyonda mı?
-            const isFallingHere = 
-              fallingBlock && 
-              fallingBlock.x === x && 
-              fallingBlock.y === y;
+            const isFallingHere =
+              fallingBlock &&
+              fallingBlock.x === cell.x &&
+              fallingBlock.y === cell.y;
 
             if (isFallingHere) {
               // Düşen blok göster
               const fallingCell: GridCell = {
                 ...cell,
                 value: fallingBlock.value,
-                id: fallingBlock.id
+                id: fallingBlock.id,
               };
               return renderCell(fallingCell, true);
             }
@@ -61,30 +66,30 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     width: GRID_WIDTH * CELL_SIZE,
     height: GRID_HEIGHT * CELL_SIZE,
-    borderWidth: 2,
-    borderColor: '#16213e',
-    backgroundColor: '#0f3460',
+    borderWidth: 4, // Daha kalın sınır
+    borderColor: "#e94560", // Kırmızı sınır - belirgin olsun
+    backgroundColor: "#0f3460",
   },
   cell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderWidth: 1,
-    borderColor: '#16213e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    borderWidth: 0.5, // Daha ince iç sınırlar
+    borderColor: "#2a2a3e", // Daha açık renk
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1a1a2e",
   },
   fallingCell: {
-    backgroundColor: '#e94560',
-    shadowColor: '#e94560',
+    backgroundColor: "#e94560",
+    shadowColor: "#e94560",
     shadowOffset: {
       width: 0,
       height: 0,
@@ -94,8 +99,8 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   primeCell: {
-    backgroundColor: '#00d2d3',
-    shadowColor: '#00d2d3',
+    backgroundColor: "#00d2d3",
+    shadowColor: "#00d2d3",
     shadowOffset: {
       width: 0,
       height: 0,
@@ -105,14 +110,14 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   cellText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: CELL_SIZE * 0.35,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   fallingCellText: {
-    color: '#fff',
-    textShadowColor: '#000',
+    color: "#fff",
+    textShadowColor: "#000",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
