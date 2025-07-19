@@ -32,6 +32,6 @@ export interface PlayerScore {
 export type Operation = 'none' | 'add' | 'subtract' | 'multiply' | 'divide';
 
 export const GRID_WIDTH = 9;
-export const GRID_HEIGHT = 15;
+export const GRID_HEIGHT = 16;
 export const MIN_NUMBER = 1;
 export const MAX_NUMBER = 47;

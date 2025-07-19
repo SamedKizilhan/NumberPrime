@@ -100,22 +100,25 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
-      const newY = prevState.fallingBlock.y + 1;
+      const currentBlock = prevState.fallingBlock;
+      const newY = currentBlock.y + 1;
 
       // Alt sınıra veya dolu hücreye çarptı mı?
       if (
         newY >= GRID_HEIGHT ||
-        prevState.grid[newY][prevState.fallingBlock.x].value !== null
+        prevState.grid[newY][currentBlock.x].value !== null
       ) {
         return landBlock(prevState);
       }
 
-      // Bloğu aşağı taşı
+      // Bloğu sadece Y ekseninde aşağı taşı - X koordinatı değişmemeli!
       return {
         ...prevState,
         fallingBlock: {
           ...prevState.fallingBlock,
           y: newY,
+          // x koordinatı açıkça belirtiyoruz - değişmemeli
+          x: currentBlock.x,
         },
       };
     });
@@ -126,7 +129,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     const { fallingBlock, grid, selectedOperation } = state;
 
-    // Blok şu anda bulunduğu pozisyonda kalmalı - ekstra aşağı indirme!
+    // Blok şu anda bulunduğu pozisyonda kalmalı - koordinatları sabit
     const landingY = fallingBlock.y;
     const landingX = fallingBlock.x;
 
@@ -145,6 +148,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Eğer en üstteyse ve hücre doluysa oyun bitti
+    // grid[y][x] formatında kontrol et
     if (landingY === 0 && grid[landingY][landingX].value !== null) {
       return {
         ...state,
@@ -154,6 +158,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     const newGrid = grid.map((row) => [...row]);
+    // grid[y][x] formatında erişim
     const existingValue = newGrid[landingY][landingX].value;
 
     // İşlem yap
@@ -293,13 +298,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
-      const newX = prevState.fallingBlock.x - 1;
-      const currentY = prevState.fallingBlock.y;
+      const currentBlock = prevState.fallingBlock;
+      const newX = currentBlock.x - 1;
+      const currentY = currentBlock.y;
 
       // Sol sınır kontrolü
       if (newX < 0) return prevState;
 
-      // Hedef pozisyon boş mu kontrolü
+      // Hedef pozisyon boş mu kontrolü - grid[y][x] formatında
       if (
         currentY < GRID_HEIGHT &&
         prevState.grid[currentY][newX].value !== null
@@ -312,6 +318,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
         fallingBlock: {
           ...prevState.fallingBlock,
           x: newX,
+          // y koordinatı açıkça belirtiyoruz - değişmemeli
+          y: currentY,
         },
       };
     });
@@ -321,13 +329,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
-      const newX = prevState.fallingBlock.x + 1;
-      const currentY = prevState.fallingBlock.y;
+      const currentBlock = prevState.fallingBlock;
+      const newX = currentBlock.x + 1;
+      const currentY = currentBlock.y;
 
       // Sağ sınır kontrolü
       if (newX >= GRID_WIDTH) return prevState;
 
-      // Hedef pozisyon boş mu kontrolü
+      // Hedef pozisyon boş mu kontrolü - grid[y][x] formatında
       if (
         currentY < GRID_HEIGHT &&
         prevState.grid[currentY][newX].value !== null
@@ -340,6 +349,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
         fallingBlock: {
           ...prevState.fallingBlock,
           x: newX,
+          // y koordinatı açıkça belirtiyoruz - değişmemeli
+          y: currentY,
         },
       };
     });
@@ -349,10 +360,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
-      let newY = prevState.fallingBlock.y;
-      const blockX = prevState.fallingBlock.x;
+      const currentBlock = prevState.fallingBlock;
+      let newY = currentBlock.y;
+      const blockX = currentBlock.x;
 
       // Aşağıda boş yer var mı, varsa en alt noktayı bul
+      // grid[y][x] formatında kontrol et
       while (
         newY + 1 < GRID_HEIGHT &&
         prevState.grid[newY + 1][blockX].value === null
@@ -361,12 +374,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
       }
 
       // Eğer hareket ettiyse bloğu oraya taşı, yoksa direk yerleştir
-      if (newY > prevState.fallingBlock.y) {
+      if (newY > currentBlock.y) {
         return {
           ...prevState,
           fallingBlock: {
             ...prevState.fallingBlock,
             y: newY,
+            // x koordinatı değişmemeli
+            x: blockX,
           },
         };
       } else {
