@@ -160,7 +160,17 @@ export const getPlayerTitle = (score: number): string => {
 
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
-  const baseSpeed = 1000; // 1 saniye
-  const speedIncrease = level * 78;
-  return Math.max(200, baseSpeed - speedIncrease); // Minimum 200ms
+ const baseSpeed = 900; // 0,9 saniye
+ 
+ if (level <= 5) {
+   // Level 1-5: Her level 90ms hızlanma
+   const speedIncrease = level * 90;
+   return Math.max(200, baseSpeed - speedIncrease);
+ } else {
+   // Level 5'ten sonra: İlk 5 level için 450ms düşüş + sonraki leveller için 50ms
+   const firstFiveLevelsDecrease = 5 * 90; // 450ms
+   const additionalLevelsDecrease = (level - 5) * 50;
+   const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
+   return Math.max(200, baseSpeed - totalDecrease);
+ }
 };

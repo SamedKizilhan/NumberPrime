@@ -339,8 +339,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
           matchingCells.forEach((cell) => {
             if (cell.value !== null) {
               cellsToExplode.add(`${cell.x}-${cell.y}`);
-              // YENİ PUANLAMA: Normal patlama = 10 puan
-              totalScore += 10;
+              // YENİ PUANLAMA: Normal patlama = 30 puan
+              totalScore += 30;
             }
           });
           break;
@@ -361,20 +361,20 @@ const GameScreen: React.FC<GameScreenProps> = ({
       primeCells.forEach((cell) => {
         if (cell.value !== null) {
           cellsToExplode.add(`${cell.x}-${cell.y}`);
-          // YENİ PUANLAMA: Asal patlama = kutucuk başına 10 puan
-          totalScore += 10;
+          // YENİ PUANLAMA: Asal patlama = kutucuk başına 20 puan
+          totalScore += 20;
         }
       });
 
-      // 2 sayısı ise ekstra +100 puan
+      // 2 sayısı ise ekstra +150 puan
       if (has2Explosion) {
-        totalScore += 100;
+        totalScore += 200;
       }
     }
 
     // 3. Combo bonusu
     if (isCombo && cellsToExplode.size > 0) {
-      totalScore += 50;
+      totalScore += 100;
     }
 
     // Patlamaları uygula

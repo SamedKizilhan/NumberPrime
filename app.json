@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "NumberPrime",
-    "slug": "NumberPrime",
+    "name": "NumPrime",
+    "slug": "numprime",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
