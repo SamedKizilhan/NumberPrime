@@ -263,11 +263,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       for (let y = 0; y < GRID_HEIGHT; y++) {
         for (let x = 0; x < GRID_WIDTH; x++) {
           if (finalGrid[y][x].value !== null) {
+            // COMBO: Gravity sonrası patlamalar combo sayılır
             let { scoreGained } = checkExplosions(
               finalGrid,
               x,
               y,
-              finalGrid[y][x].value!
+              finalGrid[y][x].value!,
+              true
             );
 
             if (scoreGained > 0) {
@@ -301,12 +303,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     grid: any[][],
     x: number,
     y: number,
-    value: number
+    value: number,
+    isCombo: boolean = false
   ) => {
     let totalScore = 0;
     let cellsToExplode: Set<string> = new Set();
     let hasNeighborMatch = false;
     let hasPrimeExplosion = false;
+    let has2Explosion = false;
 
     // 1. Önce komşu eşitlik kontrolü
     const directions = [
@@ -335,7 +339,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
           matchingCells.forEach((cell) => {
             if (cell.value !== null) {
               cellsToExplode.add(`${cell.x}-${cell.y}`);
-              totalScore += cell.value;
+              // YENİ PUANLAMA: Normal patlama = 10 puan
+              totalScore += 10;
             }
           });
           break;
@@ -346,13 +351,30 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // 2. Eğer komşu eşleşmesi varsa VE sayı asal ise çapraz patlama da ekle
     if (hasNeighborMatch && isPrime(value)) {
       hasPrimeExplosion = true;
+
+      // 2 sayısı özel kontrolü
+      if (value === 2) {
+        has2Explosion = true;
+      }
+
       const primeCells = findPrimeCrossExplosion(grid, x, y);
       primeCells.forEach((cell) => {
         if (cell.value !== null) {
           cellsToExplode.add(`${cell.x}-${cell.y}`);
-          totalScore += cell.value * 10; // Asal patlama bonusu
+          // YENİ PUANLAMA: Asal patlama = kutucuk başına 10 puan
+          totalScore += 10;
         }
       });
+
+      // 2 sayısı ise ekstra +100 puan
+      if (has2Explosion) {
+        totalScore += 100;
+      }
+    }
+
+    // 3. Combo bonusu
+    if (isCombo && cellsToExplode.size > 0) {
+      totalScore += 50;
     }
 
     // Patlamaları uygula
@@ -363,7 +385,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Patlama seslerini çal
     if (cellsToExplode.size > 0) {
-      if (hasPrimeExplosion) {
+      if (isCombo) {
+        soundManager.playComboSound(); // Combo sesi
+      } else if (has2Explosion) {
+        soundManager.playPrime2Sound(); // 2 sayısı özel sesi
+      } else if (hasPrimeExplosion) {
         soundManager.playPrimeExplosionSound(); // Asal patlama sesi
       } else if (hasNeighborMatch) {
         soundManager.playExplosionSound(); // Normal patlama sesi

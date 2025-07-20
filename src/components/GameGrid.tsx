@@ -30,7 +30,7 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
 
     return (
       <View key={cell.id} style={cellStyle}>
-        {cell.value && (
+        {cell.value !== null && (
           <Text style={[styles.cellText, isFalling && styles.fallingCellText]}>
             {cell.value}
           </Text>

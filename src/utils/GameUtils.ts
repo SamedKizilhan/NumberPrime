@@ -148,19 +148,19 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
 
 // Oyuncu title'ı belirleme
 export const getPlayerTitle = (score: number): string => {
-  if (score >= 50000) return 'Prime Master';
-  if (score >= 25000) return 'Math Genius';
-  if (score >= 10000) return 'Number Sage';
+  if (score >= 11000) return 'Prime Master';
+  if (score >= 9000) return 'Math Genius';
+  if (score >= 7000) return 'Number Sage';
   if (score >= 5000) return 'Calculation Expert';
-  if (score >= 2000) return 'Math Enthusiast';
-  if (score >= 1000) return 'Number Cruncher';
-  if (score >= 500) return 'Math Student';
+  if (score >= 3000) return 'Math Enthusiast';
+  if (score >= 2000) return 'Number Cruncher';
+  if (score >= 1000) return 'Math Student';
   return 'Beginner';
 };
 
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
   const baseSpeed = 1000; // 1 saniye
-  const speedIncrease = level * 50;
+  const speedIncrease = level * 78;
   return Math.max(200, baseSpeed - speedIncrease); // Minimum 200ms
 };
