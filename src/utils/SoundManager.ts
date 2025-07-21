@@ -10,10 +10,11 @@ class SoundManager {
   private comboSound: Audio.Sound | null = null;
   private moveSound: Audio.Sound | null = null;
   private dropSound: Audio.Sound | null = null;
+  private failureSound: Audio.Sound | null = null;
   
   private isMuted: boolean = false;
-  private musicVolume: number = 0.50; // %45 ses seviyesi
-  private effectsVolume: number = 0.65; // %70 ses seviyesi
+  private musicVolume: number = 0.33; // %33 ses seviyesi
+  private effectsVolume: number = 0.75; // %65 ses seviyesi
 
   public static getInstance(): SoundManager {
     if (!SoundManager.instance) {
@@ -53,7 +54,7 @@ class SoundManager {
         await this.buttonSound.setVolumeAsync(0);
         await this.buttonSound.playAsync();
         await this.buttonSound.stopAsync();
-        await this.buttonSound.setVolumeAsync(this.effectsVolume);
+        await this.buttonSound.setVolumeAsync(this.effectsVolume * 0.55);
       }
       
       if (this.explosionSound) {
@@ -67,7 +68,7 @@ class SoundManager {
         await this.primeExplosionSound.setVolumeAsync(0);
         await this.primeExplosionSound.playAsync();
         await this.primeExplosionSound.stopAsync();
-        await this.primeExplosionSound.setVolumeAsync(this.effectsVolume);
+        await this.primeExplosionSound.setVolumeAsync(this.effectsVolume * 0.7);
       }
       
       console.log('Android ses preload tamamlandı');
@@ -98,7 +99,7 @@ class SoundManager {
       try {
         const { sound: buttonSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/button.mp3'),
-          { volume: this.effectsVolume }
+          { volume: this.effectsVolume * 0.55 }
         );
         this.buttonSound = buttonSfx;
         console.log('Button sesi yüklendi');
@@ -111,7 +112,7 @@ class SoundManager {
         const { sound: explosionSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/explosion.mp3'),
           { 
-            volume: this.effectsVolume,
+            volume: this.effectsVolume, // 0.8 çarpanını kaldırdık, daha yüksek ses
             shouldPlay: false,
             isLooping: false
           }
@@ -133,7 +134,7 @@ class SoundManager {
         const { sound: primeExplosionSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/prime_explosion.mp3'),
           { 
-            volume: this.effectsVolume,
+            volume: this.effectsVolume * 0.7,
             shouldPlay: false,
             isLooping: false
           }
@@ -155,7 +156,7 @@ class SoundManager {
         const { sound: prime2Sfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/prime2.mp3'),
           { 
-            volume: this.effectsVolume,
+            volume: this.effectsVolume * 0.7,
             shouldPlay: false,
             isLooping: false
           }
@@ -177,7 +178,7 @@ class SoundManager {
         const { sound: comboSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/combo.mp3'),
           { 
-            volume: this.effectsVolume,
+            volume: this.effectsVolume * 0.8,
             shouldPlay: false,
             isLooping: false
           }
@@ -198,7 +199,7 @@ class SoundManager {
       try {
         const { sound: moveSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/move.mp3'),
-          { volume: this.effectsVolume * 0.5 }
+          { volume: this.effectsVolume * 0.85 }
         );
         this.moveSound = moveSfx;
         console.log('Move sesi yüklendi');
@@ -210,12 +211,28 @@ class SoundManager {
       try {
         const { sound: dropSfx } = await Audio.Sound.createAsync(
           require('../../assets/sounds/drop.mp3'),
-          { volume: this.effectsVolume }
+          { volume: this.effectsVolume * 0.45 }
         );
         this.dropSound = dropSfx;
         console.log('Drop sesi yüklendi');
       } catch (e) {
         console.log('Drop sesi yüklenemedi:', e);
+      }
+
+      // Oyun bitişi sesi yükle
+      try {
+        const { sound: failureSfx } = await Audio.Sound.createAsync(
+          require('../../assets/sounds/failure.mp3'),
+          { 
+            volume: this.effectsVolume,
+            shouldPlay: false,
+            isLooping: false
+          }
+        );
+        this.failureSound = failureSfx;
+        console.log('Failure sesi yüklendi');
+      } catch (e) {
+        console.log('Failure sesi yüklenemedi:', e);
       }
 
     } catch (error) {
@@ -411,6 +428,40 @@ class SoundManager {
     }
   }
 
+  // Oyun bitişi sesi çal
+  async playFailureSound() {
+    if (!this.isMuted && this.failureSound) {
+      try {
+        console.log("Failure sesi çalınıyor...");
+
+        // Önce background müziği durdur
+        await this.pauseBackgroundMusic();
+
+        // Failure sesini çal
+        await this.failureSound.stopAsync();
+        await this.failureSound.setPositionAsync(0);
+        await this.failureSound.playAsync();
+
+        // Ses bittiğinde background müziği tekrar başlat
+        const status = await this.failureSound.getStatusAsync();
+        if (status.isLoaded) {
+          const waitTime =
+            status.durationMillis != null ? status.durationMillis + 1000 : 2000;
+
+          setTimeout(async () => {
+            await this.playBackgroundMusic();
+          }, waitTime);
+        }
+
+        console.log("Failure sesi başlatıldı");
+      } catch (error) {
+        console.log('Failure sesi hatası:', error);
+        // Hata durumunda background müziği tekrar başlat
+        await this.playBackgroundMusic();
+      }
+    }
+  }
+
   // Ses açık/kapalı toggle
   toggleMute() {
     this.isMuted = !this.isMuted;
@@ -445,7 +496,6 @@ class SoundManager {
     // Tüm efekt seslerinin seviyesini güncelle
     const sounds = [
       this.buttonSound,
-      this.explosionSound,
       this.primeExplosionSound,
       this.dropSound
     ];
@@ -453,17 +503,35 @@ class SoundManager {
     for (const sound of sounds) {
       if (sound) {
         try {
-          await sound.setVolumeAsync(this.effectsVolume);
+          await sound.setVolumeAsync(this.effectsVolume * 0.8);
         } catch (error) {
           console.log('Efekt ses seviyesi ayarlama hatası:', error);
         }
       }
     }
 
-    // Hareket sesi daha sessiz
+    // Explosion sesi daha yüksek
+    if (this.explosionSound) {
+      try {
+        await this.explosionSound.setVolumeAsync(this.effectsVolume);
+      } catch (error) {
+        console.log('Explosion ses seviyesi ayarlama hatası:', error);
+      }
+    }
+
+    // Failure sesi normal seviye
+    if (this.failureSound) {
+      try {
+        await this.failureSound.setVolumeAsync(this.effectsVolume);
+      } catch (error) {
+        console.log('Failure ses seviyesi ayarlama hatası:', error);
+      }
+    }
+
+    // Hareket sesi daha yüksek
     if (this.moveSound) {
       try {
-        await this.moveSound.setVolumeAsync(this.effectsVolume * 0.5);
+        await this.moveSound.setVolumeAsync(this.effectsVolume * 0.7);
       } catch (error) {
         console.log('Hareket ses seviyesi ayarlama hatası:', error);
       }
@@ -480,7 +548,8 @@ class SoundManager {
       this.prime2Sound,
       this.comboSound,
       this.moveSound,
-      this.dropSound
+      this.dropSound,
+      this.failureSound
     ];
 
     for (const sound of sounds) {

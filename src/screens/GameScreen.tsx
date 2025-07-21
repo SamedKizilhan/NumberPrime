@@ -239,6 +239,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Oyun bitme kontrolü - eğer en üstteyse
     if (landingY <= 0) {
+      // Failure sesini çal
+      soundManager.playFailureSound();
+
       return {
         ...state,
         isGameOver: true,
