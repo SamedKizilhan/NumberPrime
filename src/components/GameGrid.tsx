@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import {
   GridCell,
@@ -7,10 +7,17 @@ import {
   GRID_HEIGHT,
 } from "../types/GameTypes";
 import { isPrime } from "../utils/GameUtils";
+import ExplosionAnimation from "./ExplosionAnimation";
 
 interface GameGridProps {
   grid: GridCell[][];
   fallingBlock: FallingBlock | null;
+  explosions?: Array<{
+    x: number;
+    y: number;
+    type: "normal" | "prime" | "prime2" | "combo";
+    id: string;
+  }>;
 }
 
 const { width, height } = Dimensions.get("window");
@@ -20,7 +27,30 @@ const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
 const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
 const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT); // Maximum limit kaldırdık
 
-const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
+const GameGrid: React.FC<GameGridProps> = ({
+  grid,
+  fallingBlock,
+  explosions = [],
+}) => {
+  const [activeExplosions, setActiveExplosions] = useState<
+    Array<{
+      x: number;
+      y: number;
+      type: "normal" | "prime" | "prime2" | "combo";
+      id: string;
+    }>
+  >([]);
+
+  // Yeni patlamalar geldiğinde state'i güncelle
+  useEffect(() => {
+    if (explosions.length > 0) {
+      setActiveExplosions((prev) => [...prev, ...explosions]);
+    }
+  }, [explosions]);
+
+  const handleExplosionComplete = (explosionId: string) => {
+    setActiveExplosions((prev) => prev.filter((exp) => exp.id !== explosionId));
+  };
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const cellStyle = [
       styles.cell,
@@ -67,6 +97,18 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, fallingBlock }) => {
             </View>
           ))}
         </View>
+
+        {/* Patlama animasyonları */}
+        {activeExplosions.map((explosion) => (
+          <ExplosionAnimation
+            key={explosion.id}
+            x={explosion.x}
+            y={explosion.y}
+            cellSize={CELL_SIZE}
+            type={explosion.type}
+            onComplete={() => handleExplosionComplete(explosion.id)}
+          />
+        ))}
       </View>
     </View>
   );

@@ -35,6 +35,14 @@ interface GameScreenProps {
   playerNickname: string;
 }
 
+// Explosion interface tanımı
+interface Explosion {
+  x: number;
+  y: number;
+  type: "normal" | "prime" | "prime2" | "combo";
+  id: string;
+}
+
 const { width, height } = Dimensions.get("window");
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -52,6 +60,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   });
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [explosions, setExplosions] = useState<Explosion[]>([]);
   const soundManager = SoundManager.getInstance();
 
   // Ses sistemini başlat
@@ -311,6 +320,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let hasNeighborMatch = false;
     let hasPrimeExplosion = false;
     let has2Explosion = false;
+    let explosionType: "normal" | "prime" | "prime2" | "combo" = "normal";
 
     // 1. Önce komşu eşitlik kontrolü
     const directions = [
@@ -351,10 +361,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // 2. Eğer komşu eşleşmesi varsa VE sayı asal ise çapraz patlama da ekle
     if (hasNeighborMatch && isPrime(value)) {
       hasPrimeExplosion = true;
+      explosionType = "prime";
 
       // 2 sayısı özel kontrolü
       if (value === 2) {
         has2Explosion = true;
+        explosionType = "prime2";
       }
 
       const primeCells = findPrimeCrossExplosion(grid, x, y);
@@ -374,7 +386,35 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // 3. Combo bonusu
     if (isCombo && cellsToExplode.size > 0) {
+      explosionType = "combo";
       totalScore += 100;
+    }
+
+    // Explosion animasyonlarını tetikle
+    if (cellsToExplode.size > 0) {
+      const newExplosions: Explosion[] = Array.from(cellsToExplode).map(
+        (key) => {
+          const [cellX, cellY] = key.split("-").map(Number);
+          return {
+            x: cellX,
+            y: cellY,
+            type: explosionType,
+            id: `${Date.now()}-${cellX}-${cellY}`,
+          };
+        }
+      );
+
+      setExplosions((prev) => [...prev, ...newExplosions]);
+
+      // Explosion animasyonlarını belirli bir süre sonra temizle
+      setTimeout(() => {
+        setExplosions((prev) =>
+          prev.filter(
+            (explosion) =>
+              !newExplosions.some((newExp) => newExp.id === explosion.id)
+          )
+        );
+      }, 1000); // 1 saniye sonra animasyonu temizle
     }
 
     // Patlamaları uygula
@@ -551,6 +591,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 level: 1,
                 gameSpeed: calculateGameSpeed(1),
               });
+              setExplosions([]); // Explosions'ı da sıfırla
             }}
             activeOpacity={0.7}
           >
@@ -605,7 +646,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
       />
 
       <View style={styles.gameArea}>
-        <GameGrid grid={gameState.grid} fallingBlock={gameState.fallingBlock} />
+        <GameGrid
+          grid={gameState.grid}
+          fallingBlock={gameState.fallingBlock}
+          explosions={explosions}
+        />
       </View>
 
       <GameControls
