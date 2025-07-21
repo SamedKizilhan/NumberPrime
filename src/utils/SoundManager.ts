@@ -12,8 +12,8 @@ class SoundManager {
   private dropSound: Audio.Sound | null = null;
   
   private isMuted: boolean = false;
-  private musicVolume: number = 0.3; // %30 ses seviyesi
-  private effectsVolume: number = 0.7; // %70 ses seviyesi
+  private musicVolume: number = 0.50; // %45 ses seviyesi
+  private effectsVolume: number = 0.65; // %70 ses seviyesi
 
   public static getInstance(): SoundManager {
     if (!SoundManager.instance) {
