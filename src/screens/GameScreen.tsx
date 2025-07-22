@@ -16,6 +16,7 @@ import {
   Operation,
   GRID_WIDTH,
   GRID_HEIGHT,
+  PlayerScore,
 } from "../types/GameTypes";
 import {
   createEmptyGrid,
@@ -29,6 +30,7 @@ import {
   getPlayerTitle,
 } from "../utils/GameUtils";
 import SoundManager from "../utils/SoundManager";
+import { saveScore } from "../utils/StorageUtils";
 
 interface GameScreenProps {
   onGameEnd: () => void;
@@ -241,6 +243,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
     if (landingY <= 0) {
       // Failure sesini çal
       soundManager.playFailureSound();
+
+      // Skoru kaydet
+      const finalScore: PlayerScore = {
+        id: Date.now().toString(),
+        nickname: playerNickname,
+        score: state.score,
+        date: new Date().toLocaleDateString(),
+        title: getPlayerTitle(state.score),
+      };
+
+      saveScore(finalScore);
 
       return {
         ...state,

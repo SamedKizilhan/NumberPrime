@@ -1,17 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, SafeAreaView } from "react-native";
 import GameScreen from "./src/screens/GameScreen";
 import MenuScreen from "./src/screens/MenuScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
+import { getUserProfile, saveUserProfile, UserProfile } from './src/utils/StorageUtils';
 
 export type Screen = "menu" | "game" | "leaderboard";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
   const [playerNickname, setPlayerNickname] = useState<string>("");
+  const [isCheckingUser, setIsCheckingUser] = useState<boolean>(true);
+
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      try {
+        const profile = await getUserProfile();
+        if (profile && profile.nickname) {
+          setPlayerNickname(profile.nickname);
+        }
+      } catch (error) {
+        console.error('Error checking user profile:', error);
+      } finally {
+        setIsCheckingUser(false);
+      }
+    };
+
+    checkUserProfile();
+  }, []);
+
+  const handleNicknameSet = async (nickname: string) => {
+    const profile: UserProfile = {
+      nickname: nickname,
+      isFirstTime: false,
+      totalGamesPlayed: 0,
+      bestScore: 0
+    };
+
+    await saveUserProfile(profile);
+    setPlayerNickname(nickname);
+  };
 
   const renderScreen = () => {
+    // Kullanıcı kontrolü devam ediyorsa loading göster
+    if (isCheckingUser) {
+      return null; // Veya bir loading screen komponenti
+    }
+
     switch (currentScreen) {
       case "menu":
         return (
@@ -19,7 +55,7 @@ export default function App() {
             onStartGame={() => setCurrentScreen("game")}
             onShowLeaderboard={() => setCurrentScreen("leaderboard")}
             playerNickname={playerNickname}
-            setPlayerNickname={setPlayerNickname}
+            setPlayerNickname={handleNicknameSet}
           />
         );
       case "game":
@@ -30,7 +66,12 @@ export default function App() {
           />
         );
       case "leaderboard":
-        return <LeaderboardScreen onBack={() => setCurrentScreen("menu")} />;
+        return (
+          <LeaderboardScreen 
+            onBack={() => setCurrentScreen("menu")} 
+            playerNickname={playerNickname}
+          />
+        );
       default:
         return null;
     }
