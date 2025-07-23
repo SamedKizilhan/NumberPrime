@@ -127,12 +127,12 @@ class SoundManager {
       {
         key: "move",
         file: require("../../assets/sounds/move.mp3"),
-        volume: 0.3,
+        volume: 0.5,
       },
       {
         key: "drop",
         file: require("../../assets/sounds/drop.mp3"),
-        volume: 0.6,
+        volume: 0.45,
       },
       {
         key: "failure",
@@ -233,7 +233,7 @@ class SoundManager {
       // Move sesi yükle
       const { sound: moveSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/move.mp3"),
-        { volume: this.effectsVolume * 0.3 } // Hareket sesi daha yumuşak
+        { volume: this.effectsVolume * 0.5 } // Hareket sesi daha yumuşak
       );
       this.moveSound = moveSfx;
       console.log("Move sesi yüklendi");
@@ -245,7 +245,7 @@ class SoundManager {
       // Drop sesi yükle
       const { sound: dropSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/drop.mp3"),
-        { volume: this.effectsVolume * 0.6 }
+        { volume: this.effectsVolume * 0.45 }
       );
       this.dropSound = dropSfx;
       console.log("Drop sesi yüklendi");

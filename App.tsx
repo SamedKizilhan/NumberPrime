@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, SafeAreaView } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  View,
+  Platform,
+  BackHandler,
+} from "react-native";
 import GameScreen from "./src/screens/GameScreen";
 import MenuScreen from "./src/screens/MenuScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
-import { getUserProfile, saveUserProfile, UserProfile } from './src/utils/StorageUtils';
+import {
+  getUserProfile,
+  saveUserProfile,
+  UserProfile,
+} from "./src/utils/StorageUtils";
 
 export type Screen = "menu" | "game" | "leaderboard";
 
@@ -21,7 +31,7 @@ export default function App() {
           setPlayerNickname(profile.nickname);
         }
       } catch (error) {
-        console.error('Error checking user profile:', error);
+        console.error("Error checking user profile:", error);
       } finally {
         setIsCheckingUser(false);
       }
@@ -30,12 +40,29 @@ export default function App() {
     checkUserProfile();
   }, []);
 
+  // Global BackHandler - sadece debug için
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          console.log(
+            `GLOBAL: Geri tuşuna basıldı, current screen: ${currentScreen}`
+          );
+          return false; // Event'i consume etme, alt seviyeye geçir
+        }
+      );
+
+      return () => backHandler.remove();
+    }
+  }, [currentScreen]);
+
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {
       nickname: nickname,
       isFirstTime: false,
       totalGamesPlayed: 0,
-      bestScore: 0
+      bestScore: 0,
     };
 
     await saveUserProfile(profile);
@@ -67,8 +94,8 @@ export default function App() {
         );
       case "leaderboard":
         return (
-          <LeaderboardScreen 
-            onBack={() => setCurrentScreen("menu")} 
+          <LeaderboardScreen
+            onBack={() => setCurrentScreen("menu")}
             playerNickname={playerNickname}
           />
         );
@@ -77,11 +104,14 @@ export default function App() {
     }
   };
 
+  // Platform specific container
+  const Container = Platform.OS === "ios" ? SafeAreaView : View;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <Container style={styles.container}>
       <StatusBar style="light" />
       {renderScreen()}
-    </SafeAreaView>
+    </Container>
   );
 }
 
@@ -89,5 +119,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1a1a2e",
+    // Android için ek paddingTop
+    ...(Platform.OS === "android" && {
+      paddingTop: 25, // Status bar için
+    }),
   },
 });

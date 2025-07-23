@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  BackHandler,
 } from "react-native";
 import { PlayerScore } from "../types/GameTypes";
 import { getPlayerTitle } from "../utils/GameUtils";
@@ -30,6 +31,23 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Android geri tuşu kontrolü
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        console.log("Geri tuşuna basıldı - LeaderboardScreen");
+        onBack();
+        return true; // Event'i consume et
+      }
+    );
+
+    return () => {
+      console.log("BackHandler temizleniyor - LeaderboardScreen");
+      backHandler.remove();
+    };
+  }, []);
 
   const loadLeaderboard = async () => {
     try {

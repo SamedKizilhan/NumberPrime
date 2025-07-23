@@ -25,7 +25,7 @@ const AVAILABLE_WIDTH = width - 80; // Padding'ler için
 const AVAILABLE_HEIGHT = height * 0.6; // %55'ten %60'a çıkardık
 const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
 const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
-const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT); // Maximum limit kaldırdık
+export const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT); // Export edildi
 
 const GameGrid: React.FC<GameGridProps> = ({
   grid,
@@ -51,6 +51,7 @@ const GameGrid: React.FC<GameGridProps> = ({
   const handleExplosionComplete = (explosionId: string) => {
     setActiveExplosions((prev) => prev.filter((exp) => exp.id !== explosionId));
   };
+
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const cellStyle = [
       styles.cell,

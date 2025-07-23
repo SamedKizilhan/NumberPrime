@@ -97,9 +97,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
         </TouchableOpacity>
 
+        {/* Alternative approach - View based button */}
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
           onPress={onShowLeaderboard}
+          activeOpacity={0.7}
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
             SKOR TABLOSU
@@ -112,7 +114,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             • Düşen sayıları yöneterek yerleştir
           </Text>
           <Text style={styles.instructionText}>
-            • + veya - işlemlerinden birini seçerek üzerine indiğin bloğu değiştirebilirsin
+            • + veya - işlemlerinden birini seçerek üzerine indiğin bloğu
+            değiştirebilirsin
           </Text>
           <Text style={styles.instructionText}>
             • Eşit sayılar elde ederek bir araya getir
@@ -264,6 +267,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#00d2d3",
     shadowColor: "#00d2d3",
+    overflow: "hidden",
+    ...(Platform.OS === "android" && {
+      elevation: 0, // Android elevation'ı kaldır
+      borderBottomWidth: 2,
+      borderBottomColor: "#00d2d3",
+    }),
+  },
+  buttonTextContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: "#fff",
@@ -273,6 +287,21 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#00d2d3",
+    fontFamily: Platform.OS === "android" ? "sans-serif" : "System", // Platform specific font
+    textDecorationLine: "none",
+    textDecorationColor: "transparent",
+    textDecorationStyle: "solid",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 0,
+    borderBottomWidth: 0,
+    borderWidth: 0,
+    ...(Platform.OS === "android" && {
+      textAlignVertical: "center",
+      includeFontPadding: false,
+      elevation: 0, // Remove elevation
+    }),
+    // textShadowColor'ı son olarak set et
+    textShadowColor: "transparent",
   },
   instructions: {
     marginTop: 40,
