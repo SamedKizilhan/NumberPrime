@@ -35,3 +35,13 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Keystore files
+*.keystore
+android/app/*.keystore
+
+# Keystore properties (contains passwords)
+android/keystore.properties
+
+# Local gradle properties
+android/local.properties

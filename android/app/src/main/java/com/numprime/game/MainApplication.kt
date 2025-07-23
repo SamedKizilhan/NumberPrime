@@ -1,4 +1,4 @@
-package com.anonymous.NumberPrime
+package com.numprime.game
 
 import android.app.Application
 import android.content.res.Configuration
