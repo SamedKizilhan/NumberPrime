@@ -1,22 +1,29 @@
-import { Audio, AudioMode, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
+import { Audio } from "expo-av";
+import { Platform } from "react-native";
 
 class SoundManager {
   private static instance: SoundManager;
   private backgroundMusic: Audio.Sound | null = null;
-  private buttonSound: Audio.Sound | null = null;
   private explosionSound: Audio.Sound | null = null;
   private primeExplosionSound: Audio.Sound | null = null;
   private prime2Sound: Audio.Sound | null = null;
   private comboSound: Audio.Sound | null = null;
+  private buttonSound: Audio.Sound | null = null;
   private moveSound: Audio.Sound | null = null;
   private dropSound: Audio.Sound | null = null;
   private failureSound: Audio.Sound | null = null;
-  
-  private isMuted: boolean = false;
-  private musicVolume: number = 0.33; // %33 ses seviyesi
-  private effectsVolume: number = 0.75; // %65 ses seviyesi
 
-  public static getInstance(): SoundManager {
+  private isMuted: boolean = false;
+  private musicVolume: number = 0.5; // 0.3'ten 0.5'e çıkarıldı
+  private effectsVolume: number = 0.7;
+  private isInitialized: boolean = false;
+
+  // Android için ek ayarlar
+  private isAndroid: boolean = Platform.OS === "android";
+  private soundPool: { [key: string]: Audio.Sound[] } = {}; // Sound pool for Android
+  private poolSize: number = 3; // Her ses için 3 instance
+
+  static getInstance(): SoundManager {
     if (!SoundManager.instance) {
       SoundManager.instance = new SoundManager();
     }
@@ -24,445 +31,414 @@ class SoundManager {
   }
 
   async initialize() {
+    if (this.isInitialized) return;
+
     try {
-      // Audio modunu ayarla
+      console.log("SoundManager initialize başlıyor...");
+
+      // Audio modunu ayarla - Basit ve uyumlu versiyon
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
         staysActiveInBackground: false,
-        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-        playThroughEarpieceAndroid: false, // Android için
-      } as AudioMode);
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
 
-      // Ses dosyalarını yükle
-      await this.loadSounds();
-      
-      // Android için ses dosyalarını preload et
-      await this.preloadSounds();
+      // Background müzik yükle
+      await this.loadBackgroundMusic();
+
+      // Efekt seslerini yükle
+      await this.loadEffectSounds();
+
+      this.isInitialized = true;
+      console.log("SoundManager başarıyla initialize edildi");
     } catch (error) {
-      console.log('Ses başlatma hatası:', error);
+      console.error("SoundManager initialize hatası:", error);
+      this.isInitialized = true; // Hata olsa bile devam et
     }
   }
 
-  // Android için ses dosyalarını önceden hazırla
-  private async preloadSounds() {
+  private async loadBackgroundMusic() {
     try {
-      // Kısa bir sessiz çalma ile Android'i hazırla
-      if (this.buttonSound) {
-        await this.buttonSound.setVolumeAsync(0);
-        await this.buttonSound.playAsync();
-        await this.buttonSound.stopAsync();
-        await this.buttonSound.setVolumeAsync(this.effectsVolume * 0.55);
+      const { sound: bgMusic } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/background.mp3"),
+        {
+          volume: this.musicVolume,
+          shouldPlay: false,
+          isLooping: true,
+          // Android için ek ayarlar
+          ...(this.isAndroid && {
+            progressUpdateIntervalMillis: 500,
+          }),
+        }
+      );
+      this.backgroundMusic = bgMusic;
+      console.log("Background müzik yüklendi");
+
+      // Android için hazırlık
+      if (this.isAndroid) {
+        await bgMusic.setStatusAsync({ shouldPlay: false });
       }
-      
-      if (this.explosionSound) {
-        await this.explosionSound.setVolumeAsync(0);
-        await this.explosionSound.playAsync();
-        await this.explosionSound.stopAsync();
-        await this.explosionSound.setVolumeAsync(this.effectsVolume);
-      }
-      
-      if (this.primeExplosionSound) {
-        await this.primeExplosionSound.setVolumeAsync(0);
-        await this.primeExplosionSound.playAsync();
-        await this.primeExplosionSound.stopAsync();
-        await this.primeExplosionSound.setVolumeAsync(this.effectsVolume * 0.7);
-      }
-      
-      console.log('Android ses preload tamamlandı');
-    } catch (error) {
-      console.log('Preload hatası:', error);
+    } catch (e) {
+      console.log("Background müzik yüklenemedi:", e);
     }
   }
 
-  private async loadSounds() {
+  private async loadEffectSounds() {
+    // Android için sound pool oluştur
+    if (this.isAndroid) {
+      await this.createSoundPools();
+    } else {
+      await this.loadSingleEffectSounds();
+    }
+  }
+
+  private async createSoundPools() {
+    console.log("Android sound pool oluşturuluyor...");
+
+    // Her efekt sesi için pool oluştur
+    const soundFiles = [
+      {
+        key: "explosion",
+        file: require("../../assets/sounds/explosion.mp3"),
+        volume: 0.7,
+      },
+      {
+        key: "primeExplosion",
+        file: require("../../assets/sounds/prime_explosion.mp3"),
+        volume: 0.7,
+      },
+      {
+        key: "prime2",
+        file: require("../../assets/sounds/prime2.mp3"),
+        volume: 0.7,
+      },
+      {
+        key: "combo",
+        file: require("../../assets/sounds/combo.mp3"),
+        volume: 0.8,
+      },
+      {
+        key: "button",
+        file: require("../../assets/sounds/button.mp3"),
+        volume: 0.3,
+      }, // Düşük ses
+      {
+        key: "move",
+        file: require("../../assets/sounds/move.mp3"),
+        volume: 0.3,
+      },
+      {
+        key: "drop",
+        file: require("../../assets/sounds/drop.mp3"),
+        volume: 0.6,
+      },
+      {
+        key: "failure",
+        file: require("../../assets/sounds/failure.mp3"),
+        volume: 0.8,
+      },
+    ];
+
+    for (const soundFile of soundFiles) {
+      this.soundPool[soundFile.key] = [];
+
+      for (let i = 0; i < this.poolSize; i++) {
+        try {
+          const { sound } = await Audio.Sound.createAsync(soundFile.file, {
+            volume: this.effectsVolume * (soundFile.volume || 0.7), // Her ses için özel volume
+            shouldPlay: false,
+            isLooping: false,
+          });
+
+          await sound.setStatusAsync({ shouldPlay: false });
+          this.soundPool[soundFile.key].push(sound);
+        } catch (error) {
+          console.log(`${soundFile.key} pool item ${i} yüklenemedi:`, error);
+        }
+      }
+
+      console.log(
+        `${soundFile.key} pool oluşturuldu: ${
+          this.soundPool[soundFile.key].length
+        } item`
+      );
+    }
+  }
+
+  private async loadSingleEffectSounds() {
+    // iOS için tüm efekt seslerini yükle
     try {
-      // Arka plan müziği yükle
-      try {
-        const { sound: bgMusic } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/background.mp3'),
-          { 
-            isLooping: true, 
-            volume: this.musicVolume,
-            shouldPlay: false 
-          }
-        );
-        this.backgroundMusic = bgMusic;
-        console.log('Background müzik yüklendi');
-      } catch (e) {
-        console.log('Background müzik yüklenemedi:', e);
-      }
+      // Button sesi yükle - Ses seviyesi daha da düşürüldü
+      const { sound: buttonSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/button.mp3"),
+        { volume: this.effectsVolume * 0.3 } // 0.5'ten 0.3'e düşürüldü
+      );
+      this.buttonSound = buttonSfx;
+      console.log("Button sesi yüklendi");
+    } catch (e) {
+      console.log("Button sesi yüklenemedi:", e);
+    }
 
-      // Buton sesi yükle
-      try {
-        const { sound: buttonSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/button.mp3'),
-          { volume: this.effectsVolume * 0.55 }
-        );
-        this.buttonSound = buttonSfx;
-        console.log('Button sesi yüklendi');
-      } catch (e) {
-        console.log('Button sesi yüklenemedi:', e);
-      }
+    try {
+      // Explosion sesi yükle
+      const { sound: explosionSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/explosion.mp3"),
+        { volume: this.effectsVolume * 0.7 }
+      );
+      this.explosionSound = explosionSfx;
+      console.log("Explosion sesi yüklendi");
+    } catch (e) {
+      console.log("Explosion sesi yüklenemedi:", e);
+    }
 
-      // Normal patlama sesi yükle - Özel Android işlemi
-      try {
-        const { sound: explosionSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/explosion.mp3'),
-          { 
-            volume: this.effectsVolume, // 0.8 çarpanını kaldırdık, daha yüksek ses
-            shouldPlay: false,
-            isLooping: false
-          }
-        );
-        this.explosionSound = explosionSfx;
-        console.log('Explosion sesi yüklendi');
-        
-        // Android için hazırlık
-        await explosionSfx.setStatusAsync({ shouldPlay: false });
-      } catch (e) {
-        console.log('Explosion sesi yüklenemedi:', e);
-        // Yedek: Button sesini explosion olarak kullan
-        this.explosionSound = this.buttonSound;
-        console.log('Button sesi explosion olarak atandı');
-      }
+    try {
+      // Prime explosion sesi yükle
+      const { sound: primeExplosionSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/prime_explosion.mp3"),
+        { volume: this.effectsVolume * 0.7 }
+      );
+      this.primeExplosionSound = primeExplosionSfx;
+      console.log("Prime explosion sesi yüklendi");
+    } catch (e) {
+      console.log("Prime explosion sesi yüklenemedi:", e);
+    }
 
-      // Asal patlama sesi yükle - Özel Android işlemi
-      try {
-        const { sound: primeExplosionSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/prime_explosion.mp3'),
-          { 
-            volume: this.effectsVolume * 0.7,
-            shouldPlay: false,
-            isLooping: false
-          }
-        );
-        this.primeExplosionSound = primeExplosionSfx;
-        console.log('Prime explosion sesi yüklendi');
-        
-        // Android için hazırlık
-        await primeExplosionSfx.setStatusAsync({ shouldPlay: false });
-      } catch (e) {
-        console.log('Prime explosion sesi yüklenemedi:', e);
-        // Yedek: Button sesini prime explosion olarak kullan
-        this.primeExplosionSound = this.buttonSound;
-        console.log('Button sesi prime explosion olarak atandı');
-      }
+    try {
+      // Prime2 sesi yükle
+      const { sound: prime2Sfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/prime2.mp3"),
+        { volume: this.effectsVolume * 0.7 }
+      );
+      this.prime2Sound = prime2Sfx;
+      console.log("Prime2 sesi yüklendi");
+    } catch (e) {
+      console.log("Prime2 sesi yüklenemedi:", e);
+    }
 
-      // 2 sayısı özel patlama sesi yükle
-      try {
-        const { sound: prime2Sfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/prime2.mp3'),
-          { 
-            volume: this.effectsVolume * 0.7,
-            shouldPlay: false,
-            isLooping: false
-          }
-        );
-        this.prime2Sound = prime2Sfx;
-        console.log('Prime2 sesi yüklendi');
-        
-        // Android için hazırlık
-        await prime2Sfx.setStatusAsync({ shouldPlay: false });
-      } catch (e) {
-        console.log('Prime2 sesi yüklenemedi:', e);
-        // Yedek: Prime explosion sesini kullan
-        this.prime2Sound = this.primeExplosionSound;
-        console.log('Prime explosion sesi prime2 olarak atandı');
-      }
-
+    try {
       // Combo sesi yükle
-      try {
-        const { sound: comboSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/combo.mp3'),
-          { 
-            volume: this.effectsVolume * 0.8,
-            shouldPlay: false,
-            isLooping: false
-          }
-        );
-        this.comboSound = comboSfx;
-        console.log('Combo sesi yüklendi');
-        
-        // Android için hazırlık
-        await comboSfx.setStatusAsync({ shouldPlay: false });
-      } catch (e) {
-        console.log('Combo sesi yüklenemedi:', e);
-        // Yedek: Button sesini combo olarak kullan
-        this.comboSound = this.buttonSound;
-        console.log('Button sesi combo olarak atandı');
-      }
+      const { sound: comboSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/combo.mp3"),
+        { volume: this.effectsVolume * 0.8 }
+      );
+      this.comboSound = comboSfx;
+      console.log("Combo sesi yüklendi");
+    } catch (e) {
+      console.log("Combo sesi yüklenemedi:", e);
+    }
 
-      // Hareket sesi yükle
-      try {
-        const { sound: moveSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/move.mp3'),
-          { volume: this.effectsVolume * 0.85 }
-        );
-        this.moveSound = moveSfx;
-        console.log('Move sesi yüklendi');
-      } catch (e) {
-        console.log('Move sesi yüklenemedi:', e);
-      }
+    try {
+      // Move sesi yükle
+      const { sound: moveSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/move.mp3"),
+        { volume: this.effectsVolume * 0.3 } // Hareket sesi daha yumuşak
+      );
+      this.moveSound = moveSfx;
+      console.log("Move sesi yüklendi");
+    } catch (e) {
+      console.log("Move sesi yüklenemedi:", e);
+    }
 
-      // Düşürme sesi yükle
-      try {
-        const { sound: dropSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/drop.mp3'),
-          { volume: this.effectsVolume * 0.45 }
-        );
-        this.dropSound = dropSfx;
-        console.log('Drop sesi yüklendi');
-      } catch (e) {
-        console.log('Drop sesi yüklenemedi:', e);
-      }
+    try {
+      // Drop sesi yükle
+      const { sound: dropSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/drop.mp3"),
+        { volume: this.effectsVolume * 0.6 }
+      );
+      this.dropSound = dropSfx;
+      console.log("Drop sesi yüklendi");
+    } catch (e) {
+      console.log("Drop sesi yüklenemedi:", e);
+    }
 
-      // Oyun bitişi sesi yükle
-      try {
-        const { sound: failureSfx } = await Audio.Sound.createAsync(
-          require('../../assets/sounds/failure.mp3'),
-          { 
-            volume: this.effectsVolume,
-            shouldPlay: false,
-            isLooping: false
-          }
-        );
-        this.failureSound = failureSfx;
-        console.log('Failure sesi yüklendi');
-      } catch (e) {
-        console.log('Failure sesi yüklenemedi:', e);
-      }
-
-    } catch (error) {
-      console.log('Ses dosyası yükleme hatası:', error);
+    try {
+      // Failure sesi yükle
+      const { sound: failureSfx } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/failure.mp3"),
+        { volume: this.effectsVolume * 0.8 }
+      );
+      this.failureSound = failureSfx;
+      console.log("Failure sesi yüklendi");
+    } catch (e) {
+      console.log("Failure sesi yüklenemedi:", e);
     }
   }
 
-  // Arka plan müziği başlat
+  private async playFromPool(poolKey: string): Promise<void> {
+    if (!this.isMuted && this.soundPool[poolKey]) {
+      // Boş bir ses bul
+      for (const sound of this.soundPool[poolKey]) {
+        try {
+          const status = await sound.getStatusAsync();
+          if (status.isLoaded && !status.isPlaying) {
+            await sound.replayAsync();
+            return;
+          }
+        } catch (error) {
+          console.log(`Pool ses ${poolKey} çalma hatası:`, error);
+        }
+      }
+
+      // Hepsi meşgulse ilkini kullan
+      try {
+        const firstSound = this.soundPool[poolKey][0];
+        await firstSound.stopAsync();
+        await firstSound.replayAsync();
+      } catch (error) {
+        console.log(`Pool ses ${poolKey} fallback hatası:`, error);
+      }
+    }
+  }
+
+  // Background müzik kontrolleri
   async playBackgroundMusic() {
     if (!this.isMuted && this.backgroundMusic) {
       try {
-        await this.backgroundMusic.playAsync();
+        const status = await this.backgroundMusic.getStatusAsync();
+        if (status.isLoaded && !status.isPlaying) {
+          await this.backgroundMusic.playAsync();
+          console.log("Background müzik başlatıldı");
+        }
       } catch (error) {
-        console.log('Müzik başlatma hatası:', error);
+        console.log("Background müzik çalma hatası:", error);
       }
     }
   }
 
-  // Arka plan müziği durdur
   async pauseBackgroundMusic() {
     if (this.backgroundMusic) {
       try {
         await this.backgroundMusic.pauseAsync();
+        console.log("Background müzik duraklatıldı");
       } catch (error) {
-        console.log('Müzik durdurma hatası:', error);
+        console.log("Background müzik duraklama hatası:", error);
       }
     }
   }
 
-  // Arka plan müziği durdur ve başa sar
-  async stopBackgroundMusic() {
-    if (this.backgroundMusic) {
-      try {
-        await this.backgroundMusic.stopAsync();
-      } catch (error) {
-        console.log('Müzik durdurma hatası:', error);
-      }
-    }
-  }
-
-  // Buton sesi çal
-  async playButtonSound() {
-    if (!this.isMuted && this.buttonSound) {
-      try {
-        const status = await this.buttonSound.getStatusAsync();
-        if (status.isLoaded) {
-          await this.buttonSound.setPositionAsync(0);
-          await this.buttonSound.playAsync();
-        }
-      } catch (error) {
-        console.log('Buton sesi hatası:', error);
-      }
-    }
-  }
-
-  // Hareket sesi çal
-  async playMoveSound() {
-    if (!this.isMuted && this.moveSound) {
-      try {
-        const status = await this.moveSound.getStatusAsync();
-        if (status.isLoaded) {
-          await this.moveSound.setPositionAsync(0);
-          await this.moveSound.playAsync();
-        }
-      } catch (error) {
-        console.log('Hareket sesi hatası:', error);
-      }
-    }
-  }
-
-  // Düşürme sesi çal
-  async playDropSound() {
-    if (!this.isMuted && this.dropSound) {
-      try {
-        const status = await this.dropSound.getStatusAsync();
-        if (status.isLoaded) {
-          await this.dropSound.setPositionAsync(0);
-          await this.dropSound.playAsync();
-        }
-      } catch (error) {
-        console.log('Düşürme sesi hatası:', error);
-      }
-    }
-  }
-
-  // Normal patlama sesi çal - Android optimize
+  // Efekt sesi metodları - Android pool kullanımı
   async playExplosionSound() {
-    if (!this.isMuted && this.explosionSound) {
-      try {
-        console.log('Explosion sesi çalınıyor...');
-        
-        // Basit çalma yöntemi - Android için
-        await this.explosionSound.stopAsync();
-        await this.explosionSound.setPositionAsync(0);
-        await this.explosionSound.playAsync();
-        
-        console.log('Explosion sesi başlatıldı');
-      } catch (error) {
-        console.log('Explosion sesi hatası:', error);
-        
-        // Son çare: Button sesini çal
-        if (this.buttonSound) {
-          try {
-            await this.buttonSound.replayAsync();
-            console.log('Button sesi explosion yerine çalındı');
-          } catch (buttonError) {
-            console.log('Button sesi de çalışmadı:', buttonError);
-          }
+    if (this.isAndroid) {
+      await this.playFromPool("explosion");
+    } else {
+      // iOS için eski yöntem
+      if (!this.isMuted && this.explosionSound) {
+        try {
+          await this.explosionSound.replayAsync();
+        } catch (error) {
+          console.log("Explosion sesi hatası:", error);
         }
       }
     }
   }
 
-  // Asal patlama sesi çal - Android optimize  
   async playPrimeExplosionSound() {
-    if (!this.isMuted && this.primeExplosionSound) {
-      try {
-        console.log('Prime explosion sesi çalınıyor...');
-        
-        // Basit çalma yöntemi - Android için
-        await this.primeExplosionSound.stopAsync();
-        await this.primeExplosionSound.setPositionAsync(0);
-        await this.primeExplosionSound.playAsync();
-        
-        console.log('Prime explosion sesi başlatıldı');
-      } catch (error) {
-        console.log('Prime explosion sesi hatası:', error);
-        
-        // Son çare: Button sesini çal
-        if (this.buttonSound) {
-          try {
-            await this.buttonSound.replayAsync();
-            console.log('Button sesi prime explosion yerine çalındı');
-          } catch (buttonError) {
-            console.log('Button sesi de çalışmadı:', buttonError);
-          }
+    if (this.isAndroid) {
+      await this.playFromPool("primeExplosion");
+    } else {
+      if (!this.isMuted && this.primeExplosionSound) {
+        try {
+          await this.primeExplosionSound.replayAsync();
+        } catch (error) {
+          console.log("Prime explosion sesi hatası:", error);
         }
       }
     }
   }
 
-  // 2 sayısı özel patlama sesi çal
   async playPrime2Sound() {
-    if (!this.isMuted && this.prime2Sound) {
-      try {
-        console.log('Prime2 sesi çalınıyor...');
-        
-        await this.prime2Sound.stopAsync();
-        await this.prime2Sound.setPositionAsync(0);
-        await this.prime2Sound.playAsync();
-        
-        console.log('Prime2 sesi başlatıldı');
-      } catch (error) {
-        console.log('Prime2 sesi hatası:', error);
-        
-        // Son çare: Prime explosion sesini çal
-        if (this.primeExplosionSound) {
-          try {
-            await this.primeExplosionSound.replayAsync();
-            console.log('Prime explosion sesi prime2 yerine çalındı');
-          } catch (fallbackError) {
-            console.log('Prime explosion sesi de çalışmadı:', fallbackError);
-          }
+    if (this.isAndroid) {
+      await this.playFromPool("prime2");
+    } else {
+      if (!this.isMuted && this.prime2Sound) {
+        try {
+          await this.prime2Sound.replayAsync();
+        } catch (error) {
+          console.log("Prime2 sesi hatası:", error);
         }
       }
     }
   }
 
-  // Combo sesi çal
   async playComboSound() {
-    if (!this.isMuted && this.comboSound) {
-      try {
-        console.log('Combo sesi çalınıyor...');
-        
-        await this.comboSound.stopAsync();
-        await this.comboSound.setPositionAsync(0);
-        await this.comboSound.playAsync();
-        
-        console.log('Combo sesi başlatıldı');
-      } catch (error) {
-        console.log('Combo sesi hatası:', error);
-        
-        // Son çare: Button sesini çal
-        if (this.buttonSound) {
-          try {
-            await this.buttonSound.replayAsync();
-            console.log('Button sesi combo yerine çalındı');
-          } catch (fallbackError) {
-            console.log('Button sesi de çalışmadı:', fallbackError);
-          }
+    if (this.isAndroid) {
+      await this.playFromPool("combo");
+    } else {
+      if (!this.isMuted && this.comboSound) {
+        try {
+          await this.comboSound.replayAsync();
+        } catch (error) {
+          console.log("Combo sesi hatası:", error);
         }
       }
     }
   }
 
-  // Oyun bitişi sesi çal
+  async playButtonSound() {
+    if (this.isAndroid) {
+      await this.playFromPool("button");
+    } else {
+      if (!this.isMuted && this.buttonSound) {
+        try {
+          await this.buttonSound.replayAsync();
+        } catch (error) {
+          console.log("Button sesi hatası:", error);
+        }
+      }
+    }
+  }
+
+  async playMoveSound() {
+    if (this.isAndroid) {
+      await this.playFromPool("move");
+    } else {
+      if (!this.isMuted && this.moveSound) {
+        try {
+          await this.moveSound.replayAsync();
+        } catch (error) {
+          console.log("Move sesi hatası:", error);
+        }
+      }
+    }
+  }
+
+  async playDropSound() {
+    if (this.isAndroid) {
+      await this.playFromPool("drop");
+    } else {
+      if (!this.isMuted && this.dropSound) {
+        try {
+          await this.dropSound.replayAsync();
+        } catch (error) {
+          console.log("Drop sesi hatası:", error);
+        }
+      }
+    }
+  }
+
   async playFailureSound() {
-    if (!this.isMuted && this.failureSound) {
-      try {
-        console.log("Failure sesi çalınıyor...");
+    if (this.isAndroid) {
+      await this.playFromPool("failure");
+    } else {
+      if (!this.isMuted && this.failureSound) {
+        try {
+          await this.pauseBackgroundMusic();
+          await this.failureSound.replayAsync();
 
-        // Önce background müziği durdur
-        await this.pauseBackgroundMusic();
-
-        // Failure sesini çal
-        await this.failureSound.stopAsync();
-        await this.failureSound.setPositionAsync(0);
-        await this.failureSound.playAsync();
-
-        // Ses bittiğinde background müziği tekrar başlat
-        const status = await this.failureSound.getStatusAsync();
-        if (status.isLoaded) {
-          const waitTime =
-            status.durationMillis != null ? status.durationMillis + 1000 : 2000;
-
-          setTimeout(async () => {
-            await this.playBackgroundMusic();
-          }, waitTime);
+          // iOS için otomatik resume
+          setTimeout(() => {
+            this.playBackgroundMusic();
+          }, 3000);
+        } catch (error) {
+          console.log("Failure sesi hatası:", error);
         }
-
-        console.log("Failure sesi başlatıldı");
-      } catch (error) {
-        console.log('Failure sesi hatası:', error);
-        // Hata durumunda background müziği tekrar başlat
-        await this.playBackgroundMusic();
       }
     }
   }
 
-  // Ses açık/kapalı toggle
+  // Ses kontrolü
   toggleMute() {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
@@ -473,93 +449,63 @@ class SoundManager {
     return this.isMuted;
   }
 
-  // Ses durumu kontrol et
-  getMuteStatus() {
-    return this.isMuted;
-  }
-
-  // Müzik ses seviyesi ayarla
-  async setMusicVolume(volume: number) {
+  setMusicVolume(volume: number) {
     this.musicVolume = Math.max(0, Math.min(1, volume));
     if (this.backgroundMusic) {
-      try {
-        await this.backgroundMusic.setVolumeAsync(this.musicVolume);
-      } catch (error) {
-        console.log('Ses seviyesi ayarlama hatası:', error);
-      }
+      this.backgroundMusic.setVolumeAsync(this.musicVolume);
     }
   }
 
-  // Efekt ses seviyesi ayarla
-  async setEffectsVolume(volume: number) {
+  setEffectsVolume(volume: number) {
     this.effectsVolume = Math.max(0, Math.min(1, volume));
-    // Tüm efekt seslerinin seviyesini güncelle
-    const sounds = [
-      this.buttonSound,
-      this.primeExplosionSound,
-      this.dropSound
-    ];
-
-    for (const sound of sounds) {
-      if (sound) {
-        try {
-          await sound.setVolumeAsync(this.effectsVolume * 0.8);
-        } catch (error) {
-          console.log('Efekt ses seviyesi ayarlama hatası:', error);
-        }
-      }
-    }
-
-    // Explosion sesi daha yüksek
-    if (this.explosionSound) {
-      try {
-        await this.explosionSound.setVolumeAsync(this.effectsVolume);
-      } catch (error) {
-        console.log('Explosion ses seviyesi ayarlama hatası:', error);
-      }
-    }
-
-    // Failure sesi normal seviye
-    if (this.failureSound) {
-      try {
-        await this.failureSound.setVolumeAsync(this.effectsVolume);
-      } catch (error) {
-        console.log('Failure ses seviyesi ayarlama hatası:', error);
-      }
-    }
-
-    // Hareket sesi daha yüksek
-    if (this.moveSound) {
-      try {
-        await this.moveSound.setVolumeAsync(this.effectsVolume * 0.7);
-      } catch (error) {
-        console.log('Hareket ses seviyesi ayarlama hatası:', error);
-      }
+    // Pool'daki seslerin volumunu güncelle
+    if (this.isAndroid) {
+      Object.values(this.soundPool).forEach((sounds) => {
+        sounds.forEach((sound) => {
+          sound.setVolumeAsync(this.effectsVolume);
+        });
+      });
     }
   }
 
-  // Temizlik (component unmount)
   async cleanup() {
-    const sounds = [
-      this.backgroundMusic,
-      this.buttonSound,
-      this.explosionSound,
-      this.primeExplosionSound,
-      this.prime2Sound,
-      this.comboSound,
-      this.moveSound,
-      this.dropSound,
-      this.failureSound
-    ];
+    try {
+      // Background müziği durdur
+      if (this.backgroundMusic) {
+        await this.backgroundMusic.unloadAsync();
+      }
 
-    for (const sound of sounds) {
-      if (sound) {
-        try {
-          await sound.unloadAsync();
-        } catch (error) {
-          console.log('Ses temizleme hatası:', error);
+      // Android pool temizle
+      if (this.isAndroid) {
+        for (const sounds of Object.values(this.soundPool)) {
+          for (const sound of sounds) {
+            await sound.unloadAsync();
+          }
+        }
+        this.soundPool = {};
+      } else {
+        // iOS seslerini temizle
+        const sounds = [
+          this.explosionSound,
+          this.primeExplosionSound,
+          this.prime2Sound,
+          this.comboSound,
+          this.buttonSound,
+          this.moveSound,
+          this.dropSound,
+          this.failureSound,
+        ];
+
+        for (const sound of sounds) {
+          if (sound) {
+            await sound.unloadAsync();
+          }
         }
       }
+
+      console.log("SoundManager temizlendi");
+    } catch (error) {
+      console.log("SoundManager cleanup hatası:", error);
     }
   }
 }

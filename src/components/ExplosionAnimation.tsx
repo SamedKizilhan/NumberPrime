@@ -18,51 +18,77 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
+  const rayScaleAnim = useRef(new Animated.Value(0)).current;
+  const rayOpacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Animasyon başlat
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onComplete();
-    });
+    if (type === "prime" || type === "prime2") {
+      // Prime explosion için ışın animasyonu
+      Animated.parallel([
+        Animated.timing(rayScaleAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(rayOpacityAnim, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        onComplete();
+      });
+    } else {
+      // Normal animasyon (diğer patlama türleri için)
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        onComplete();
+      });
+    }
   }, []);
 
-  // Explosion tipine göre çap ve renk belirleme
+  // Explosion tipine göre özellikler
   const getExplosionProps = () => {
     switch (type) {
       case "normal":
         return {
-          size: cellSize * 1.2, // Normal patlama - biraz büyük
-          color: "#FFD700", // Altın sarısı
-          borderColor: "#FFA500", // Turuncu border
+          size: cellSize * 1.2,
+          color: "#FFD700",
+          borderColor: "#FFA500",
         };
       case "prime":
         return {
-          size: cellSize * 1.8, // Prime patlama - orta boy (normal'den büyük ama prime2'den küçük)
-          color: "#00FFFF", // Açık mavi
-          borderColor: "#00d2d3", // Turkuaz border
+          size: cellSize * 1.8, // Normal explosion için size de ekle
+          rayLength: cellSize * 3, // Işın uzunluğu
+          rayWidth: 6, // Işın kalınlığı
+          color: "#00FFFF",
+          borderColor: "#00d2d3",
+          glowColor: "rgba(0, 255, 255, 0.8)",
         };
       case "prime2":
         return {
-          size: cellSize * 2.2, // Prime2 patlama - büyük (prime'dan biraz büyük)
-          color: "#FF00FF", // Magenta
-          borderColor: "#e94560", // Kırmızımsı border
+          size: cellSize * 2.2, // Normal explosion için size de ekle
+          rayLength: cellSize * 4, // Daha uzun ışınlar
+          rayWidth: 8, // Daha kalın ışınlar
+          color: "#FF00FF",
+          borderColor: "#e94560",
+          glowColor: "rgba(255, 0, 255, 0.9)",
         };
       case "combo":
         return {
-          size: cellSize * 2.8, // Combo patlama - en büyük
-          color: "#32CD32", // Lime yeşili
-          borderColor: "#00FF00", // Parlak yeşil border
+          size: cellSize * 2.8,
+          color: "#32CD32",
+          borderColor: "#00FF00",
         };
       default:
         return {
@@ -74,6 +100,135 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
   };
 
   const explosionProps = getExplosionProps();
+
+  // Prime explosions için ışın efekti
+  if (type === "prime" || type === "prime2") {
+    const centerX = x * cellSize + cellSize / 2;
+    const centerY = y * cellSize + cellSize / 2;
+
+    // Type safety için kontrol
+    const rayLength = explosionProps.rayLength || cellSize * 3;
+    const rayWidth = explosionProps.rayWidth || 6;
+    const glowColor = explosionProps.glowColor || "rgba(0, 255, 255, 0.8)";
+
+    return (
+      <View
+        style={{
+          position: "absolute",
+          left: centerX - rayLength,
+          top: centerY - rayLength,
+          width: rayLength * 2,
+          height: rayLength * 2,
+        }}
+      >
+        {/* Merkez parlak nokta */}
+        <Animated.View
+          style={[
+            styles.centerGlow,
+            {
+              left: rayLength - 8,
+              top: rayLength - 8,
+              backgroundColor: explosionProps.color,
+              shadowColor: glowColor,
+              transform: [{ scale: rayScaleAnim }],
+              opacity: rayOpacityAnim,
+            },
+          ]}
+        />
+
+        {/* Yatay ışın (soldan sağa) */}
+        <Animated.View
+          style={[
+            styles.ray,
+            styles.horizontalRay,
+            {
+              top: rayLength - rayWidth / 2,
+              height: rayWidth,
+              width: rayLength * 2,
+              backgroundColor: explosionProps.color,
+              shadowColor: glowColor,
+              transform: [{ scaleX: rayScaleAnim }],
+              opacity: rayOpacityAnim,
+            },
+          ]}
+        />
+
+        {/* Dikey ışın (yukarıdan aşağıya) */}
+        <Animated.View
+          style={[
+            styles.ray,
+            styles.verticalRay,
+            {
+              left: rayLength - rayWidth / 2,
+              width: rayWidth,
+              height: rayLength * 2,
+              backgroundColor: explosionProps.color,
+              shadowColor: glowColor,
+              transform: [{ scaleY: rayScaleAnim }],
+              opacity: rayOpacityAnim,
+            },
+          ]}
+        />
+
+        {/* Ekstra parıltı efektleri (sadece prime2 için) */}
+        {type === "prime2" && (
+          <>
+            {/* Küçük parıltı noktaları */}
+            <Animated.View
+              style={[
+                styles.sparkle,
+                {
+                  left: rayLength + rayLength * 0.7,
+                  top: rayLength - 3,
+                  backgroundColor: explosionProps.borderColor,
+                  transform: [{ scale: rayScaleAnim }],
+                  opacity: rayOpacityAnim,
+                },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.sparkle,
+                {
+                  left: rayLength - rayLength * 0.7,
+                  top: rayLength - 3,
+                  backgroundColor: explosionProps.borderColor,
+                  transform: [{ scale: rayScaleAnim }],
+                  opacity: rayOpacityAnim,
+                },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.sparkle,
+                {
+                  left: rayLength - 3,
+                  top: rayLength + rayLength * 0.7,
+                  backgroundColor: explosionProps.borderColor,
+                  transform: [{ scale: rayScaleAnim }],
+                  opacity: rayOpacityAnim,
+                },
+              ]}
+            />
+            <Animated.View
+              style={[
+                styles.sparkle,
+                {
+                  left: rayLength - 3,
+                  top: rayLength - rayLength * 0.7,
+                  backgroundColor: explosionProps.borderColor,
+                  transform: [{ scale: rayScaleAnim }],
+                  opacity: rayOpacityAnim,
+                },
+              ]}
+            />
+          </>
+        )}
+      </View>
+    );
+  }
+
+  // Normal explosion efekti (diğer türler için)
   const left = x * cellSize + (cellSize - explosionProps.size) / 2;
   const top = y * cellSize + (cellSize - explosionProps.size) / 2;
 
@@ -108,6 +263,7 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
 };
 
 const styles = StyleSheet.create({
+  // Normal explosion stilleri
   explosion: {
     position: "absolute",
     borderWidth: 3,
@@ -124,6 +280,41 @@ const styles = StyleSheet.create({
     height: "50%",
     borderRadius: 1000,
     opacity: 0.6,
+  },
+
+  // Prime explosion stilleri (ışın efektleri)
+  centerGlow: {
+    position: "absolute",
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 15,
+  },
+  ray: {
+    position: "absolute",
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
+  horizontalRay: {
+    borderRadius: 3,
+  },
+  verticalRay: {
+    borderRadius: 3,
+  },
+  sparkle: {
+    position: "absolute",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
   },
 });
 
