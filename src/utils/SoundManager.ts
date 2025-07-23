@@ -14,7 +14,7 @@ class SoundManager {
   private failureSound: Audio.Sound | null = null;
 
   private isMuted: boolean = false;
-  private musicVolume: number = 0.5; // 0.3'ten 0.5'e çıkarıldı
+  private musicVolume: number = 0.4; // 0.3'ten 0.4'e çıkarıldı
   private effectsVolume: number = 0.7;
   private isInitialized: boolean = false;
 
