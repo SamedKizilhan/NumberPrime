@@ -80,14 +80,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
   useEffect(() => {
     const initializeSound = async () => {
       await soundManager.initialize();
-      await soundManager.playBackgroundMusic();
+      await soundManager.startGameMusic(); // playBackgroundMusic() yerine
     };
 
     initializeSound();
 
-    // Cleanup
+    // Cleanup - sadece müziği durdur
     return () => {
-      soundManager.cleanup();
+      soundManager.pauseBackgroundMusic();
     };
   }, []);
 

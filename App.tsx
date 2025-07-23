@@ -6,6 +6,7 @@ import {
   View,
   Platform,
   BackHandler,
+  AppState,
 } from "react-native";
 import GameScreen from "./src/screens/GameScreen";
 import MenuScreen from "./src/screens/MenuScreen";
@@ -15,6 +16,7 @@ import {
   saveUserProfile,
   UserProfile,
 } from "./src/utils/StorageUtils";
+import SoundManager from "./src/utils/SoundManager";
 
 export type Screen = "menu" | "game" | "leaderboard";
 
@@ -56,6 +58,30 @@ export default function App() {
       return () => backHandler.remove();
     }
   }, [currentScreen]);
+
+  // SoundManager cleanup - uygulama kapanırken
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "background" || nextAppState === "inactive") {
+        // Uygulama arka plana geçince müziği durdur
+        const soundManager = SoundManager.getInstance();
+        soundManager.pauseBackgroundMusic();
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // Component unmount olduğunda (uygulama tamamen kapanırken)
+    return () => {
+      subscription?.remove();
+      const soundManager = SoundManager.getInstance();
+      soundManager.fullCleanup();
+      console.log("App.tsx: SoundManager tamamen temizlendi");
+    };
+  }, []);
 
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {

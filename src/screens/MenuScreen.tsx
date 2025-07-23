@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
+import SoundManager from "../utils/SoundManager";
 
 interface MenuScreenProps {
   onStartGame: () => void;
@@ -25,6 +26,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   playerNickname,
   setPlayerNickname,
 }) => {
+  const soundManager = SoundManager.getInstance();
+
+  // Menu açıldığında müzik başlat (kaldığı yerden)
+  useEffect(() => {
+    const initializeMenuMusic = async () => {
+      await soundManager.initialize();
+      await soundManager.startMenuMusic();
+    };
+
+    initializeMenuMusic();
+  }, []);
   const [inputNickname, setInputNickname] = useState(playerNickname);
 
   // iPhone için ekstra margin

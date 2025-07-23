@@ -31,12 +31,11 @@ class SoundManager {
   }
 
   async initialize() {
-    if (this.isInitialized) return;
-
+    // Her seferinde yeniden yükle (cache problemini çöz)
     try {
       console.log("SoundManager initialize başlıyor...");
 
-      // Audio modunu ayarla - Basit ve uyumlu versiyon
+      // Audio modunu ayarla
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
@@ -45,17 +44,65 @@ class SoundManager {
         playThroughEarpieceAndroid: false,
       });
 
-      // Background müzik yükle
-      await this.loadBackgroundMusic();
-
-      // Efekt seslerini yükle
-      await this.loadEffectSounds();
+      // Mevcut sesleri kontrol et ve eksikse yükle
+      await this.ensureSoundsLoaded();
 
       this.isInitialized = true;
       console.log("SoundManager başarıyla initialize edildi");
     } catch (error) {
       console.error("SoundManager initialize hatası:", error);
-      this.isInitialized = true; // Hata olsa bile devam et
+      this.isInitialized = true;
+    }
+  }
+
+  // Yeni fonksiyon: Sesler yüklenmiş mi kontrol et ve eksikse yükle
+  private async ensureSoundsLoaded() {
+    // Background müzik kontrolü
+    if (!this.backgroundMusic) {
+      await this.loadBackgroundMusic();
+    }
+
+    // Effect sesler kontrolü
+    if (this.isAndroid) {
+      // Android pool kontrolü
+      const requiredPools = [
+        "explosion",
+        "primeExplosion",
+        "prime2",
+        "combo",
+        "button",
+        "move",
+        "drop",
+        "failure",
+      ];
+
+      for (const poolKey of requiredPools) {
+        if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
+          console.log(`${poolKey} pool eksik, yeniden oluşturuluyor...`);
+          await this.createSoundPools();
+          break; // Bir tane eksikse hepsini yeniden oluştur
+        }
+      }
+    } else {
+      // iOS ses kontrolü
+      const sounds = [
+        { prop: "explosionSound", loader: () => this.loadSingleEffectSounds() },
+        { prop: "buttonSound", loader: () => this.loadSingleEffectSounds() },
+        // Diğer sesler de aynı loader'ı kullanır
+      ];
+
+      let needReload = false;
+      for (const soundCheck of sounds) {
+        if (!(this as any)[soundCheck.prop]) {
+          needReload = true;
+          break;
+        }
+      }
+
+      if (needReload) {
+        console.log("iOS sesler eksik, yeniden yükleniyor...");
+        await this.loadSingleEffectSounds();
+      }
     }
   }
 
@@ -307,6 +354,43 @@ class SoundManager {
     }
   }
 
+  // Yeni fonksiyon: Müziği baştan başlat
+  async restartBackgroundMusic() {
+    if (!this.isMuted && this.backgroundMusic) {
+      try {
+        // Müziği durdur ve başa sar
+        await this.backgroundMusic.stopAsync();
+        await this.backgroundMusic.setPositionAsync(0);
+        await this.backgroundMusic.playAsync();
+        console.log("Background müzik baştan başlatıldı");
+      } catch (error) {
+        console.log("Background müzik restart hatası:", error);
+      }
+    }
+  }
+
+  // Yeni fonksiyon: Müziği geçici durdur ve sonra devam ettir
+  async pauseBackgroundMusicTemporarily(durationMs: number = 3000) {
+    if (this.backgroundMusic) {
+      try {
+        await this.backgroundMusic.pauseAsync();
+        console.log(`Background müzik ${durationMs}ms için duraklatıldı`);
+
+        // Belirtilen süre sonra tekrar başlat
+        setTimeout(async () => {
+          try {
+            await this.playBackgroundMusic();
+            console.log("Background müzik otomatik olarak devam etti");
+          } catch (error) {
+            console.log("Background müzik otomatik devam hatası:", error);
+          }
+        }, durationMs);
+      } catch (error) {
+        console.log("Background müzik geçici durdurma hatası:", error);
+      }
+    }
+  }
+
   async pauseBackgroundMusic() {
     if (this.backgroundMusic) {
       try {
@@ -420,22 +504,35 @@ class SoundManager {
 
   async playFailureSound() {
     if (this.isAndroid) {
+      // Android için - müziği kısa süre durdur
+      await this.pauseBackgroundMusicTemporarily(2000); // 2 saniye
       await this.playFromPool("failure");
     } else {
+      // iOS için - mevcut mantık ama daha kısa süre
       if (!this.isMuted && this.failureSound) {
         try {
           await this.pauseBackgroundMusic();
           await this.failureSound.replayAsync();
 
-          // iOS için otomatik resume
+          // iOS için otomatik resume - süreyi kısalttık
           setTimeout(() => {
             this.playBackgroundMusic();
-          }, 3000);
+          }, 2500); // 3000'den 2500'e düşürdük
         } catch (error) {
           console.log("Failure sesi hatası:", error);
         }
       }
     }
+  }
+
+  // Yeni fonksiyon: Oyun için müzik başlat (her zaman baştan)
+  async startGameMusic() {
+    await this.restartBackgroundMusic();
+  }
+
+  // Yeni fonksiyon: Ana menü için müzik (kaldığı yerden devam)
+  async startMenuMusic() {
+    await this.playBackgroundMusic();
   }
 
   // Ses kontrolü
@@ -470,9 +567,59 @@ class SoundManager {
 
   async cleanup() {
     try {
-      // Background müziği durdur
+      // Background müziği sadece durdur, unload etme
+      if (this.backgroundMusic) {
+        await this.backgroundMusic.pauseAsync();
+        console.log("Background müzik duraklatıldı (cleanup)");
+      }
+
+      // Efekt seslerini unload etme, sadece durdur
+      if (this.isAndroid) {
+        for (const sounds of Object.values(this.soundPool)) {
+          for (const sound of sounds) {
+            try {
+              await sound.stopAsync();
+            } catch (e) {
+              // Ses zaten durmuş olabilir
+            }
+          }
+        }
+      } else {
+        // iOS seslerini durdur
+        const sounds = [
+          this.explosionSound,
+          this.primeExplosionSound,
+          this.prime2Sound,
+          this.comboSound,
+          this.buttonSound,
+          this.moveSound,
+          this.dropSound,
+          this.failureSound,
+        ];
+
+        for (const sound of sounds) {
+          if (sound) {
+            try {
+              await sound.stopAsync();
+            } catch (e) {
+              // Ses zaten durmuş olabilir
+            }
+          }
+        }
+      }
+
+      console.log("SoundManager cleanup tamamlandı (sesler korundu)");
+    } catch (error) {
+      console.log("SoundManager cleanup hatası:", error);
+    }
+  }
+
+  async fullCleanup() {
+    try {
+      // Background müziği unload et
       if (this.backgroundMusic) {
         await this.backgroundMusic.unloadAsync();
+        this.backgroundMusic = null;
       }
 
       // Android pool temizle
@@ -484,7 +631,7 @@ class SoundManager {
         }
         this.soundPool = {};
       } else {
-        // iOS seslerini temizle
+        // iOS seslerini tamamen temizle
         const sounds = [
           this.explosionSound,
           this.primeExplosionSound,
@@ -501,11 +648,22 @@ class SoundManager {
             await sound.unloadAsync();
           }
         }
+
+        // Referansları temizle
+        this.explosionSound = null;
+        this.primeExplosionSound = null;
+        this.prime2Sound = null;
+        this.comboSound = null;
+        this.buttonSound = null;
+        this.moveSound = null;
+        this.dropSound = null;
+        this.failureSound = null;
       }
 
-      console.log("SoundManager temizlendi");
+      this.isInitialized = false;
+      console.log("SoundManager tamamen temizlendi");
     } catch (error) {
-      console.log("SoundManager cleanup hatası:", error);
+      console.log("SoundManager fullCleanup hatası:", error);
     }
   }
 }
