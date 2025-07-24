@@ -35,9 +35,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Müzikler ve Atıflar</Text>
-        <Text style={styles.subtitle}>
-          Kullanılan müzikler için teşekkürler
-        </Text>
+        <Text style={styles.subtitle}>Kullanılan sesler için teşekkürler</Text>
       </View>
 
       {/* Scrollable Content */}
@@ -124,12 +122,315 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
           </View>
         </View>
 
+        {/* Oyun Bitiş Müziği */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>⏰ Oyun Bitiş Müziği</Text>
+            <Text style={styles.fileName}>failure.mp3</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>timer ends_time up.wav</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => openUrl("https://freesound.org/people/MakoFox/")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: MakoFox</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/MakoFox/sounds/126426/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("https://creativecommons.org/licenses/by/4.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Normal Patlama Müziği */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>💥 Normal Patlama</Text>
+            <Text style={styles.fileName}>explosion.mp3</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>UI_POP_UP.mp3</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => openUrl("https://freesound.org/people/Marevnik/")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: Marevnik</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/Marevnik/sounds/708605/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("https://creativecommons.org/licenses/by/4.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Combo Müziği */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>🌟 Combo Müziği</Text>
+            <Text style={styles.fileName}>combo.mp3</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>Jingle_Win_Synth_02.wav</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/LittleRobotSoundFactory/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>
+                👤 Yapımcı: LittleRobotSoundFactory
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl(
+                  "https://freesound.org/people/LittleRobotSoundFactory/sounds/274178/"
+                )
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("https://creativecommons.org/licenses/by/4.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Asal 2 Patlaması */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>✨ Asal 2 Patlaması</Text>
+            <Text style={styles.fileName}>prime2.mp3</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>Retro video game sfx - Bonus</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => openUrl("https://freesound.org/people/OwlStorm/")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: OwlStorm</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/OwlStorm/sounds/404770/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("http://creativecommons.org/publicdomain/zero/1.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>
+                📜 Lisans: Creative Commons 0
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Asal Sayı Patlaması */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>🔥 Asal Sayı Patlaması</Text>
+            <Text style={styles.fileName}>prime_explosion.mp3</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>Explosion_04.wav</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/LittleRobotSoundFactory/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>
+                👤 Yapımcı: LittleRobotSoundFactory
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl(
+                  "https://freesound.org/people/LittleRobotSoundFactory/sounds/270310/"
+                )
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("https://creativecommons.org/licenses/by/4.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Hareket Sesleri */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>🎯 Hareket Sesleri</Text>
+            <Text style={styles.fileName}>move.mp3 (Sağ/Sol Oklar)</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>move.mp3</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => openUrl("https://freesound.org/people/bsp7176/")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: bsp7176</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/bsp7176/sounds/570635/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("http://creativecommons.org/publicdomain/zero/1.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>
+                📜 Lisans: Creative Commons 0
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Buton Sesleri */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>🔘 Buton Sesleri</Text>
+            <Text style={styles.fileName}>button.mp3 (+/- ve Pause)</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>Monophonic Twist 03.wav</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/ironcross32/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: ironcross32</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl(
+                  "https://freesound.org/people/ironcross32/sounds/582674/"
+                )
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("http://creativecommons.org/publicdomain/zero/1.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>
+                📜 Lisans: Creative Commons 0
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Teşekkür Mesajı */}
         <View style={styles.thanksCard}>
           <Text style={styles.thanksTitle}>🙏 Teşekkürler</Text>
           <Text style={styles.thanksText}>
-            Bu oyunun müzikleri Freesound.org topluluğundan alınmıştır.
-            Müzikleri bizimle paylaştıkları için yaratıcılara teşekkür ederiz.
+            Bu oyunun müzik ve ses efektleri Freesound.org topluluğundan
+            alınmıştır. Seslerini bizimle paylaştıkları için tüm yaratıcılara
+            teşekkür ederiz.
           </Text>
 
           <TouchableOpacity

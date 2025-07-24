@@ -17,7 +17,7 @@ class SoundManager {
   private menuMusic: Audio.Sound | null = null;
 
   private isMuted: boolean = false;
-  private musicVolume: number = 0.4; // 0.3'ten 0.4'e çıkarıldı
+  private musicVolume: number = 0.35; // 0.3'ten 0.35'e çıkarıldı
   private effectsVolume: number = 0.7;
   private isInitialized: boolean = false;
 
@@ -224,12 +224,12 @@ class SoundManager {
       {
         key: "explosion",
         file: require("../../assets/sounds/explosion.mp3"),
-        volume: 0.7,
+        volume: 0.8,
       },
       {
         key: "primeExplosion",
         file: require("../../assets/sounds/prime_explosion.mp3"),
-        volume: 0.7,
+        volume: 0.9,
       },
       {
         key: "prime2",
@@ -307,7 +307,7 @@ class SoundManager {
       // Explosion sesi yükle
       const { sound: explosionSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/explosion.mp3"),
-        { volume: this.effectsVolume * 0.7 }
+        { volume: this.effectsVolume * 0.8 }
       );
       this.explosionSound = explosionSfx;
       console.log("Explosion sesi yüklendi");
@@ -319,7 +319,7 @@ class SoundManager {
       // Prime explosion sesi yükle
       const { sound: primeExplosionSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/prime_explosion.mp3"),
-        { volume: this.effectsVolume * 0.7 }
+        { volume: this.effectsVolume * 0.9 }
       );
       this.primeExplosionSound = primeExplosionSfx;
       console.log("Prime explosion sesi yüklendi");
