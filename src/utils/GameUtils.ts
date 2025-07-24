@@ -148,9 +148,9 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
 
 // Oyuncu title'ı belirleme
 export const getPlayerTitle = (score: number): string => {
-  if (score >= 11000) return 'Prime Master';
-  if (score >= 9000) return 'Math Genius';
-  if (score >= 7000) return 'Number Sage';
+  if (score >= 13000) return 'Prime Master';
+  if (score >= 10000) return 'Math Genius';
+  if (score >= 8000) return 'Number Sage';
   if (score >= 5000) return 'Calculation Expert';
   if (score >= 3000) return 'Math Enthusiast';
   if (score >= 2000) return 'Number Cruncher';
