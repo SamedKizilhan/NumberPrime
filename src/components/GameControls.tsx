@@ -115,9 +115,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   movementButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#16213e",
     borderWidth: 2,
     borderColor: "#0f3460",
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   operationButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#16213e",
     borderWidth: 2,
     borderColor: "#0f3460",
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   operationButtonText: {
     color: "#666",
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   selectedOperationButtonText: {
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   movementButtonText: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
   },
   dropButton: {

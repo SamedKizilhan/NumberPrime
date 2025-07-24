@@ -36,6 +36,15 @@ export default function App() {
         console.error("Error checking user profile:", error);
       } finally {
         setIsCheckingUser(false);
+
+        // SoundManager'ı initialize et ve menu müziğini başlat
+        const initializeSound = async () => {
+          const soundManager = SoundManager.getInstance();
+          await soundManager.initialize();
+          await soundManager.playMenuMusic();
+        };
+
+        initializeSound();
       }
     };
 
@@ -63,9 +72,10 @@ export default function App() {
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === "background" || nextAppState === "inactive") {
-        // Uygulama arka plana geçince müziği durdur
+        // Uygulama arka plana geçince tüm müzikleri durdur
         const soundManager = SoundManager.getInstance();
         soundManager.pauseBackgroundMusic();
+        soundManager.pauseMenuMusic();
       }
     };
 
@@ -95,6 +105,39 @@ export default function App() {
     setPlayerNickname(nickname);
   };
 
+  const handleGameStart = async (nickname?: string) => {
+    if (nickname && nickname.trim()) {
+      await handleNicknameSet(nickname.trim());
+    }
+
+    // Menu müziğini durdur ve oyun müziğini başlat
+    const soundManager = SoundManager.getInstance();
+    await soundManager.pauseMenuMusic();
+    await soundManager.startGameMusic();
+
+    setCurrentScreen("game");
+  };
+
+  const handleGameEnd = async () => {
+    // Oyun müziğini durdur ve menu müziğini başlat
+    const soundManager = SoundManager.getInstance();
+    soundManager.cancelPendingBackgroundMusicResume();
+    await soundManager.pauseBackgroundMusic();
+    await soundManager.restartMenuMusic();
+
+    setCurrentScreen("menu");
+  };
+
+  const handleLeaderboard = async () => {
+    // Menu müziği çalmaya devam etsin
+    setCurrentScreen("leaderboard");
+  };
+
+  const handleBackToMenu = async () => {
+    // Leaderboard'dan menu'ye dönerken menu müziği çalmaya devam etsin
+    setCurrentScreen("menu");
+  };
+
   const renderScreen = () => {
     // Kullanıcı kontrolü devam ediyorsa loading göster
     if (isCheckingUser) {
@@ -105,8 +148,8 @@ export default function App() {
       case "menu":
         return (
           <MenuScreen
-            onStartGame={() => setCurrentScreen("game")}
-            onShowLeaderboard={() => setCurrentScreen("leaderboard")}
+            onStartGame={handleGameStart}
+            onShowLeaderboard={handleLeaderboard}
             playerNickname={playerNickname}
             setPlayerNickname={handleNicknameSet}
           />
@@ -114,14 +157,14 @@ export default function App() {
       case "game":
         return (
           <GameScreen
-            onGameEnd={() => setCurrentScreen("menu")}
+            onGameEnd={handleGameEnd}
             playerNickname={playerNickname}
           />
         );
       case "leaderboard":
         return (
           <LeaderboardScreen
-            onBack={() => setCurrentScreen("menu")}
+            onBack={handleBackToMenu}
             playerNickname={playerNickname}
           />
         );

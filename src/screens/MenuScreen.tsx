@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -30,12 +30,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   // Menu açıldığında müzik başlat (kaldığı yerden)
   useEffect(() => {
-    const initializeMenuMusic = async () => {
-      await soundManager.initialize();
-      await soundManager.startMenuMusic();
+    const startMenuMusic = async () => {
+      const soundManager = SoundManager.getInstance();
+      await soundManager.playMenuMusic();
     };
 
-    initializeMenuMusic();
+    startMenuMusic();
   }, []);
   const [inputNickname, setInputNickname] = useState(playerNickname);
 
@@ -126,14 +126,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             • Düşen sayıları yöneterek yerleştir
           </Text>
           <Text style={styles.instructionText}>
+            • Eşit sayılar elde ederek bir araya getir
+          </Text>
+          <Text style={styles.instructionText}>
             • + veya - işlemlerinden birini seçerek üzerine indiğin bloğu
             değiştirebilirsin
           </Text>
           <Text style={styles.instructionText}>
-            • Eşit sayılar elde ederek bir araya getir
-          </Text>
-          <Text style={styles.instructionText}>
-            • İki eşit asal sayıyı bir araya getirirsen ekstra patlar
+            • İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift asal sayı olan 2 ise özel patlar
           </Text>
         </View>
       </View>

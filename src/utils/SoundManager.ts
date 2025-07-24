@@ -2,6 +2,8 @@ import { Audio } from "expo-av";
 import { Platform } from "react-native";
 
 class SoundManager {
+  private backgroundMusicResumeTimeout: NodeJS.Timeout | null = null;
+  private temporaryPauseTimeout: NodeJS.Timeout | null = null;
   private static instance: SoundManager;
   private backgroundMusic: Audio.Sound | null = null;
   private explosionSound: Audio.Sound | null = null;
@@ -12,6 +14,7 @@ class SoundManager {
   private moveSound: Audio.Sound | null = null;
   private dropSound: Audio.Sound | null = null;
   private failureSound: Audio.Sound | null = null;
+  private menuMusic: Audio.Sound | null = null;
 
   private isMuted: boolean = false;
   private musicVolume: number = 0.4; // 0.3'ten 0.4'e çıkarıldı
@@ -44,6 +47,26 @@ class SoundManager {
         playThroughEarpieceAndroid: false,
       });
 
+      // Background müzik yükle
+      if (!this.backgroundMusic) {
+        this.backgroundMusic = new Audio.Sound();
+        await this.backgroundMusic.loadAsync(
+          require("../../assets/sounds/background.mp3")
+        );
+        await this.backgroundMusic.setIsLoopingAsync(true);
+        console.log("Background müzik yüklendi");
+      }
+
+      // Menu müzik yükle
+      if (!this.menuMusic) {
+        this.menuMusic = new Audio.Sound();
+        await this.menuMusic.loadAsync(
+          require("../../assets/sounds/MenuScreenMusic.mp3")
+        );
+        await this.menuMusic.setIsLoopingAsync(true);
+        console.log("Menu müzik yüklendi");
+      }
+
       // Mevcut sesleri kontrol et ve eksikse yükle
       await this.ensureSoundsLoaded();
 
@@ -55,6 +78,58 @@ class SoundManager {
     }
   }
 
+  // Menu müziği çalma
+  async playMenuMusic() {
+    if (!this.isMuted && this.menuMusic) {
+      try {
+        // Önce background müziği durdur
+        if (this.backgroundMusic) {
+          await this.backgroundMusic.pauseAsync();
+        }
+
+        // Menu müziğini çal
+        const status = await this.menuMusic.getStatusAsync();
+        if (status.isLoaded) {
+          if (!status.isPlaying) {
+            await this.menuMusic.setVolumeAsync(this.musicVolume);
+            await this.menuMusic.playAsync();
+            console.log("Menu müzik başlatıldı");
+          }
+        }
+      } catch (error) {
+        console.log("Menu müzik çalma hatası:", error);
+      }
+    }
+  }
+
+  // Menu müziği durdurma
+  async pauseMenuMusic() {
+    if (this.menuMusic) {
+      try {
+        const status = await this.menuMusic.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          await this.menuMusic.pauseAsync();
+          console.log("Menu müzik duraklatıldı");
+        }
+      } catch (error) {
+        console.log("Menu müzik durdurma hatası:", error);
+      }
+    }
+  }
+
+  // Menu müziği baştan başlatma
+  async restartMenuMusic() {
+    if (!this.isMuted && this.menuMusic) {
+      try {
+        await this.menuMusic.stopAsync();
+        await this.menuMusic.setVolumeAsync(this.musicVolume);
+        await this.menuMusic.playAsync();
+        console.log("Menu müzik baştan başlatıldı");
+      } catch (error) {
+        console.log("Menu müzik restart hatası:", error);
+      }
+    }
+  }
   // Yeni fonksiyon: Sesler yüklenmiş mi kontrol et ve eksikse yükle
   private async ensureSoundsLoaded() {
     // Background müzik kontrolü
@@ -373,14 +448,18 @@ class SoundManager {
   async pauseBackgroundMusicTemporarily(durationMs: number = 3000) {
     if (this.backgroundMusic) {
       try {
+        // Önceki timeout'ları iptal et
+        this.cancelPendingBackgroundMusicResume();
+
         await this.backgroundMusic.pauseAsync();
         console.log(`Background müzik ${durationMs}ms için duraklatıldı`);
 
         // Belirtilen süre sonra tekrar başlat
-        setTimeout(async () => {
+        this.temporaryPauseTimeout = setTimeout(async () => {
           try {
             await this.playBackgroundMusic();
             console.log("Background müzik otomatik olarak devam etti");
+            this.temporaryPauseTimeout = null;
           } catch (error) {
             console.log("Background müzik otomatik devam hatası:", error);
           }
@@ -392,12 +471,18 @@ class SoundManager {
   }
 
   async pauseBackgroundMusic() {
+    // Pending timeout'u iptal et
+    this.cancelPendingBackgroundMusicResume();
+
     if (this.backgroundMusic) {
       try {
-        await this.backgroundMusic.pauseAsync();
-        console.log("Background müzik duraklatıldı");
+        const status = await this.backgroundMusic.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          await this.backgroundMusic.pauseAsync();
+          console.log("Background müzik duraklatıldı");
+        }
       } catch (error) {
-        console.log("Background müzik duraklama hatası:", error);
+        console.log("Background müzik durdurma hatası:", error);
       }
     }
   }
@@ -508,20 +593,39 @@ class SoundManager {
       await this.pauseBackgroundMusicTemporarily(2000); // 2 saniye
       await this.playFromPool("failure");
     } else {
-      // iOS için - mevcut mantık ama daha kısa süre
+      // iOS için - kontrol edilebilir timeout
       if (!this.isMuted && this.failureSound) {
         try {
+          // Önceki timeout varsa iptal et
+          this.cancelPendingBackgroundMusicResume();
+
           await this.pauseBackgroundMusic();
           await this.failureSound.replayAsync();
 
-          // iOS için otomatik resume - süreyi kısalttık
-          setTimeout(() => {
+          // iOS için otomatik resume - kontrol edilebilir timeout
+          this.backgroundMusicResumeTimeout = setTimeout(() => {
             this.playBackgroundMusic();
-          }, 2500); // 3000'den 2500'e düşürdük
+            this.backgroundMusicResumeTimeout = null;
+          }, 2500);
         } catch (error) {
           console.log("Failure sesi hatası:", error);
         }
       }
+    }
+  }
+
+  // Yeni fonksiyon: Pending background music resume'ları iptal et
+  cancelPendingBackgroundMusicResume() {
+    if (this.backgroundMusicResumeTimeout) {
+      clearTimeout(this.backgroundMusicResumeTimeout);
+      this.backgroundMusicResumeTimeout = null;
+      console.log("iOS background music resume timeout iptal edildi");
+    }
+
+    if (this.temporaryPauseTimeout) {
+      clearTimeout(this.temporaryPauseTimeout);
+      this.temporaryPauseTimeout = null;
+      console.log("Android temporary pause timeout iptal edildi");
     }
   }
 
@@ -540,8 +644,10 @@ class SoundManager {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
       this.pauseBackgroundMusic();
+      this.pauseMenuMusic();
     } else {
-      this.playBackgroundMusic();
+      // Hangi müziğin çalacağına ilgili ekran karar verecek
+      console.log("Ses açıldı - müzik kontrolü ilgili ekrana bırakıldı");
     }
     return this.isMuted;
   }
@@ -567,10 +673,19 @@ class SoundManager {
 
   async cleanup() {
     try {
+      // Pending timeout'u iptal et
+      this.cancelPendingBackgroundMusicResume();
+
       // Background müziği sadece durdur, unload etme
       if (this.backgroundMusic) {
         await this.backgroundMusic.pauseAsync();
         console.log("Background müzik duraklatıldı (cleanup)");
+      }
+
+      // Menu müziği sadece durdur
+      if (this.menuMusic) {
+        await this.menuMusic.pauseAsync();
+        console.log("Menu müzik duraklatıldı (cleanup)");
       }
 
       // Efekt seslerini unload etme, sadece durdur
@@ -620,6 +735,12 @@ class SoundManager {
       if (this.backgroundMusic) {
         await this.backgroundMusic.unloadAsync();
         this.backgroundMusic = null;
+      }
+
+      if (this.menuMusic) {
+        await this.menuMusic.unloadAsync();
+        this.menuMusic = null;
+        console.log("Menu müzik tamamen temizlendi");
       }
 
       // Android pool temizle

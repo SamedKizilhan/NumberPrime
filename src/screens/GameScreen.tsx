@@ -52,6 +52,7 @@ interface ScorePopup {
   x: number;
   y: number;
   id: string;
+  isCombo?: boolean;
 }
 
 const { width, height } = Dimensions.get("window");
@@ -326,6 +327,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         x: explosionX,
         y: explosionY,
         id: `popup-${Date.now()}-150`,
+        isCombo: true,
       };
       setScorePopups((prev) => [...prev, popup]);
     }
@@ -472,7 +474,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       // Failure sesini çal
       soundManager.playFailureSound();
 
-      // Skoru kaydet
+      // Skoru kaydet - async olarak
       const finalScore: PlayerScore = {
         id: Date.now().toString(),
         nickname: playerNickname,
@@ -480,14 +482,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
         date: new Date().toLocaleDateString(),
         title: getPlayerTitle(state.score),
       };
+      await saveScore(finalScore);
 
-      saveScore(finalScore);
-
-      setGameState({
-        ...state,
+      // State'i güncelle
+      setGameState((prevState) => ({
+        ...prevState,
         isGameOver: true,
-        fallingBlock: null,
-      });
+      }));
       return;
     }
 
@@ -644,7 +645,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const dropBlock = () => {
     if (isPaused || explosionActive) return;
-    soundManager.playDropSound(); // Ses ekle
+    soundManager.playDropSound();
+
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -653,7 +655,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       const blockX = currentBlock.x;
 
       // Aşağıda boş yer var mı, varsa en alt noktayı bul
-      // grid[y][x] formatında kontrol et
       while (
         newY + 1 < GRID_HEIGHT &&
         prevState.grid[newY + 1][blockX].value === null
@@ -661,19 +662,40 @@ const GameScreen: React.FC<GameScreenProps> = ({
         newY++;
       }
 
-      // Eğer hareket ettiyse bloğu oraya taşı, yoksa direk yerleştir
+      // Eğer hareket ettiyse bloğu oraya taşı
       if (newY > currentBlock.y) {
         return {
           ...prevState,
           fallingBlock: {
             ...prevState.fallingBlock,
             y: newY,
-            // x koordinatı değişmemeli
             x: blockX,
           },
         };
       } else {
-        // Zaten en alttaysa, bloğu yerleştir
+        // Zaten en alttaysa, bloğu yerleştir - ama bu sefer async değil
+        // Önce oyun sonu kontrolü yap
+        if (currentBlock.y <= 0) {
+          // Failure sesini çal
+          soundManager.playFailureSound();
+
+          // Skoru kaydet
+          const finalScore: PlayerScore = {
+            id: Date.now().toString(),
+            nickname: playerNickname,
+            score: prevState.score,
+            date: new Date().toLocaleDateString(),
+            title: getPlayerTitle(prevState.score),
+          };
+          saveScore(finalScore);
+
+          return {
+            ...prevState,
+            isGameOver: true,
+          };
+        }
+
+        // Oyun sona ermiyorsa, bloğu yerleştir
         landBlockAsync(prevState);
         return prevState;
       }
@@ -797,6 +819,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
             x={popup.x}
             y={popup.y}
             cellSize={CELL_SIZE}
+            isCombo={popup.isCombo}
             onComplete={() => {
               setScorePopups((prev) => prev.filter((p) => p.id !== popup.id));
             }}

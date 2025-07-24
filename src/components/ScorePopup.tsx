@@ -6,6 +6,7 @@ interface ScorePopupProps {
   x: number;
   y: number;
   cellSize: number;
+  isCombo?: boolean; // Yeni prop ekle
   onComplete: () => void;
 }
 
@@ -14,6 +15,7 @@ const ScorePopup: React.FC<ScorePopupProps> = ({
   x,
   y,
   cellSize,
+  isCombo = false, // Default false
   onComplete,
 }) => {
   const translateYAnim = useRef(new Animated.Value(0)).current;
@@ -31,7 +33,7 @@ const ScorePopup: React.FC<ScorePopupProps> = ({
       Animated.sequence([
         // İlk büyüme
         Animated.timing(scaleAnim, {
-          toValue: 1.2,
+          toValue: isCombo ? 1.4 : 1.2, // Combo ise daha büyük
           duration: 200,
           useNativeDriver: true,
         }),
@@ -68,8 +70,8 @@ const ScorePopup: React.FC<ScorePopupProps> = ({
   }, []);
 
   // Popup'ın konumunu hesapla - hücrenin ortasında görünecek
-  const left = x * cellSize + cellSize / 2 - 30; // 30 = tahmini text width/2
-  const top = y * cellSize + cellSize / 2 - 15; // 15 = tahmini text height/2
+  const left = x * cellSize + cellSize / 2 - (isCombo ? 40 : 30); // Combo için daha geniş
+  const top = y * cellSize + cellSize / 2 - (isCombo ? 25 : 15); // Combo için daha yüksek
 
   return (
     <Animated.View
@@ -83,7 +85,10 @@ const ScorePopup: React.FC<ScorePopupProps> = ({
         },
       ]}
     >
-      <Text style={styles.scoreText}>+{score}</Text>
+      {isCombo && <Text style={styles.comboText}>COMBO!</Text>}
+      <Text style={[styles.scoreText, isCombo && styles.comboScoreText]}>
+        +{score}
+      </Text>
     </Animated.View>
   );
 };
@@ -104,6 +109,20 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
     textAlign: "center",
     minWidth: 60,
+  },
+  comboText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FF4500", // Turuncu renk
+    textShadowColor: "#000",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  comboScoreText: {
+    fontSize: 24, // Combo skoru daha büyük
+    color: "#FF4500", // Combo skoru da turuncu
   },
 });
 
