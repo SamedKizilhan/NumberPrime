@@ -14,6 +14,7 @@ import SoundManager from "../utils/SoundManager";
 interface MenuScreenProps {
   onStartGame: () => void;
   onShowLeaderboard: () => void;
+  onShowCredits: () => void;
   playerNickname: string;
   setPlayerNickname: (nickname: string) => void;
 }
@@ -23,6 +24,7 @@ const { width, height } = Dimensions.get("window");
 const MenuScreen: React.FC<MenuScreenProps> = ({
   onStartGame,
   onShowLeaderboard,
+  onShowCredits,
   playerNickname,
   setPlayerNickname,
 }) => {
@@ -120,6 +122,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={[styles.button, styles.secondaryButton]}
+          onPress={onShowCredits}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            MÜZİKLER
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.instructions}>
           <Text style={styles.instructionTitle}>Nasıl Oynanır:</Text>
           <Text style={styles.instructionText}>
@@ -133,7 +145,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             değiştirebilirsin
           </Text>
           <Text style={styles.instructionText}>
-            • İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift asal sayı olan 2 ise özel patlar
+            • İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift
+            asal sayı olan 2 ise özel patlar
           </Text>
         </View>
       </View>

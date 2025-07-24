@@ -11,6 +11,7 @@ import {
 import GameScreen from "./src/screens/GameScreen";
 import MenuScreen from "./src/screens/MenuScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
+import CreditsScreen from "./src/screens/CreditsScreen";
 import {
   getUserProfile,
   saveUserProfile,
@@ -18,7 +19,7 @@ import {
 } from "./src/utils/StorageUtils";
 import SoundManager from "./src/utils/SoundManager";
 
-export type Screen = "menu" | "game" | "leaderboard";
+export type Screen = "menu" | "game" | "leaderboard" | "credits";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
@@ -133,8 +134,13 @@ export default function App() {
     setCurrentScreen("leaderboard");
   };
 
+  const handleShowCredits = async () => {
+    // Menu müziği çalmaya devam etsin
+    setCurrentScreen("credits");
+  };
+
   const handleBackToMenu = async () => {
-    // Leaderboard'dan menu'ye dönerken menu müziği çalmaya devam etsin
+    // Leaderboard'dan veya Credits'ten menu'ye dönerken menu müziği çalmaya devam etsin
     setCurrentScreen("menu");
   };
 
@@ -150,6 +156,7 @@ export default function App() {
           <MenuScreen
             onStartGame={handleGameStart}
             onShowLeaderboard={handleLeaderboard}
+            onShowCredits={handleShowCredits}
             playerNickname={playerNickname}
             setPlayerNickname={handleNicknameSet}
           />
@@ -168,6 +175,8 @@ export default function App() {
             playerNickname={playerNickname}
           />
         );
+      case "credits":
+        return <CreditsScreen onBack={handleBackToMenu} />;
       default:
         return null;
     }
