@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   Platform,
+  Animated,
 } from "react-native";
 import SoundManager from "../utils/SoundManager";
 import { useTranslation } from "react-i18next";
@@ -32,6 +33,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 }) => {
   const { t } = useTranslation();
   const soundManager = SoundManager.getInstance();
+  const [inputNickname, setInputNickname] = useState(playerNickname);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [animationValue] = useState(new Animated.Value(0));
 
   // Menu açıldığında müzik başlat (kaldığı yerden)
   useEffect(() => {
@@ -42,7 +46,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
     startMenuMusic();
   }, []);
-  const [inputNickname, setInputNickname] = useState(playerNickname);
 
   // iPhone için ekstra margin
   const getTopMargin = () => {
@@ -69,13 +72,30 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     onStartGame();
   };
 
+  const toggleInstructions = () => {
+    const toValue = isInstructionsOpen ? 0 : 1;
+
+    Animated.timing(animationValue, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+
+    setIsInstructionsOpen(!isInstructionsOpen);
+  };
+
+  const instructionsHeight = animationValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 200], // Yaklaşık instruction yüksekliği
+  });
+
+  const rotateIcon = animationValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
   return (
     <View style={styles.container}>
-      {/* Dil seçici - sağ üst köşe */}
-      <View style={styles.languageContainer}>
-        <LanguageSelector />
-      </View>
-
       <View style={styles.header}>
         {/* Ana Logo */}
         <View style={styles.logoContainer}>
@@ -119,7 +139,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           <Text style={styles.buttonText}>{t("menu.startGame")}</Text>
         </TouchableOpacity>
 
-        {/* Alternative approach - View based button */}
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
           onPress={onShowLeaderboard}
@@ -140,13 +159,47 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </Text>
         </TouchableOpacity>
 
-        <View style={styles.instructions}>
-          <Text style={styles.instructionTitle}>{t("menu.howToPlay")}</Text>
-          <Text style={styles.instructionText}>{t("menu.instruction1")}</Text>
-          <Text style={styles.instructionText}>{t("menu.instruction2")}</Text>
-          <Text style={styles.instructionText}>{t("menu.instruction3")}</Text>
-          <Text style={styles.instructionText}>{t("menu.instruction4")}</Text>
+        {/* Nasıl Oynanır Accordion */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.secondaryButton,
+            styles.instructionsToggle,
+          ]}
+          onPress={toggleInstructions}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+            {t("menu.howToPlay")}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Dil Seçici - Nasıl Oynanır butonunun altında - SABİT KONUM */}
+        <View style={styles.languageContainer}>
+          <LanguageSelector />
         </View>
+
+        {/* Açılır Kapanır İçerik - OVERLAY olarak */}
+        {isInstructionsOpen && (
+          <Animated.View
+            style={[styles.instructionsOverlay, { height: instructionsHeight }]}
+          >
+            <View style={styles.instructions}>
+              <Text style={styles.instructionText}>
+                {t("menu.instruction1")}
+              </Text>
+              <Text style={styles.instructionText}>
+                {t("menu.instruction2")}
+              </Text>
+              <Text style={styles.instructionText}>
+                {t("menu.instruction3")}
+              </Text>
+              <Text style={styles.instructionText}>
+                {t("menu.instruction4")}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
       </View>
     </View>
   );
@@ -157,12 +210,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1a1a2e",
     paddingHorizontal: 20,
-  },
-  languageContainer: {
-    position: "absolute",
-    top: 40,
-    right: 20,
-    zIndex: 1000,
   },
   header: {
     alignItems: "center",
@@ -252,6 +299,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: Platform.OS === "ios" ? -10 : 0, // iOS için yukarı çek
+    position: "relative", // Z-index için gerekli
   },
   inputContainer: {
     width: "100%",
@@ -304,11 +352,6 @@ const styles = StyleSheet.create({
       borderBottomColor: "#00d2d3",
     }),
   },
-  buttonTextContainer: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   buttonText: {
     color: "#fff",
     fontSize: 18,
@@ -317,7 +360,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#00d2d3",
-    fontFamily: Platform.OS === "android" ? "sans-serif" : "System", // Platform specific font
+    fontFamily: Platform.OS === "android" ? "sans-serif" : "System",
     textDecorationLine: "none",
     textDecorationColor: "transparent",
     textDecorationStyle: "solid",
@@ -328,32 +371,48 @@ const styles = StyleSheet.create({
     ...(Platform.OS === "android" && {
       textAlignVertical: "center",
       includeFontPadding: false,
-      elevation: 0, // Remove elevation
+      elevation: 0,
     }),
-    // textShadowColor'ı son olarak set et
     textShadowColor: "transparent",
   },
-  instructions: {
-    marginTop: Platform.OS === "ios" ? 25 : 30, // iOS için 25, Android için 30
-    alignItems: "center",
-    backgroundColor: "#0f3460",
-    padding: 20,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#16213e",
+
+  // Accordion Styles
+  instructionsToggle: {
+    // Diğer butonlarla aynı stil, sadece z-index eklendi
+    zIndex: 2, // Overlay'in üstünde kalması için
   },
-  instructionTitle: {
-    fontSize: 18,
-    color: "#00d2d3",
-    fontWeight: "bold",
-    marginBottom: 15,
+  instructionsOverlay: {
+    position: "absolute",
+    top: 75, // Toggle butonunun hemen altından başlasın
+    left: 0,
+    right: 0,
+    width: "100%",
+    overflow: "hidden",
+    zIndex: 1, // Dil seçicinin üstünde, toggle'ın altında
+  },
+  instructions: {
+    backgroundColor: "#0f3460",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: "#16213e",
   },
   instructionText: {
     fontSize: 14,
     color: "#999",
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: "left",
     lineHeight: 20,
+  },
+
+  // Dil seçici - altta konumlandırıldı ve SABİT
+  languageContainer: {
+    marginTop: 20,
+    alignItems: "center",
+    zIndex: 0, // Instructions'ın altında kalacak
   },
 });
 
