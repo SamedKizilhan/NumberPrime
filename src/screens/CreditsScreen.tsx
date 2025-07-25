@@ -44,7 +44,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🎮 Oyun Müziği</Text>
-            <Text style={styles.fileName}>background.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -84,7 +83,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🎵 Menü Müziği</Text>
-            <Text style={styles.fileName}>MenuScreenMusic.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -126,7 +124,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>⏰ Oyun Bitiş Müziği</Text>
-            <Text style={styles.fileName}>failure.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -166,7 +163,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>💥 Normal Patlama</Text>
-            <Text style={styles.fileName}>explosion.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -206,7 +202,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🌟 Combo Müziği</Text>
-            <Text style={styles.fileName}>combo.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -252,7 +247,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>✨ Asal 2 Patlaması</Text>
-            <Text style={styles.fileName}>prime2.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -294,7 +288,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🔥 Asal Sayı Patlaması</Text>
-            <Text style={styles.fileName}>prime_explosion.mp3</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -340,7 +333,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🎯 Hareket Sesleri</Text>
-            <Text style={styles.fileName}>move.mp3 (Sağ/Sol Oklar)</Text>
+            <Text style={styles.fileName}>(Sağ/Sol Oklar)</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -382,7 +375,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
             <Text style={styles.musicTitle}>🔘 Buton Sesleri</Text>
-            <Text style={styles.fileName}>button.mp3 (+/- ve Pause)</Text>
+            <Text style={styles.fileName}>(+/- ve Pause)</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -420,6 +413,49 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               <Text style={styles.licenseText}>
                 📜 Lisans: Creative Commons 0
               </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Aşağı Ok Sesi */}
+        <View style={styles.musicCard}>
+          <View style={styles.musicHeader}>
+            <Text style={styles.musicTitle}>⬇️ Aşağı Ok Sesi</Text>
+          </View>
+
+          <View style={styles.musicInfo}>
+            <Text style={styles.soundName}>a.wav</Text>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl("https://freesound.org/people/kwahmah_02/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>👤 Yapımcı: kwahmah_02</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() =>
+                openUrl(
+                  "https://freesound.org/people/kwahmah_02/sounds/254179/"
+                )
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.licenseButton}
+              onPress={() =>
+                openUrl("http://creativecommons.org/licenses/by/3.0/")
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.licenseText}>📜 Lisans: Attribution 3.0</Text>
             </TouchableOpacity>
           </View>
         </View>

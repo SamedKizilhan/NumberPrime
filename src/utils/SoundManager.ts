@@ -17,8 +17,8 @@ class SoundManager {
   private menuMusic: Audio.Sound | null = null;
 
   private isMuted: boolean = false;
-  private musicVolume: number = 0.35; // 0.3'ten 0.35'e çıkarıldı
-  private effectsVolume: number = 0.7;
+  private musicVolume: number = 0.2; 
+  private effectsVolume: number = 0.9;
   private isInitialized: boolean = false;
 
   // Android için ek ayarlar
@@ -224,12 +224,12 @@ class SoundManager {
       {
         key: "explosion",
         file: require("../../assets/sounds/explosion.mp3"),
-        volume: 0.8,
+        volume: 0.9,
       },
       {
         key: "primeExplosion",
         file: require("../../assets/sounds/prime_explosion.mp3"),
-        volume: 0.9,
+        volume: 1.0,
       },
       {
         key: "prime2",
@@ -239,7 +239,7 @@ class SoundManager {
       {
         key: "combo",
         file: require("../../assets/sounds/combo.mp3"),
-        volume: 0.8,
+        volume: 0.9,
       },
       {
         key: "button",
@@ -249,12 +249,12 @@ class SoundManager {
       {
         key: "move",
         file: require("../../assets/sounds/move.mp3"),
-        volume: 0.5,
+        volume: 0.75,
       },
       {
         key: "drop",
         file: require("../../assets/sounds/drop.mp3"),
-        volume: 0.45,
+        volume: 0.4,
       },
       {
         key: "failure",
