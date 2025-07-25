@@ -1,55 +1,81 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import * as RNLocalize from "react-native-localize";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Dil dosyalarını import et
 import trCommon from "../locales/tr/common.json";
 import enCommon from "../locales/en/common.json";
 
+const LANGUAGE_KEY = "@NumPrime_Language";
+
+// Varsayılan dil
+const DEFAULT_LANGUAGE = "tr";
+
 // Mevcut dillerin listesi
-const supportedLanguages = ["tr", "en"];
+export const supportedLanguages = ["tr", "en"];
 
-// Cihazın dilini al
-const deviceLanguage = RNLocalize.getLocales()[0]?.languageCode || "tr";
+// Dil tercihini kaydet
+export const saveLanguagePreference = async (
+  language: string
+): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(LANGUAGE_KEY, language);
+    await i18n.changeLanguage(language);
+  } catch (error) {
+    console.error("Error saving language preference:", error);
+  }
+};
 
-// Desteklenen dil mi kontrol et
-const fallbackLanguage = supportedLanguages.includes(deviceLanguage)
-  ? deviceLanguage
-  : "tr";
+// Kaydedilmiş dil tercihini al
+export const getLanguagePreference = async (): Promise<string> => {
+  try {
+    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
+    return savedLanguage && supportedLanguages.includes(savedLanguage)
+      ? savedLanguage
+      : DEFAULT_LANGUAGE;
+  } catch (error) {
+    console.error("Error getting language preference:", error);
+    return DEFAULT_LANGUAGE;
+  }
+};
 
-// i18n konfigürasyonu
-i18n.use(initReactI18next).init({
-  // Dil kaynakları
-  resources: {
-    tr: {
-      common: trCommon,
+// i18n'i başlat
+export const initializeI18n = async (): Promise<void> => {
+  const savedLanguage = await getLanguagePreference();
+
+  await i18n.use(initReactI18next).init({
+    // Dil kaynakları
+    resources: {
+      tr: {
+        common: trCommon,
+      },
+      en: {
+        common: enCommon,
+      },
     },
-    en: {
-      common: enCommon,
+
+    // Başlangıç dili
+    lng: savedLanguage,
+
+    // Fallback dili
+    fallbackLng: DEFAULT_LANGUAGE,
+
+    // Namespace
+    defaultNS: "common",
+
+    // Debug modu (development için)
+    debug: __DEV__,
+
+    // Interpolation ayarları
+    interpolation: {
+      escapeValue: false, // React zaten escape ediyor
     },
-  },
 
-  // Varsayılan dil
-  lng: fallbackLanguage,
-
-  // Fallback dili
-  fallbackLng: "tr",
-
-  // Namespace
-  defaultNS: "common",
-
-  // Debug modu (development için)
-  debug: __DEV__,
-
-  // Interpolation ayarları
-  interpolation: {
-    escapeValue: false, // React zaten escape ediyor
-  },
-
-  // React ayarları
-  react: {
-    useSuspense: false, // React Native için gerekli
-  },
-});
+    // React ayarları
+    react: {
+      useSuspense: false, // React Native için gerekli
+    },
+  });
+};
 
 export default i18n;

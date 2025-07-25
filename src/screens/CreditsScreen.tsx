@@ -471,7 +471,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Aşağı Ok Sesi */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>⬇️ Aşağı Ok Sesi</Text>
+            <Text style={styles.musicTitle}>⬇️ {t("credits.dropSound")}</Text>
           </View>
 
           <View style={styles.musicInfo}>

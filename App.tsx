@@ -1,4 +1,4 @@
-import './src/utils/i18n';
+import { initializeI18n } from "./src/utils/i18n";
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -26,16 +26,23 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
   const [playerNickname, setPlayerNickname] = useState<string>("");
   const [isCheckingUser, setIsCheckingUser] = useState<boolean>(true);
+  const [isI18nReady, setIsI18nReady] = useState<boolean>(false);
 
   useEffect(() => {
-    const checkUserProfile = async () => {
+    const initialize = async () => {
       try {
+        // İlk olarak i18n'i başlat
+        await initializeI18n();
+        setIsI18nReady(true);
+
+        // Sonra kullanıcı profilini kontrol et
         const profile = await getUserProfile();
         if (profile && profile.nickname) {
           setPlayerNickname(profile.nickname);
         }
       } catch (error) {
-        console.error("Error checking user profile:", error);
+        console.error("Error initializing app:", error);
+        setIsI18nReady(true); // Hata durumunda da devam et
       } finally {
         setIsCheckingUser(false);
 
@@ -50,7 +57,7 @@ export default function App() {
       }
     };
 
-    checkUserProfile();
+    initialize();
   }, []);
 
   // Global BackHandler - sadece debug için
@@ -146,8 +153,8 @@ export default function App() {
   };
 
   const renderScreen = () => {
-    // Kullanıcı kontrolü devam ediyorsa loading göster
-    if (isCheckingUser) {
+    // i18n veya kullanıcı kontrolü devam ediyorsa loading göster
+    if (!isI18nReady || isCheckingUser) {
       return null; // Veya bir loading screen komponenti
     }
 

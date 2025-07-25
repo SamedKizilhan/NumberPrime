@@ -173,10 +173,10 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Text style={styles.backButtonText}>← Geri</Text>
+          <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Skor Tablosu</Text>
+        <Text style={styles.title}>{t("leaderboard.title")}</Text>
         <View style={styles.spacer} />
       </View>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
+import { saveLanguagePreference } from "../utils/i18n";
 
 interface LanguageSelectorProps {
   onLanguageChange?: (language: string) => void;
@@ -11,8 +12,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 }) => {
   const { i18n } = useTranslation();
 
-  const changeLanguage = (language: string) => {
-    i18n.changeLanguage(language);
+  const changeLanguage = async (language: string) => {
+    await saveLanguagePreference(language);
     if (onLanguageChange) {
       onLanguageChange(language);
     }

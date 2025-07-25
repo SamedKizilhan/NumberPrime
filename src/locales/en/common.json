@@ -54,6 +54,7 @@
     "comboSound": "Combo Music",
     "buttonSound": "Button Sounds",
     "moveSound": "Movement Sounds",
+    "dropSound": "Down Arrow Sound",
     "failureSound": "Game Over Music",
     "creator": "Creator",
     "originalSound": "Original Sound",
