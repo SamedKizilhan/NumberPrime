@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -28,7 +29,7 @@ import {
   applyGravity,
   isPrime,
   calculateGameSpeed,
-  getPlayerTitle,
+  getPlayerTitleKey,
 } from "../utils/GameUtils";
 import SoundManager from "../utils/SoundManager";
 import { saveScore } from "../utils/StorageUtils";
@@ -61,6 +62,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   onGameEnd,
   playerNickname,
 }) => {
+  const { t } = useTranslation();
   const [gameState, setGameState] = useState<GameState>({
     grid: createEmptyGrid(),
     fallingBlock: createNewFallingBlock(),
@@ -121,14 +123,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        Alert.alert(
-          "Oyundan Çık",
-          "Oyunu sonlandırmak istediğinize emin misiniz?",
-          [
-            { text: "Hayır", style: "cancel" },
-            { text: "Evet", onPress: onGameEnd },
-          ]
-        );
+        Alert.alert(t("game.exitGame"), t("game.exitConfirmation"), [
+          { text: t("game.no"), style: "cancel" },
+          { text: t("game.yes"), onPress: onGameEnd },
+        ]);
         return true;
       }
     );
@@ -480,7 +478,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         nickname: playerNickname,
         score: state.score,
         date: new Date().toLocaleDateString(),
-        title: getPlayerTitle(state.score),
+        title: t(getPlayerTitleKey(gameState.score)),
       };
       await saveScore(finalScore);
 
@@ -685,7 +683,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
             nickname: playerNickname,
             score: prevState.score,
             date: new Date().toLocaleDateString(),
-            title: getPlayerTitle(prevState.score),
+            title: t(getPlayerTitleKey(gameState.score)),
           };
           saveScore(finalScore);
 
@@ -728,10 +726,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
   if (gameState.isGameOver) {
     return (
       <View style={styles.gameOverContainer}>
-        <Text style={styles.gameOverTitle}>Oyun Bitti!</Text>
-        <Text style={styles.gameOverScore}>Skorunuz: {gameState.score}</Text>
+        <Text style={styles.gameOverTitle}>{t("game.gameOver")}</Text>
+        <Text style={styles.gameOverScore}>
+          {t("game.finalScore", { score: gameState.score })}
+        </Text>
         <Text style={styles.gameOverTitle}>
-          Unvanınız: {getPlayerTitle(gameState.score)}
+          {t("game.yourTitle")}: {t(getPlayerTitleKey(gameState.score))}
         </Text>
 
         {/* Oyun Sonu Butonları */}
@@ -754,7 +754,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
             }}
             activeOpacity={0.7}
           >
-            <Text style={styles.gameOverButtonText}>Tekrar Oyna</Text>
+            <Text style={styles.gameOverButtonText}>{t("game.playAgain")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -762,7 +762,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
             onPress={onGameEnd}
             activeOpacity={0.7}
           >
-            <Text style={styles.gameOverButtonText}>Ana Menü</Text>
+            <Text style={styles.gameOverButtonText}>
+              {t("game.backToMenu")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -772,14 +774,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
   if (isPaused) {
     return (
       <View style={styles.pauseContainer}>
-        <Text style={styles.pauseTitle}>Oyun Duraklatıldı</Text>
+        <Text style={styles.pauseTitle}>{t("game.paused")}</Text>
         <View style={styles.pauseButtons}>
           <TouchableOpacity
             style={[styles.gameOverButton, styles.playAgainButton]}
             onPress={togglePause}
             activeOpacity={0.7}
           >
-            <Text style={styles.gameOverButtonText}>Devam Et</Text>
+            <Text style={styles.gameOverButtonText}>{t("game.resume")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -787,7 +789,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
             onPress={onGameEnd}
             activeOpacity={0.7}
           >
-            <Text style={styles.gameOverButtonText}>Ana Menü</Text>
+            <Text style={styles.gameOverButtonText}>
+              {t("game.backToMenu")}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -800,7 +804,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         score={gameState.score}
         level={gameState.level}
         playerNickname={playerNickname}
-        playerTitle={getPlayerTitle(gameState.score)}
+        playerTitle={t(getPlayerTitleKey(gameState.score))}
         onPause={togglePause}
       />
 

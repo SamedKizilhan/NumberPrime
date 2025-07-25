@@ -10,6 +10,8 @@ import {
   Platform,
 } from "react-native";
 import SoundManager from "../utils/SoundManager";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "../components/LanguageSelector";
 
 interface MenuScreenProps {
   onStartGame: () => void;
@@ -28,6 +30,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   playerNickname,
   setPlayerNickname,
 }) => {
+  const { t } = useTranslation();
   const soundManager = SoundManager.getInstance();
 
   // Menu açıldığında müzik başlat (kaldığı yerden)
@@ -53,12 +56,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const handleStartGame = () => {
     if (!inputNickname.trim()) {
-      Alert.alert("Hata", "Lütfen bir kullanıcı adı girin!");
+      Alert.alert(t("alerts.error"), t("alerts.userNameRequired"));
       return;
     }
 
     if (inputNickname.length < 3) {
-      Alert.alert("Hata", "Kullanıcı adı en az 3 karakter olmalı!");
+      Alert.alert(t("alerts.error"), t("alerts.userNameTooShort"));
       return;
     }
 
@@ -68,6 +71,11 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      {/* Dil seçici - sağ üst köşe */}
+      <View style={styles.languageContainer}>
+        <LanguageSelector />
+      </View>
+
       <View style={styles.header}>
         {/* Ana Logo */}
         <View style={styles.logoContainer}>
@@ -81,7 +89,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </View>
 
         {/* Alt yazı */}
-        <Text style={styles.subtitle}>Mathematical Puzzle Game</Text>
+        <Text style={styles.subtitle}>{t("menu.subtitle")}</Text>
 
         {/* Asal sayı vurgusu */}
         <View style={styles.primeNumbers}>
@@ -95,12 +103,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
       <View style={styles.content}>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Kullanıcı Adı</Text>
+          <Text style={styles.inputLabel}>{t("menu.userNameLabel")}</Text>
           <TextInput
             style={styles.input}
             value={inputNickname}
             onChangeText={setInputNickname}
-            placeholder="Kullanıcı adınızı girin"
+            placeholder={t("menu.userNamePlaceholder")}
             placeholderTextColor="#666"
             maxLength={20}
             autoCapitalize="none"
@@ -108,7 +116,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleStartGame}>
-          <Text style={styles.buttonText}>OYUNA BAŞLA</Text>
+          <Text style={styles.buttonText}>{t("menu.startGame")}</Text>
         </TouchableOpacity>
 
         {/* Alternative approach - View based button */}
@@ -118,7 +126,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           activeOpacity={0.7}
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-            SKOR TABLOSU
+            {t("menu.leaderboard")}
           </Text>
         </TouchableOpacity>
 
@@ -128,26 +136,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           activeOpacity={0.7}
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-            MÜZİKLER
+            {t("menu.music")}
           </Text>
         </TouchableOpacity>
 
         <View style={styles.instructions}>
-          <Text style={styles.instructionTitle}>Nasıl Oynanır:</Text>
-          <Text style={styles.instructionText}>
-            • Düşen sayıları yöneterek yerleştir
-          </Text>
-          <Text style={styles.instructionText}>
-            • Eşit sayılar elde ederek bir araya getir
-          </Text>
-          <Text style={styles.instructionText}>
-            • + veya - işlemlerinden birini seçerek üzerine indiğin bloğu
-            değiştirebilirsin
-          </Text>
-          <Text style={styles.instructionText}>
-            • İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift
-            asal sayı olan 2 ise özel patlar
-          </Text>
+          <Text style={styles.instructionTitle}>{t("menu.howToPlay")}</Text>
+          <Text style={styles.instructionText}>{t("menu.instruction1")}</Text>
+          <Text style={styles.instructionText}>{t("menu.instruction2")}</Text>
+          <Text style={styles.instructionText}>{t("menu.instruction3")}</Text>
+          <Text style={styles.instructionText}>{t("menu.instruction4")}</Text>
         </View>
       </View>
     </View>
@@ -160,16 +158,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1a2e",
     paddingHorizontal: 20,
   },
+  languageContainer: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    zIndex: 1000,
+  },
   header: {
     alignItems: "center",
-    marginTop: 80, // 20'den 40'a - daha aşağı
-    marginBottom: 25, // 30'dan 40'a - daha fazla boşluk
-    paddingTop: 15, // 5'ten 15'e - ekstra padding
+    marginTop: 50,
+    marginBottom: 20,
+    paddingTop: 10,
   },
 
   // Logo Tasarımı - Küçültülmüş
   logoContainer: {
-    marginBottom: 20, // 15'ten 20'ye - logo ile subtitle arası
+    marginBottom: 15,
   },
   logoBackground: {
     backgroundColor: "#16213e",
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
     color: "#666",
     fontWeight: "600",
     fontStyle: "italic",
-    marginBottom: 15,
+    marginBottom: 10,
   },
 
   // Asal sayı dekorasyonu - Küçültülmüş
@@ -247,6 +251,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: Platform.OS === "ios" ? -10 : 0, // iOS için yukarı çek
   },
   inputContainer: {
     width: "100%",
@@ -329,7 +334,7 @@ const styles = StyleSheet.create({
     textShadowColor: "transparent",
   },
   instructions: {
-    marginTop: 40,
+    marginTop: Platform.OS === "ios" ? 25 : 30, // iOS için 25, Android için 30
     alignItems: "center",
     backgroundColor: "#0f3460",
     padding: 20,

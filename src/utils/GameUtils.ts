@@ -1,4 +1,12 @@
-import { GridCell, FallingBlock, Operation, MIN_NUMBER, MAX_NUMBER, GRID_WIDTH, GRID_HEIGHT } from '../types/GameTypes';
+import {
+  GridCell,
+  FallingBlock,
+  Operation,
+  MIN_NUMBER,
+  MAX_NUMBER,
+  GRID_WIDTH,
+  GRID_HEIGHT,
+} from "../types/GameTypes";
 
 // Rastgele sayı üretme
 export const generateRandomNumber = (): number => {
@@ -10,7 +18,7 @@ export const isPrime = (num: number): boolean => {
   if (num < 2) return false;
   if (num === 2) return true;
   if (num % 2 === 0) return false;
-  
+
   for (let i = 3; i <= Math.sqrt(num); i += 2) {
     if (num % i === 0) return false;
   }
@@ -27,7 +35,7 @@ export const createEmptyGrid = (): GridCell[][] => {
         value: null,
         id: `${x}-${y}`,
         x,
-        y
+        y,
       };
     }
   }
@@ -37,12 +45,12 @@ export const createEmptyGrid = (): GridCell[][] => {
 // Yeni düşen blok oluşturma
 export const createNewFallingBlock = (): FallingBlock => {
   const centerX = Math.floor(GRID_WIDTH / 2); // Her seferinde tam ortada başlasın
-  
+
   return {
     value: generateRandomNumber(),
     x: centerX,
     y: 0,
-    id: `falling-${Date.now()}-${Math.random()}`
+    id: `falling-${Date.now()}-${Math.random()}`,
   };
 };
 
@@ -53,11 +61,11 @@ export const performOperation = (
   operation: Operation
 ): number => {
   switch (operation) {
-    case 'add':
+    case "add":
       return fallingValue + gridValue;
-    case 'subtract':
+    case "subtract":
       return Math.abs(fallingValue - gridValue);
-    case 'none':
+    case "none":
     default:
       return fallingValue;
   }
@@ -72,10 +80,12 @@ export const findMatchingNeighbors = (
   visited: Set<string> = new Set()
 ): GridCell[] => {
   const key = `${startX}-${startY}`;
-  
+
   if (
-    startX < 0 || startX >= GRID_WIDTH ||
-    startY < 0 || startY >= GRID_HEIGHT ||
+    startX < 0 ||
+    startX >= GRID_WIDTH ||
+    startY < 0 ||
+    startY >= GRID_HEIGHT ||
     visited.has(key) ||
     grid[startY][startX].value !== targetValue
   ) {
@@ -84,16 +94,23 @@ export const findMatchingNeighbors = (
 
   visited.add(key);
   const matches = [grid[startY][startX]];
-  
+
   // 4 yönde kontrol et
-  const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-  
+  const directions = [
+    [0, 1],
+    [0, -1],
+    [1, 0],
+    [-1, 0],
+  ];
+
   for (const [dx, dy] of directions) {
     const newX = startX + dx;
     const newY = startY + dy;
-    matches.push(...findMatchingNeighbors(grid, newX, newY, targetValue, visited));
+    matches.push(
+      ...findMatchingNeighbors(grid, newX, newY, targetValue, visited)
+    );
   }
-  
+
   return matches;
 };
 
@@ -104,73 +121,84 @@ export const findPrimeCrossExplosion = (
   primeY: number
 ): GridCell[] => {
   const cells: GridCell[] = [];
-  
+
   // Yatay çizgi
   for (let x = 0; x < GRID_WIDTH; x++) {
     if (grid[primeY][x].value !== null) {
       cells.push(grid[primeY][x]);
     }
   }
-  
+
   // Dikey çizgi
   for (let y = 0; y < GRID_HEIGHT; y++) {
     if (grid[y][primeX].value !== null) {
       cells.push(grid[y][primeX]);
     }
   }
-  
+
   return cells;
 };
 
 // Boşlukları doldur (gravity effect)
 export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
   const newGrid = createEmptyGrid();
-  
+
   for (let x = 0; x < GRID_WIDTH; x++) {
     const column = [];
-    
+
     // Boş olmayan hücreleri topla
     for (let y = GRID_HEIGHT - 1; y >= 0; y--) {
       if (grid[y][x].value !== null) {
         column.push(grid[y][x].value);
       }
     }
-    
+
     // Alt taraftan doldur
     for (let i = 0; i < column.length; i++) {
       const y = GRID_HEIGHT - 1 - i;
       newGrid[y][x].value = column[i];
     }
   }
-  
+
   return newGrid;
+};
+
+export const getPlayerTitleKey = (score: number): string => {
+  if (score >= 13000) return "titles.primeMaster";
+  if (score >= 10000) return "titles.mathGenius";
+  if (score >= 8000) return "titles.numberSage";
+  if (score >= 5000) return "titles.calculationExpert";
+  if (score >= 3000) return "titles.mathEnthusiast";
+  if (score >= 2000) return "titles.numberCruncher";
+  if (score >= 1000) return "titles.mathStudent";
+  return "titles.beginner";
 };
 
 // Oyuncu title'ı belirleme
 export const getPlayerTitle = (score: number): string => {
-  if (score >= 13000) return 'Prime Master';
-  if (score >= 10000) return 'Math Genius';
-  if (score >= 8000) return 'Number Sage';
-  if (score >= 5000) return 'Calculation Expert';
-  if (score >= 3000) return 'Math Enthusiast';
-  if (score >= 2000) return 'Number Cruncher';
-  if (score >= 1000) return 'Math Student';
-  return 'Beginner';
+  if (score >= 13000) return "Prime Master";
+  if (score >= 10000) return "Math Genius";
+  if (score >= 8000) return "Number Sage";
+  if (score >= 5000) return "Calculation Expert";
+  if (score >= 3000) return "Math Enthusiast";
+  if (score >= 2000) return "Number Cruncher";
+  if (score >= 1000) return "Math Student";
+  return "Beginner";
 };
 
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
- const baseSpeed = 830; // 0,83 saniye
- 
- if (level <= 5) {
-   // Level 1-5: Her level 90ms hızlanma
-   const speedIncrease = level * 90;
-   return Math.max(200, baseSpeed - speedIncrease);
- } else {
-   // Level 5'ten sonra: İlk 5 level için 450ms düşüş + sonraki leveller için 50ms
-   const firstFiveLevelsDecrease = 5 * 90; // 450ms
-   const additionalLevelsDecrease = (level - 5) * 50;
-   const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
-   return Math.max(200, baseSpeed - totalDecrease);
- }
+  const baseSpeed = 830; // 0,83 saniye
+
+  if (level <= 5) {
+    // Level 1-5: Her level 90ms hızlanma
+    const speedIncrease = level * 90;
+    return Math.max(200, baseSpeed - speedIncrease);
+  } else {
+    // Level 5'ten sonra: İlk 5 level için 450ms düşüş + sonraki leveller için 50ms
+    const firstFiveLevelsDecrease = 5 * 90; // 450ms
+    const additionalLevelsDecrease = (level - 5) * 50;
+    const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
+    return Math.max(200, baseSpeed - totalDecrease);
+  }
 };

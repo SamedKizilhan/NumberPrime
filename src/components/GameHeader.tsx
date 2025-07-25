@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface GameHeaderProps {
   score: number;
@@ -16,6 +17,8 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   playerTitle,
   onPause,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <View style={styles.playerInfo}>
@@ -25,12 +28,12 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 
       <View style={styles.gameInfo}>
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>SKOR</Text>
+          <Text style={styles.statLabel}>{t("game.score").toUpperCase()}</Text>
           <Text style={styles.statValue}>{score.toLocaleString()}</Text>
         </View>
 
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>SEVİYE</Text>
+          <Text style={styles.statLabel}>{t("game.level").toUpperCase()}</Text>
           <Text style={styles.statValue}>{level}</Text>
         </View>
       </View>

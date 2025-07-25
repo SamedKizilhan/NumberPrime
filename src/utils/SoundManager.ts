@@ -18,8 +18,8 @@ class SoundManager {
 
   private isMuted: boolean = false;
   private musicVolume: number = 0.2; // MenuScreenMusic için
-  private backgroundMusicVolume: number = 0.4; // background.mp3 için
-  private effectsVolume: number = 0.9;
+  private backgroundMusicVolume: number = 0.35; // background.mp3 için
+  private effectsVolume: number = 0.7;
   private isInitialized: boolean = false;
 
   // Android için ek ayarlar
@@ -298,7 +298,7 @@ class SoundManager {
       // Button sesi yükle - Ses seviyesi daha da düşürüldü
       const { sound: buttonSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/button.mp3"),
-        { volume: this.effectsVolume * 0.3 } // 0.5'ten 0.3'e düşürüldü
+        { volume: this.effectsVolume * 0.2 }
       );
       this.buttonSound = buttonSfx;
       console.log("Button sesi yüklendi");
@@ -358,7 +358,7 @@ class SoundManager {
       // Move sesi yükle
       const { sound: moveSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/move.mp3"),
-        { volume: this.effectsVolume * 0.5 } // Hareket sesi daha yumuşak
+        { volume: this.effectsVolume * 0.45 } // Hareket sesi daha yumuşak
       );
       this.moveSound = moveSfx;
       console.log("Move sesi yüklendi");
@@ -370,7 +370,7 @@ class SoundManager {
       // Drop sesi yükle
       const { sound: dropSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/drop.mp3"),
-        { volume: this.effectsVolume * 0.45 }
+        { volume: this.effectsVolume * 0.25 }
       );
       this.dropSound = dropSfx;
       console.log("Drop sesi yüklendi");

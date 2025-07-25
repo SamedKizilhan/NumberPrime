@@ -11,8 +11,9 @@ import {
   BackHandler,
 } from "react-native";
 import { PlayerScore } from "../types/GameTypes";
-import { getPlayerTitle } from "../utils/GameUtils";
+import { getPlayerTitleKey } from "../utils/GameUtils";
 import { getTop50WithPlayer } from "../utils/StorageUtils";
+import { useTranslation } from "react-i18next";
 
 interface LeaderboardScreenProps {
   onBack: () => void;
@@ -25,6 +26,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   onBack,
   playerNickname,
 }) => {
+  const { t } = useTranslation();
   const [top50, setTop50] = useState<PlayerScore[]>([]);
   const [playerRank, setPlayerRank] = useState<number>(-1);
   const [playerScore, setPlayerScore] = useState<PlayerScore | null>(null);
@@ -105,9 +107,11 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
             ]}
           >
             {player.nickname}
-            {isCurrentPlayer && " (Sen)"}
+            {isCurrentPlayer && ` (${t("leaderboard.you")})`}
           </Text>
-          <Text style={styles.playerTitleText}>{player.title}</Text>
+          <Text style={styles.playerTitleText}>
+            {t(getPlayerTitleKey(player.score))}
+          </Text>
         </View>
 
         <View style={styles.scoreContainer}>
@@ -132,14 +136,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
       <View style={styles.playerSection}>
         <View style={styles.sectionDivider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Senin Sıralan</Text>
+          <Text style={styles.dividerText}>{t("leaderboard.yourRank")}</Text>
           <View style={styles.dividerLine} />
         </View>
 
         {renderLeaderboardItem(playerScore, playerRank - 1, true)}
 
         <Text style={styles.rankInfo}>
-          {totalPlayers} oyuncu arasında {playerRank}. sıradasın
+          {t("leaderboard.rankInfo", { rank: playerRank, total: totalPlayers })}
         </Text>
       </View>
     );
@@ -150,16 +154,16 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={onBack}>
-            <Text style={styles.backButtonText}>← Geri</Text>
+            <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>Skor Tablosu</Text>
+          <Text style={styles.title}>{t("leaderboard.title")}</Text>
           <View style={styles.spacer} />
         </View>
 
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00d2d3" />
-          <Text style={styles.loadingText}>Skor tablosu yükleniyor...</Text>
+          <Text style={styles.loadingText}>{t("leaderboard.loading")}</Text>
         </View>
       </View>
     );
@@ -192,16 +196,17 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
           {/* İstatistik Bilgisi */}
           <View style={styles.statsContainer}>
             <Text style={styles.statsText}>
-              Toplam {totalPlayers} oyuncu • İlk 50
+              {t("leaderboard.totalPlayers", { count: totalPlayers })} •{" "}
+              {t("leaderboard.top50")}
             </Text>
           </View>
 
           {/* Top 50 Listesi */}
           {top50.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Henüz skor bulunmuyor</Text>
+              <Text style={styles.emptyText}>{t("leaderboard.noScores")}</Text>
               <Text style={styles.emptySubtext}>
-                İlk oyunu oyna ve lider tablosunda yer al!
+                {t("leaderboard.playFirstGame")}
               </Text>
             </View>
           ) : (

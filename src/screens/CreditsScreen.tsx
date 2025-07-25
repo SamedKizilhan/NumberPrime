@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React from "react";
 import {
   View,
@@ -17,16 +18,17 @@ interface CreditsScreenProps {
 const { width, height } = Dimensions.get("window");
 
 const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const openUrl = async (url: string) => {
     try {
       const supported = await Linking.canOpenURL(url);
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert("Hata", "URL açılamadı");
+        Alert.alert(t("alerts.error"), t("credits.urlError"));
       }
     } catch (error) {
-      Alert.alert("Hata", "Bağlantı açılırken bir hata oluştu");
+      Alert.alert(t("alerts.error"), t("credits.linkError"));
     }
   };
 
@@ -34,8 +36,8 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Müzikler ve Atıflar</Text>
-        <Text style={styles.subtitle}>Kullanılan sesler için teşekkürler</Text>
+        <Text style={styles.title}>{t("credits.title")}</Text>
+        <Text style={styles.subtitle}>{t("credits.subtitle")}</Text>
       </View>
 
       {/* Scrollable Content */}
@@ -43,7 +45,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Oyun Müziği */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🎮 Oyun Müziği</Text>
+            <Text style={styles.musicTitle}>
+              🎮 {t("credits.backgroundMusic")}
+            </Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -54,7 +58,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/tyops/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: tyops</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: tyops
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -64,7 +70,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -74,7 +82,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 4.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -82,7 +92,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Menü Müziği */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🎵 Menü Müziği</Text>
+            <Text style={styles.musicTitle}>🎵 {t("credits.menuMusic")}</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -93,7 +103,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/danlucaz/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: danlucaz</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: danlucaz
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -103,7 +115,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -114,7 +128,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.licenseText}>
-                📜 Lisans: Creative Commons 0
+                📜 {t("credits.license")}: Creative Commons 0
               </Text>
             </TouchableOpacity>
           </View>
@@ -123,7 +137,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Oyun Bitiş Müziği */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>⏰ Oyun Bitiş Müziği</Text>
+            <Text style={styles.musicTitle}>
+              ⏰ {t("credits.failureSound")}
+            </Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -134,7 +150,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/MakoFox/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: MakoFox</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: MakoFox
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -144,7 +162,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -154,7 +174,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 4.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -162,7 +184,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Normal Patlama Müziği */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>💥 Normal Patlama</Text>
+            <Text style={styles.musicTitle}>
+              💥 {t("credits.explosionSound")}
+            </Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -173,7 +197,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/Marevnik/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: Marevnik</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: Marevnik
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -183,7 +209,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -193,7 +221,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 4.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -201,7 +231,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Combo Müziği */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🌟 Combo Müziği</Text>
+            <Text style={styles.musicTitle}>🌟 {t("credits.comboSound")}</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -215,7 +245,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.linkText}>
-                👤 Yapımcı: LittleRobotSoundFactory
+                👤 {t("credits.creator")}: LittleRobotSoundFactory
               </Text>
             </TouchableOpacity>
 
@@ -228,7 +258,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -238,7 +270,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 4.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,7 +280,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Asal 2 Patlaması */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>✨ Asal 2 Patlaması</Text>
+            <Text style={styles.musicTitle}>✨ {t("credits.prime2Sound")}</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -257,7 +291,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/OwlStorm/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: OwlStorm</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: OwlStorm
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -267,7 +303,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -278,7 +316,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.licenseText}>
-                📜 Lisans: Creative Commons 0
+                📜 {t("credits.license")}: Creative Commons 0
               </Text>
             </TouchableOpacity>
           </View>
@@ -287,7 +325,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Asal Sayı Patlaması */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🔥 Asal Sayı Patlaması</Text>
+            <Text style={styles.musicTitle}>
+              🔥 {t("credits.primeExplosionSound")}
+            </Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -301,7 +341,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.linkText}>
-                👤 Yapımcı: LittleRobotSoundFactory
+                👤 {t("credits.creator")}: LittleRobotSoundFactory
               </Text>
             </TouchableOpacity>
 
@@ -314,7 +354,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -324,7 +366,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 4.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 4.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -332,8 +376,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Hareket Sesleri */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🎯 Hareket Sesleri</Text>
-            <Text style={styles.fileName}>(Sağ/Sol Oklar)</Text>
+            <Text style={styles.musicTitle}>🎯 {t("credits.moveSound")}</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -344,7 +387,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               onPress={() => openUrl("https://freesound.org/people/bsp7176/")}
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: bsp7176</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: bsp7176
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -354,7 +399,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -365,7 +412,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.licenseText}>
-                📜 Lisans: Creative Commons 0
+                📜 {t("credits.license")}: Creative Commons 0
               </Text>
             </TouchableOpacity>
           </View>
@@ -374,8 +421,8 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         {/* Buton Sesleri */}
         <View style={styles.musicCard}>
           <View style={styles.musicHeader}>
-            <Text style={styles.musicTitle}>🔘 Buton Sesleri</Text>
-            <Text style={styles.fileName}>(+/- ve Pause)</Text>
+            <Text style={styles.musicTitle}>🔘 {t("credits.buttonSound")}</Text>
+            <Text style={styles.fileName}>(+/-/Pause)</Text>
           </View>
 
           <View style={styles.musicInfo}>
@@ -388,7 +435,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: ironcross32</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: ironcross32
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -400,7 +449,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -411,7 +462,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               activeOpacity={0.7}
             >
               <Text style={styles.licenseText}>
-                📜 Lisans: Creative Commons 0
+                📜 {t("credits.license")}: Creative Commons 0
               </Text>
             </TouchableOpacity>
           </View>
@@ -433,7 +484,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>👤 Yapımcı: kwahmah_02</Text>
+              <Text style={styles.linkText}>
+                👤 {t("credits.creator")}: kwahmah_02
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -445,7 +498,9 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.linkText}>🔗 Orijinal Ses</Text>
+              <Text style={styles.linkText}>
+                🔗 {t("credits.originalSound")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -455,19 +510,17 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
               }
               activeOpacity={0.7}
             >
-              <Text style={styles.licenseText}>📜 Lisans: Attribution 3.0</Text>
+              <Text style={styles.licenseText}>
+                📜 {t("credits.license")}: Attribution 3.0
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Teşekkür Mesajı */}
         <View style={styles.thanksCard}>
-          <Text style={styles.thanksTitle}>🙏 Teşekkürler</Text>
-          <Text style={styles.thanksText}>
-            Bu oyunun müzik ve ses efektleri Freesound.org topluluğundan
-            alınmıştır. Seslerini bizimle paylaştıkları için tüm yaratıcılara
-            teşekkür ederiz.
-          </Text>
+          <Text style={styles.thanksTitle}>{t("credits.thanksTitle")}</Text>
+          <Text style={styles.thanksText}>{t("credits.thanksText")}</Text>
 
           <TouchableOpacity
             style={styles.freesoundButton}
@@ -475,15 +528,15 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
             activeOpacity={0.7}
           >
             <Text style={styles.freesoundText}>
-              🌐 Freesound.org'u Ziyaret Et
+              {t("credits.visitFreesound")}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Oyun Bilgileri */}
         <View style={styles.gameInfoCard}>
-          <Text style={styles.gameInfoTitle}>🎯 NumPrime</Text>
-          <Text style={styles.gameInfoText}>Mathematical Puzzle Game</Text>
+          <Text style={styles.gameInfoTitle}>{t("credits.gameInfo")}</Text>
+          <Text style={styles.gameInfoText}>{t("menu.subtitle")}</Text>
           <Text style={styles.versionText}>v1.0.0</Text>
         </View>
       </ScrollView>
@@ -495,7 +548,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
           onPress={onBack}
           activeOpacity={0.7}
         >
-          <Text style={styles.backButtonText}>← GERİ</Text>
+          <Text style={styles.backButtonText}>{t("credits.back")}</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import './src/utils/i18n';
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
