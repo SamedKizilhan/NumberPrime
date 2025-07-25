@@ -17,7 +17,8 @@ class SoundManager {
   private menuMusic: Audio.Sound | null = null;
 
   private isMuted: boolean = false;
-  private musicVolume: number = 0.2; 
+  private musicVolume: number = 0.2; // MenuScreenMusic için
+  private backgroundMusicVolume: number = 0.4; // background.mp3 için
   private effectsVolume: number = 0.9;
   private isInitialized: boolean = false;
 
@@ -186,7 +187,9 @@ class SoundManager {
       const { sound: bgMusic } = await Audio.Sound.createAsync(
         require("../../assets/sounds/background.mp3"),
         {
-          volume: this.musicVolume,
+          volume: this.isAndroid
+            ? this.backgroundMusicVolume * 0.9
+            : this.backgroundMusicVolume, // Android için çok daha sessiz
           shouldPlay: false,
           isLooping: true,
           // Android için ek ayarlar
@@ -420,6 +423,10 @@ class SoundManager {
       try {
         const status = await this.backgroundMusic.getStatusAsync();
         if (status.isLoaded && !status.isPlaying) {
+          const finalVolume = this.isAndroid
+            ? this.backgroundMusicVolume * 0.9
+            : this.backgroundMusicVolume;
+          await this.backgroundMusic.setVolumeAsync(finalVolume);
           await this.backgroundMusic.playAsync();
           console.log("Background müzik başlatıldı");
         }
@@ -433,9 +440,12 @@ class SoundManager {
   async restartBackgroundMusic() {
     if (!this.isMuted && this.backgroundMusic) {
       try {
-        // Müziği durdur ve başa sar
         await this.backgroundMusic.stopAsync();
         await this.backgroundMusic.setPositionAsync(0);
+        const finalVolume = this.isAndroid
+          ? this.backgroundMusicVolume * 0.9
+          : this.backgroundMusicVolume;
+        await this.backgroundMusic.setVolumeAsync(finalVolume);
         await this.backgroundMusic.playAsync();
         console.log("Background müzik baştan başlatıldı");
       } catch (error) {
@@ -654,8 +664,28 @@ class SoundManager {
 
   setMusicVolume(volume: number) {
     this.musicVolume = Math.max(0, Math.min(1, volume));
+
+    // Menu müziği için normal volume
+    if (this.menuMusic) {
+      this.menuMusic.setVolumeAsync(this.musicVolume);
+    }
+
+    // Background müziği için ayrı volume kontrolü
     if (this.backgroundMusic) {
-      this.backgroundMusic.setVolumeAsync(this.musicVolume);
+      const finalVolume = this.isAndroid
+        ? this.backgroundMusicVolume * 0.9
+        : this.backgroundMusicVolume;
+      this.backgroundMusic.setVolumeAsync(finalVolume);
+    }
+  }
+
+  setBackgroundMusicVolume(volume: number) {
+    this.backgroundMusicVolume = Math.max(0, Math.min(1, volume));
+    if (this.backgroundMusic) {
+      const finalVolume = this.isAndroid
+        ? this.backgroundMusicVolume * 0.9
+        : this.backgroundMusicVolume;
+      this.backgroundMusic.setVolumeAsync(finalVolume);
     }
   }
 
