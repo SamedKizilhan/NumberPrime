@@ -29,7 +29,10 @@
     "exitGame": "Oyundan Çık",
     "exitConfirmation": "Oyunu sonlandırmak istediğinize emin misiniz?",
     "no": "Hayır",
-    "yes": "Evet"
+    "yes": "Evet",
+    "nextTitle": "Sonraki Unvan",
+    "pointsToNext": "{{points}} puana daha ihtiyacın var",
+    "maxTitleReached": "En yüksek unvana ulaştın!"
   },
   "leaderboard": {
     "title": "Skor Tablosu",

@@ -30,6 +30,7 @@ import {
   isPrime,
   calculateGameSpeed,
   getPlayerTitleKey,
+  getNextTitleRequirement,
 } from "../utils/GameUtils";
 import SoundManager from "../utils/SoundManager";
 import { saveScore } from "../utils/StorageUtils";
@@ -724,6 +725,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   if (gameState.isGameOver) {
+    const nextTitleInfo = getNextTitleRequirement(gameState.score);
+
     return (
       <View style={styles.gameOverContainer}>
         <Text style={styles.gameOverTitle}>{t("game.gameOver")}</Text>
@@ -733,6 +736,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
         <Text style={styles.gameOverTitle}>
           {t("game.yourTitle")}: {t(getPlayerTitleKey(gameState.score))}
         </Text>
+
+        {/* Bir sonraki title bilgisi */}
+        <View style={styles.nextTitleContainer}>
+          {nextTitleInfo.isMaxTitle ? (
+            <Text style={styles.nextTitleText}>
+              {t("game.maxTitleReached")}
+            </Text>
+          ) : (
+            <>
+              <Text style={styles.nextTitleLabel}>
+                {t("game.nextTitle")}: {t(nextTitleInfo.nextTitleKey)}
+              </Text>
+              <Text style={styles.nextTitlePoints}>
+                {t("game.pointsToNext", {
+                  points: nextTitleInfo.requiredScore - gameState.score,
+                })}
+              </Text>
+            </>
+          )}
+        </View>
 
         {/* Oyun Sonu Butonları */}
         <View style={styles.gameOverButtons}>
@@ -748,9 +771,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 level: 1,
                 gameSpeed: calculateGameSpeed(1),
               });
-              setExplosions([]); // Explosions'ı da sıfırla
-              setExplosionActive(false); // Explosion active'i de sıfırla
-              setScorePopups([]); // Score popup'ları da sıfırla
+              setExplosions([]);
+              setExplosionActive(false);
+              setScorePopups([]);
             }}
             activeOpacity={0.7}
           >
@@ -918,6 +941,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
+  },
+  nextTitleContainer: {
+    marginVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  nextTitleLabel: {
+    color: "#00d2d3",
+    fontSize: 25,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  nextTitlePoints: {
+    color: "#ffd700",
+    fontSize: 20,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  nextTitleText: {
+    color: "#ffd700",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

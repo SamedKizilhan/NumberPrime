@@ -29,7 +29,10 @@
     "exitGame": "Exit Game",
     "exitConfirmation": "Are you sure you want to end the game?",
     "no": "No",
-    "yes": "Yes"
+    "yes": "Yes",
+    "nextTitle": "Next Title",
+    "pointsToNext": "You need {{points}} more points",
+    "maxTitleReached": "You've reached the highest title!"
   },
   "leaderboard": {
     "title": "Leaderboard",

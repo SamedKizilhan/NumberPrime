@@ -167,23 +167,83 @@ export const getPlayerTitleKey = (score: number): string => {
   if (score >= 13000) return "titles.primeMaster";
   if (score >= 10000) return "titles.mathGenius";
   if (score >= 8000) return "titles.numberSage";
-  if (score >= 5000) return "titles.calculationExpert";
-  if (score >= 3000) return "titles.mathEnthusiast";
-  if (score >= 2000) return "titles.numberCruncher";
-  if (score >= 1000) return "titles.mathStudent";
+  if (score >= 6000) return "titles.calculationExpert";
+  if (score >= 4500) return "titles.mathEnthusiast";
+  if (score >= 3000) return "titles.numberCruncher";
+  if (score >= 1500) return "titles.mathStudent";
   return "titles.beginner";
 };
 
 // Oyuncu title'ı belirleme
-export const getPlayerTitle = (score: number): string => {
-  if (score >= 13000) return "Prime Master";
-  if (score >= 10000) return "Math Genius";
-  if (score >= 8000) return "Number Sage";
-  if (score >= 6000) return "Calculation Expert";
-  if (score >= 4500) return "Math Enthusiast";
-  if (score >= 3000) return "Number Cruncher";
-  if (score >= 1500) return "Math Student";
-  return "Beginner";
+// export const getPlayerTitle = (score: number): string => {
+//   if (score >= 13000) return "Prime Master";
+//   if (score >= 10000) return "Math Genius";
+//   if (score >= 8000) return "Number Sage";
+//   if (score >= 6000) return "Calculation Expert";
+//   if (score >= 4500) return "Math Enthusiast";
+//   if (score >= 3000) return "Number Cruncher";
+//   if (score >= 1500) return "Math Student";
+//   return "Beginner";
+// };
+
+// Bir sonraki title için gerekli puanı döndüren fonksiyon
+export const getNextTitleRequirement = (
+  currentScore: number
+): { nextTitleKey: string; requiredScore: number; isMaxTitle: boolean } => {
+  if (currentScore >= 13000) {
+    return {
+      nextTitleKey: "titles.primeMaster",
+      requiredScore: 13000,
+      isMaxTitle: true,
+    };
+  }
+  if (currentScore >= 10000) {
+    return {
+      nextTitleKey: "titles.primeMaster",
+      requiredScore: 13000,
+      isMaxTitle: false,
+    };
+  }
+  if (currentScore >= 8000) {
+    return {
+      nextTitleKey: "titles.mathGenius",
+      requiredScore: 10000,
+      isMaxTitle: false,
+    };
+  }
+  if (currentScore >= 6000) {
+    return {
+      nextTitleKey: "titles.numberSage",
+      requiredScore: 8000,
+      isMaxTitle: false,
+    };
+  }
+  if (currentScore >= 4500) {
+    return {
+      nextTitleKey: "titles.calculationExpert",
+      requiredScore: 6000,
+      isMaxTitle: false,
+    };
+  }
+  if (currentScore >= 3000) {
+    return {
+      nextTitleKey: "titles.mathEnthusiast",
+      requiredScore: 4500,
+      isMaxTitle: false,
+    };
+  }
+  if (currentScore >= 1500) {
+    return {
+      nextTitleKey: "titles.numberCruncher",
+      requiredScore: 3000,
+      isMaxTitle: false,
+    };
+  }
+  return {
+    nextTitleKey: "titles.mathStudent",
+    requiredScore: 1500,
+    isMaxTitle: false,
+  };
 };
 
 // Oyun hızı hesaplama

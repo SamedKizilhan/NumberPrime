@@ -388,7 +388,8 @@ const styles = StyleSheet.create({
     right: 0,
     width: "100%",
     overflow: "hidden",
-    zIndex: 1, // Dil seçicinin üstünde, toggle'ın altında
+    zIndex: 999,
+    elevation: 999,
   },
   instructions: {
     backgroundColor: "#0f3460",
@@ -399,6 +400,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderTopWidth: 0,
     borderColor: "#16213e",
+    elevation: 999,
   },
   instructionText: {
     fontSize: 14,
