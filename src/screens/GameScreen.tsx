@@ -33,7 +33,7 @@ import {
   getNextTitleRequirement,
 } from "../utils/GameUtils";
 import SoundManager from "../utils/SoundManager";
-import { saveScore } from "../utils/StorageUtils";
+import { FirebaseLeaderboard } from "../utils/FirebaseLeaderboard";
 
 interface GameScreenProps {
   onGameEnd: () => void;
@@ -470,6 +470,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Oyun bitme kontrolü - eğer en üstteyse
     if (landingY <= 0) {
+      console.log("Game over detected!");
+
       // Failure sesini çal
       soundManager.playFailureSound();
 
@@ -479,9 +481,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
         nickname: playerNickname,
         score: state.score,
         date: new Date().toLocaleDateString(),
-        title: t(getPlayerTitleKey(gameState.score)),
+        title: t(getPlayerTitleKey(state.score)), 
       };
-      await saveScore(finalScore);
+
+      try {
+        await FirebaseLeaderboard.saveGlobalScore(finalScore);
+        console.log("Score saved successfully");
+      } catch (error) {
+        console.error("Score save error:", error);
+      }
 
       // State'i güncelle
       setGameState((prevState) => ({
@@ -686,7 +694,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
             date: new Date().toLocaleDateString(),
             title: t(getPlayerTitleKey(gameState.score)),
           };
-          saveScore(finalScore);
+          FirebaseLeaderboard.saveGlobalScore(finalScore);
 
           return {
             ...prevState,
@@ -762,6 +770,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           <TouchableOpacity
             style={[styles.gameOverButton, styles.playAgainButton]}
             onPress={() => {
+              soundManager.startGameMusic();
               setGameState({
                 grid: createEmptyGrid(),
                 fallingBlock: createNewFallingBlock(),

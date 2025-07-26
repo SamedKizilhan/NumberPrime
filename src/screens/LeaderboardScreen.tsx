@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
+  Alert,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -12,8 +13,8 @@ import {
 } from "react-native";
 import { PlayerScore } from "../types/GameTypes";
 import { getPlayerTitleKey } from "../utils/GameUtils";
-import { getTop50WithPlayer } from "../utils/StorageUtils";
 import { useTranslation } from "react-i18next";
+import { FirebaseLeaderboard } from "../utils/FirebaseLeaderboard";
 
 interface LeaderboardScreenProps {
   onBack: () => void;
@@ -27,7 +28,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   playerNickname,
 }) => {
   const { t } = useTranslation();
-  const [top50, setTop50] = useState<PlayerScore[]>([]);
+  const [top47, setTop47] = useState<PlayerScore[]>([]);
   const [playerRank, setPlayerRank] = useState<number>(-1);
   const [playerScore, setPlayerScore] = useState<PlayerScore | null>(null);
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
@@ -53,13 +54,21 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
   const loadLeaderboard = async () => {
     try {
-      const data = await getTop50WithPlayer(playerNickname);
-      setTop50(data.top50);
+      console.log("Loading leaderboard for:", playerNickname);
+      const data = await FirebaseLeaderboard.getGlobalLeaderboardWithPlayer(
+        playerNickname
+      );
+      console.log("Leaderboard data:", data);
+
+      setTop47(data.top47);
       setPlayerRank(data.playerRank);
       setPlayerScore(data.playerScore);
       setTotalPlayers(data.totalPlayers);
     } catch (error) {
-      console.error("Error loading leaderboard:", error);
+      console.error("Error loading global leaderboard:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Bilinmeyen hata";
+      Alert.alert("Hata", "Leaderboard yüklenirken hata: " + errorMessage);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -130,7 +139,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   };
 
   const renderPlayerSection = () => {
-    if (!playerScore || playerRank <= 50) return null;
+    if (!playerScore || playerRank <= 47) return null;
 
     return (
       <View style={styles.playerSection}>
@@ -197,12 +206,12 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
           <View style={styles.statsContainer}>
             <Text style={styles.statsText}>
               {t("leaderboard.totalPlayers", { count: totalPlayers })} •{" "}
-              {t("leaderboard.top50")}
+              {t("leaderboard.top47")}
             </Text>
           </View>
 
-          {/* Top 50 Listesi */}
-          {top50.length === 0 ? (
+          {/* Top 47 Listesi */}
+          {top47.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>{t("leaderboard.noScores")}</Text>
               <Text style={styles.emptySubtext}>
@@ -210,14 +219,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
               </Text>
             </View>
           ) : (
-            top50.map((player, index) => {
+            top47.map((player, index) => {
               const isCurrentPlayer =
                 player.nickname.toLowerCase() === playerNickname.toLowerCase();
               return renderLeaderboardItem(player, index, isCurrentPlayer);
             })
           )}
 
-          {/* Kullanıcının kendi sırası (eğer top 50'de değilse) */}
+          {/* Kullanıcının kendi sırası (eğer top 47'de değilse) */}
           {renderPlayerSection()}
         </View>
       </ScrollView>

@@ -188,8 +188,8 @@ class SoundManager {
         require("../../assets/sounds/background.mp3"),
         {
           volume: this.isAndroid
-            ? this.backgroundMusicVolume * 0.9
-            : this.backgroundMusicVolume, // Android için çok daha sessiz
+            ? this.backgroundMusicVolume * 1.1
+            : this.backgroundMusicVolume,
           shouldPlay: false,
           isLooping: true,
           // Android için ek ayarlar
@@ -257,7 +257,7 @@ class SoundManager {
       {
         key: "drop",
         file: require("../../assets/sounds/drop.mp3"),
-        volume: 0.4,
+        volume: 0.3,
       },
       {
         key: "failure",
@@ -310,7 +310,7 @@ class SoundManager {
       // Explosion sesi yükle
       const { sound: explosionSfx } = await Audio.Sound.createAsync(
         require("../../assets/sounds/explosion.mp3"),
-        { volume: this.effectsVolume * 0.8 }
+        { volume: this.effectsVolume * 0.9 }
       );
       this.explosionSound = explosionSfx;
       console.log("Explosion sesi yüklendi");

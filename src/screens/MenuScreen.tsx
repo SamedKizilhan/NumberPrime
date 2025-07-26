@@ -13,6 +13,7 @@ import {
 import SoundManager from "../utils/SoundManager";
 import { useTranslation } from "react-i18next";
 import LanguageSelector from "../components/LanguageSelector";
+import { FirebaseLeaderboard } from "../utils/FirebaseLeaderboard";
 
 interface MenuScreenProps {
   onStartGame: () => void;
@@ -57,19 +58,55 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     return height * 0.08; // Android
   };
 
-  const handleStartGame = () => {
-    if (!inputNickname.trim()) {
-      Alert.alert(t("alerts.error"), t("alerts.userNameRequired"));
-      return;
-    }
-
-    if (inputNickname.length < 3) {
+  const handleStartGame = async () => {
+    if (!inputNickname || inputNickname.trim().length < 3) {
       Alert.alert(t("alerts.error"), t("alerts.userNameTooShort"));
       return;
     }
 
-    setPlayerNickname(inputNickname.trim());
-    onStartGame();
+    const nickname = inputNickname.trim();
+    console.log("Checking nickname:", nickname);
+
+    try {
+      // Firebase'de nickname kontrolü
+      if (nickname !== playerNickname) {
+        console.log("Checking if nickname exists...");
+        const nicknameExists = await FirebaseLeaderboard.checkNicknameExists(
+          nickname
+        );
+        console.log("Nickname exists:", nicknameExists);
+
+        if (nicknameExists) {
+          Alert.alert(
+            t("alerts.error"),
+            "Bu kullanıcı adı daha önce alınmış! Lütfen farklı bir isim seçin."
+          );
+          return;
+        }
+
+        console.log("Registering new player...");
+        const registered = await FirebaseLeaderboard.registerPlayer(nickname);
+        console.log("Registration result:", registered);
+
+        if (!registered) {
+          Alert.alert(
+            t("alerts.error"),
+            "Kullanıcı kaydı yapılamadı. Lütfen tekrar deneyin."
+          );
+          return;
+        }
+
+        setPlayerNickname(nickname);
+      }
+
+      console.log("Starting game...");
+      onStartGame();
+    } catch (error) {
+      console.error("Firebase error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Bilinmeyen hata";
+      Alert.alert("Hata", "Firebase bağlantı hatası: " + errorMessage);
+    }
   };
 
   const toggleInstructions = () => {
