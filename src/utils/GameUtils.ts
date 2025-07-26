@@ -179,10 +179,10 @@ export const getPlayerTitle = (score: number): string => {
   if (score >= 13000) return "Prime Master";
   if (score >= 10000) return "Math Genius";
   if (score >= 8000) return "Number Sage";
-  if (score >= 5000) return "Calculation Expert";
-  if (score >= 3000) return "Math Enthusiast";
-  if (score >= 2000) return "Number Cruncher";
-  if (score >= 1000) return "Math Student";
+  if (score >= 6000) return "Calculation Expert";
+  if (score >= 4500) return "Math Enthusiast";
+  if (score >= 3000) return "Number Cruncher";
+  if (score >= 1500) return "Math Student";
   return "Beginner";
 };
 
@@ -191,13 +191,13 @@ export const calculateGameSpeed = (level: number): number => {
   const baseSpeed = 830; // 0,83 saniye
 
   if (level <= 5) {
-    // Level 1-5: Her level 90ms hızlanma
-    const speedIncrease = level * 90;
+    // Level 1-5: Her level 89ms hızlanma
+    const speedIncrease = level * 89;
     return Math.max(200, baseSpeed - speedIncrease);
   } else {
-    // Level 5'ten sonra: İlk 5 level için 450ms düşüş + sonraki leveller için 50ms
-    const firstFiveLevelsDecrease = 5 * 90; // 450ms
-    const additionalLevelsDecrease = (level - 5) * 50;
+    // Level 5'ten sonra: İlk 5 level için 445ms düşüş + sonraki leveller için 37ms
+    const firstFiveLevelsDecrease = 5 * 89; // 445ms
+    const additionalLevelsDecrease = (level - 5) * 37;
     const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
     return Math.max(200, baseSpeed - totalDecrease);
   }
