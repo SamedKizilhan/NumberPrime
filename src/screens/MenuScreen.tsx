@@ -34,7 +34,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 }) => {
   const { t } = useTranslation();
   const soundManager = SoundManager.getInstance();
-  const [inputNickname, setInputNickname] = useState(playerNickname);
+  const [inputNickname, setInputNickname] = useState<string>("");
+  const [isNicknameSet, setIsNicknameSet] = useState<boolean>(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [animationValue] = useState(new Animated.Value(0));
 
@@ -48,6 +49,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     startMenuMusic();
   }, []);
 
+  useEffect(() => {
+    if (playerNickname && playerNickname.trim().length >= 3) {
+      setIsNicknameSet(true);
+      setInputNickname(playerNickname);
+    }
+  }, [playerNickname]);
+
   // iPhone için ekstra margin
   const getTopMargin = () => {
     if (Platform.OS === "ios") {
@@ -57,49 +65,67 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
     return height * 0.08; // Android
   };
+  // Test fonksiyonu ekleyin (geçici)
+  const testFirebase = async () => {
+    try {
+      console.log("Testing Firebase with timeout...");
+
+      // 5 saniye timeout ekleyelim
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Firebase timeout")), 5000)
+      );
+
+      const firebaseTest = FirebaseLeaderboard.checkNicknameExists("test");
+
+      const result = await Promise.race([firebaseTest, timeout]);
+      console.log("Firebase test result:", result);
+    } catch (error) {
+      console.error(
+        "Firebase test error:",
+        error instanceof Error ? error.message : error
+      );
+    }
+  };
 
   const handleStartGame = async () => {
+    if (isNicknameSet) {
+      // Zaten kayıtlı kullanıcı, direkt oyuna başla
+      onStartGame();
+      return;
+    }
+
+    // Yeni kullanıcı kaydı
     if (!inputNickname || inputNickname.trim().length < 3) {
       Alert.alert(t("alerts.error"), t("alerts.userNameTooShort"));
       return;
     }
 
     const nickname = inputNickname.trim();
-    console.log("Checking nickname:", nickname);
+    console.log("Registering new nickname:", nickname);
 
     try {
-      // Firebase'de nickname kontrolü
-      if (nickname !== playerNickname) {
-        console.log("Checking if nickname exists...");
-        const nicknameExists = await FirebaseLeaderboard.checkNicknameExists(
-          nickname
+      const nicknameExists = await FirebaseLeaderboard.checkNicknameExists(
+        nickname
+      );
+      if (nicknameExists) {
+        Alert.alert(
+          t("alerts.error"),
+          "Bu kullanıcı adı daha önce alınmış! Lütfen farklı bir isim seçin."
         );
-        console.log("Nickname exists:", nicknameExists);
-
-        if (nicknameExists) {
-          Alert.alert(
-            t("alerts.error"),
-            "Bu kullanıcı adı daha önce alınmış! Lütfen farklı bir isim seçin."
-          );
-          return;
-        }
-
-        console.log("Registering new player...");
-        const registered = await FirebaseLeaderboard.registerPlayer(nickname);
-        console.log("Registration result:", registered);
-
-        if (!registered) {
-          Alert.alert(
-            t("alerts.error"),
-            "Kullanıcı kaydı yapılamadı. Lütfen tekrar deneyin."
-          );
-          return;
-        }
-
-        setPlayerNickname(nickname);
+        return;
       }
 
-      console.log("Starting game...");
+      const registered = await FirebaseLeaderboard.registerPlayer(nickname);
+      if (!registered) {
+        Alert.alert(
+          t("alerts.error"),
+          "Kullanıcı kaydı yapılamadı. Lütfen tekrar deneyin."
+        );
+        return;
+      }
+
+      setPlayerNickname(nickname);
+      setIsNicknameSet(true);
       onStartGame();
     } catch (error) {
       console.error("Firebase error:", error);
@@ -109,6 +135,25 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
+  // Input'u sadece nickname set olmamışsa göster:
+  {
+    !isNicknameSet && (
+      <TextInput
+        style={styles.userNameInput}
+        placeholder={t("menu.userNamePlaceholder")}
+        value={inputNickname}
+        onChangeText={setInputNickname}
+        maxLength={20}
+        autoCapitalize="words"
+      />
+    );
+  }
+
+  {
+    isNicknameSet && (
+      <Text style={styles.welcomeText}>Hoş geldin, {playerNickname}!</Text>
+    );
+  }
   const toggleInstructions = () => {
     const toValue = isInstructionsOpen ? 0 : 1;
 
@@ -452,6 +497,33 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
     zIndex: 0, // Instructions'ın altında kalacak
+  },
+  userNameInput: {
+    borderWidth: 2,
+    borderColor: "#00d2d3",
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    fontSize: 16,
+    color: "#fff",
+    backgroundColor: "#16213e",
+    marginBottom: 20,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+
+  welcomeText: {
+    fontSize: 18,
+    color: "#00d2d3",
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    backgroundColor: "#16213e",
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: "#00d2d3",
   },
 });
 

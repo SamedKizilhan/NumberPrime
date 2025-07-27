@@ -78,6 +78,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [explosions, setExplosions] = useState<Explosion[]>([]);
   const [explosionActive, setExplosionActive] = useState<boolean>(false);
   const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
+  const [isProcessingGameOver, setIsProcessingGameOver] = useState(false);
   const soundManager = SoundManager.getInstance();
 
   // Ses sistemini başlat
@@ -462,7 +463,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const landBlockAsync = async (state: GameState) => {
-    if (!state.fallingBlock) return;
+    if (!state.fallingBlock || state.isGameOver || isProcessingGameOver) return; // isProcessingGameOver kontrolü eklendi
 
     const { fallingBlock, grid } = state;
     const landingY = fallingBlock.y;
@@ -470,7 +471,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Oyun bitme kontrolü - eğer en üstteyse
     if (landingY <= 0) {
-      console.log("Game over detected!");
+      setIsProcessingGameOver(true); // Flag set et
+
+      console.log("Game over detected! Setting game over state...");
 
       // Failure sesini çal
       soundManager.playFailureSound();
@@ -481,7 +484,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         nickname: playerNickname,
         score: state.score,
         date: new Date().toLocaleDateString(),
-        title: t(getPlayerTitleKey(state.score)), 
+        title: t(getPlayerTitleKey(state.score)),
       };
 
       try {
@@ -496,7 +499,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
         ...prevState,
         isGameOver: true,
       }));
-      return;
+
+      setIsProcessingGameOver(false); // İşlem bitti
+      return; // Fonksiyondan çık
     }
 
     const newGrid = grid.map((row) => [...row]);
@@ -651,7 +656,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const dropBlock = () => {
-    if (isPaused || explosionActive) return;
+    if (
+      isPaused ||
+      explosionActive ||
+      gameState.isGameOver ||
+      isProcessingGameOver
+    )
+      return;
+
     soundManager.playDropSound();
 
     setGameState((prevState) => {
@@ -661,7 +673,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       let newY = currentBlock.y;
       const blockX = currentBlock.x;
 
-      // Aşağıda boş yer var mı, varsa en alt noktayı bul
+      // Normal drop logic
       while (
         newY + 1 < GRID_HEIGHT &&
         prevState.grid[newY + 1][blockX].value === null
@@ -669,7 +681,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
         newY++;
       }
 
-      // Eğer hareket ettiyse bloğu oraya taşı
       if (newY > currentBlock.y) {
         return {
           ...prevState,
@@ -680,29 +691,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           },
         };
       } else {
-        // Zaten en alttaysa, bloğu yerleştir - ama bu sefer async değil
-        // Önce oyun sonu kontrolü yap
-        if (currentBlock.y <= 0) {
-          // Failure sesini çal
-          soundManager.playFailureSound();
-
-          // Skoru kaydet
-          const finalScore: PlayerScore = {
-            id: Date.now().toString(),
-            nickname: playerNickname,
-            score: prevState.score,
-            date: new Date().toLocaleDateString(),
-            title: t(getPlayerTitleKey(gameState.score)),
-          };
-          FirebaseLeaderboard.saveGlobalScore(finalScore);
-
-          return {
-            ...prevState,
-            isGameOver: true,
-          };
-        }
-
-        // Oyun sona ermiyorsa, bloğu yerleştir
+        // Sadece landBlockAsync çağır, oyun bitiş kontrolü orada
         landBlockAsync(prevState);
         return prevState;
       }
