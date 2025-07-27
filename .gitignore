@@ -45,3 +45,4 @@ android/keystore.properties
 
 # Local gradle properties
 android/local.properties
+android/app/google-services.json
