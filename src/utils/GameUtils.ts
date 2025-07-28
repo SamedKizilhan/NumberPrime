@@ -164,9 +164,9 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
 };
 
 export const getPlayerTitleKey = (score: number): string => {
-  if (score >= 13000) return "titles.primeMaster";
-  if (score >= 10000) return "titles.mathGenius";
-  if (score >= 8000) return "titles.numberSage";
+  if (score >= 15000) return "titles.primeMaster";
+  if (score >= 12000) return "titles.mathGenius";
+  if (score >= 9000) return "titles.numberSage";
   if (score >= 6000) return "titles.calculationExpert";
   if (score >= 4500) return "titles.mathEnthusiast";
   if (score >= 3000) return "titles.numberCruncher";
@@ -190,31 +190,31 @@ export const getPlayerTitleKey = (score: number): string => {
 export const getNextTitleRequirement = (
   currentScore: number
 ): { nextTitleKey: string; requiredScore: number; isMaxTitle: boolean } => {
-  if (currentScore >= 13000) {
+  if (currentScore >= 15000) {
     return {
       nextTitleKey: "titles.primeMaster",
-      requiredScore: 13000,
+      requiredScore: 15000,
       isMaxTitle: true,
     };
   }
-  if (currentScore >= 10000) {
+  if (currentScore >= 12000) {
     return {
       nextTitleKey: "titles.primeMaster",
-      requiredScore: 13000,
+      requiredScore: 15000,
       isMaxTitle: false,
     };
   }
-  if (currentScore >= 8000) {
+  if (currentScore >= 9000) {
     return {
       nextTitleKey: "titles.mathGenius",
-      requiredScore: 10000,
+      requiredScore: 12000,
       isMaxTitle: false,
     };
   }
   if (currentScore >= 6000) {
     return {
       nextTitleKey: "titles.numberSage",
-      requiredScore: 8000,
+      requiredScore: 9000,
       isMaxTitle: false,
     };
   }

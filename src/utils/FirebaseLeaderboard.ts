@@ -85,28 +85,48 @@ export class FirebaseLeaderboard {
       console.log("Player exists in database:", playerSnapshot.exists());
 
       let playerId = null;
-      playerSnapshot.forEach((child) => {
-        playerId = child.key;
-        const currentBestScore = child.val().bestScore || 0;
-        console.log(
-          "Current best score:",
-          currentBestScore,
-          "New score:",
-          playerScore.score
-        );
+      if (playerSnapshot.exists()) {
+        // Player mevcutsa güncelle
+        playerSnapshot.forEach((child) => {
+          playerId = child.key;
+          const currentBestScore = child.val().bestScore || 0;
+          console.log(
+            "Current best score:",
+            currentBestScore,
+            "New score:",
+            playerScore.score
+          );
 
-        // Eğer yeni skor daha iyiyse güncelle
-        if (playerScore.score > currentBestScore) {
-          console.log("Updating player's best score");
-          const playerRef = ref(database, `players/${child.key}`);
-          update(playerRef, {
-            bestScore: playerScore.score,
-            title: playerScore.title,
-            lastPlayDate: playerScore.date,
-          });
-        }
-        return true;
-      });
+          // Eğer yeni skor daha iyiyse güncelle
+          if (playerScore.score > currentBestScore) {
+            console.log("Updating player's best score");
+            const playerRef = ref(database, `players/${child.key}`);
+            update(playerRef, {
+              bestScore: playerScore.score,
+              title: playerScore.title,
+              lastPlayDate: playerScore.date,
+            });
+          }
+          return true;
+        });
+      } else {
+        // Player bulunamazsa yeni kayıt oluştur
+        console.log("Player not found, creating new player record");
+        const playersRef = ref(database, "players");
+        const newPlayerRef = push(playersRef);
+
+        await set(newPlayerRef, {
+          nickname: playerScore.nickname,
+          nickname_lower: playerScore.nickname.toLowerCase(),
+          bestScore: playerScore.score,
+          title: playerScore.title,
+          createdAt: Date.now(),
+          lastPlayDate: playerScore.date,
+        });
+
+        playerId = newPlayerRef.key;
+        console.log("New player created with ID:", playerId);
+      }
 
       console.log("Player ID:", playerId);
 
@@ -202,7 +222,6 @@ export class FirebaseLeaderboard {
       const sortedPlayers = allPlayers.sort(
         (a, b) => b.data.bestScore - a.data.bestScore
       );
-
 
       // Oyuncuyu bul
       const playerIndex = sortedPlayers.findIndex((player) => {
