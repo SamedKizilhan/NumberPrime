@@ -5,6 +5,8 @@
     "userNameLabel": "Username",
     "userNamePlaceholder": "Enter your username",
     "startGame": "START GAME",
+    "saveAndStart": "SAVE & START",
+    "welcome": "Welcome, {{name}}!",
     "leaderboard": "LEADERBOARD",
     "music": "MUSIC",
     "howToPlay": "How to Play",
@@ -32,7 +34,7 @@
     "yes": "Yes",
     "nextTitle": "Next Title",
     "pointsToNext": "You need {{points}} more points",
-    "maxTitleReached": "You've reached the highest title!"
+    "maxTitleReached": "You’ve earned the highest title! Now it’s time to become number one!"
   },
   "leaderboard": {
     "title": "Leaderboard",

@@ -1,4 +1,5 @@
-import 'intl-pluralrules';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import "intl-pluralrules";
 import { initializeI18n } from "./src/utils/i18n";
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
@@ -35,6 +36,10 @@ export default function App() {
         // İlk olarak i18n'i başlat
         await initializeI18n();
         setIsI18nReady(true);
+
+        // GEÇICI: User profile'ı sıfırla (sadece test için)
+        // await AsyncStorage.removeItem("@NumPrime_UserProfile");
+        // console.log("User profile resetlendi");
 
         // Sonra kullanıcı profilini kontrol et
         const profile = await getUserProfile();

@@ -50,9 +50,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   }, []);
 
   useEffect(() => {
+    console.log("MenuScreen - playerNickname changed:", playerNickname);
     if (playerNickname && playerNickname.trim().length >= 3) {
       setIsNicknameSet(true);
       setInputNickname(playerNickname);
+      console.log("Setting isNicknameSet to true for:", playerNickname);
+    } else {
+      setIsNicknameSet(false);
+      setInputNickname("");
+      console.log("Setting isNicknameSet to false");
     }
   }, [playerNickname]);
 
@@ -88,8 +94,16 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
   const handleStartGame = async () => {
-    if (isNicknameSet) {
+    console.log(
+      "handleStartGame - isNicknameSet:",
+      isNicknameSet,
+      "playerNickname:",
+      playerNickname
+    );
+
+    if (isNicknameSet && playerNickname) {
       // Zaten kayıtlı kullanıcı, direkt oyuna başla
+      console.log("Using saved nickname:", playerNickname);
       onStartGame();
       return;
     }
@@ -135,25 +149,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-  // Input'u sadece nickname set olmamışsa göster:
-  {
-    !isNicknameSet && (
-      <TextInput
-        style={styles.userNameInput}
-        placeholder={t("menu.userNamePlaceholder")}
-        value={inputNickname}
-        onChangeText={setInputNickname}
-        maxLength={20}
-        autoCapitalize="words"
-      />
-    );
-  }
-
-  {
-    isNicknameSet && (
-      <Text style={styles.welcomeText}>Hoş geldin, {playerNickname}!</Text>
-    );
-  }
   const toggleInstructions = () => {
     const toValue = isInstructionsOpen ? 0 : 1;
 
@@ -205,20 +200,36 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
       <View style={styles.content}>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>{t("menu.userNameLabel")}</Text>
-          <TextInput
-            style={styles.input}
-            value={inputNickname}
-            onChangeText={setInputNickname}
-            placeholder={t("menu.userNamePlaceholder")}
-            placeholderTextColor="#666"
-            maxLength={20}
-            autoCapitalize="none"
-          />
+          {!isNicknameSet ? (
+            // Yeni kullanıcı - TextInput göster
+            <>
+              <Text style={styles.inputLabel}>{t("menu.userNameLabel")}</Text>
+              <TextInput
+                style={styles.input}
+                value={inputNickname}
+                onChangeText={setInputNickname}
+                placeholder={t("menu.userNamePlaceholder")}
+                placeholderTextColor="#666"
+                maxLength={20}
+                autoCapitalize="none"
+              />
+            </>
+          ) : (
+            // Kayıtlı kullanıcı - Hoşgeldin mesajı
+            <Text style={styles.welcomeText}>
+              {t("menu.welcome", { name: playerNickname })}
+            </Text>
+          )}
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleStartGame}>
-          <Text style={styles.buttonText}>{t("menu.startGame")}</Text>
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={handleStartGame}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.startButtonText}>
+            {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -498,6 +509,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 0, // Instructions'ın altında kalacak
   },
+  userNameLabel: {
+    fontSize: 16,
+    color: "#00d2d3",
+    fontWeight: "600",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+
   userNameInput: {
     borderWidth: 2,
     borderColor: "#00d2d3",
@@ -510,6 +529,31 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
     fontWeight: "600",
+  },
+
+  startButton: {
+    backgroundColor: "#00d2d3",
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    marginBottom: 20,
+    width: "80%",
+    elevation: 5,
+    shadowColor: "#00d2d3",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+
+  startButtonText: {
+    color: "#1a1a2e",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    letterSpacing: 1,
   },
 
   welcomeText: {

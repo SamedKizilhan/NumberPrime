@@ -5,6 +5,8 @@
     "userNameLabel": "Kullanıcı Adı",
     "userNamePlaceholder": "Kullanıcı adınızı girin",
     "startGame": "OYUNA BAŞLA",
+    "saveAndStart": "KAYDET VE BAŞLA",
+    "welcome": "Hoş geldin, {{name}}!",
     "leaderboard": "SKOR TABLOSU",
     "music": "MÜZİKLER",
     "howToPlay": "Nasıl Oynanır",
@@ -32,7 +34,7 @@
     "yes": "Evet",
     "nextTitle": "Sonraki Unvan",
     "pointsToNext": "{{points}} puana daha ihtiyacın var",
-    "maxTitleReached": "En yüksek unvana ulaştın!"
+    "maxTitleReached": "En yüksek unvana ulaştın! Şimdi birinci olma zamanı!"
   },
   "leaderboard": {
     "title": "Skor Tablosu",

@@ -131,27 +131,34 @@ export class FirebaseLeaderboard {
     try {
       console.log("Getting top 47 players...");
       const playersRef = ref(database, "players");
-      // Tüm oyuncuları al ve JavaScript'te sırala (Firebase sıralama sorunları için)
+
+      // Direct get yerine once kullan ve biraz bekle
+      await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms bekle
+
       const snapshot = await get(playersRef);
 
       console.log("Snapshot exists:", snapshot.exists());
-      console.log("Snapshot size:", snapshot.size);
+      console.log("Snapshot val:", snapshot.val()); // Tüm raw data'yı göster
 
       const allPlayers: PlayerScore[] = [];
-      snapshot.forEach((child) => {
-        const player = child.val();
-        console.log("Player data:", player);
-        if (player.bestScore > 0) {
-          allPlayers.push({
-            id: child.key || "",
-            nickname: player.nickname,
-            score: player.bestScore,
-            date: player.lastPlayDate || "",
-            title: player.title || "",
-          });
-        }
-        return true;
-      });
+      const rawData = snapshot.val();
+
+      // Manual iteration
+      if (rawData) {
+        Object.keys(rawData).forEach((key) => {
+          const player = rawData[key];
+
+          if (player && player.bestScore > 0) {
+            allPlayers.push({
+              id: key,
+              nickname: player.nickname,
+              score: player.bestScore,
+              date: player.lastPlayDate || "",
+              title: player.title || "",
+            });
+          }
+        });
+      }
 
       // JavaScript'te sırala (yüksekten düşüğe)
       const sortedPlayers = allPlayers.sort((a, b) => b.score - a.score);
@@ -159,8 +166,6 @@ export class FirebaseLeaderboard {
       // İlk 47'yi al
       const top47 = sortedPlayers.slice(0, 47);
 
-      console.log("All players count:", allPlayers.length);
-      console.log("Final top47 array:", top47);
       return top47;
     } catch (error) {
       console.error("Firebase top 47 getirme hatası:", error);
@@ -179,27 +184,30 @@ export class FirebaseLeaderboard {
       const snapshot = await get(playersRef);
 
       const allPlayers: Array<{ key: string; data: any }> = [];
-      snapshot.forEach((child) => {
-        const player = child.val();
-        if (player.bestScore > 0) {
-          allPlayers.push({
-            key: child.key || "",
-            data: player,
-          });
-        }
-        return true;
-      });
+      const rawData = snapshot.val();
+
+      if (rawData) {
+        Object.keys(rawData).forEach((key) => {
+          const player = rawData[key];
+          if (player && player.bestScore > 0) {
+            allPlayers.push({
+              key: key,
+              data: player,
+            });
+          }
+        });
+      }
 
       // JavaScript'te sırala (yüksekten düşüğe)
       const sortedPlayers = allPlayers.sort(
         (a, b) => b.data.bestScore - a.data.bestScore
       );
 
+
       // Oyuncuyu bul
-      const playerIndex = sortedPlayers.findIndex(
-        (player) =>
-          player.data.nickname.toLowerCase() === nickname.toLowerCase()
-      );
+      const playerIndex = sortedPlayers.findIndex((player) => {
+        return player.data.nickname.toLowerCase() === nickname.toLowerCase();
+      });
 
       if (playerIndex === -1) {
         return {
@@ -210,6 +218,7 @@ export class FirebaseLeaderboard {
       }
 
       const playerData = sortedPlayers[playerIndex].data;
+
       return {
         rank: playerIndex + 1,
         totalPlayers: sortedPlayers.length,
@@ -245,9 +254,6 @@ export class FirebaseLeaderboard {
         FirebaseLeaderboard.getTop47(),
         FirebaseLeaderboard.getPlayerGlobalRank(playerNickname),
       ]);
-
-      console.log("FirebaseLeaderboard: Top47 count", top47.length);
-      console.log("FirebaseLeaderboard: Player rank", playerRankData.rank);
 
       return {
         top47,
