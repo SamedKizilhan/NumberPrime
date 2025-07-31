@@ -8,6 +8,7 @@ import {
   Alert,
   BackHandler,
   TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
 import GameGrid, { CELL_SIZE } from "../components/GameGrid";
 import GameControls from "../components/GameControls";
@@ -820,7 +821,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <GameHeader
         score={gameState.score}
         level={gameState.level}
@@ -859,7 +860,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         onDropBlock={dropBlock}
         onSelectOperation={selectOperation}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -870,10 +871,10 @@ const styles = StyleSheet.create({
   },
   gameArea: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "center", // Bu satır eklendi
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5, // Padding'i azalttık
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   gameOverContainer: {
     flex: 1,

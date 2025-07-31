@@ -16,7 +16,9 @@ interface GameControlsProps {
   onSelectOperation: (operation: Operation) => void;
 }
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+const isTablet = Math.min(width, height) > 700 || width > 1000 || height > 1000;
+const isSmallPhone = Math.min(width, height) <= 360;
 
 const GameControls: React.FC<GameControlsProps> = ({
   selectedOperation,
@@ -115,9 +117,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   movementButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: isSmallPhone ? 60 : (isTablet ? 120 : 80), 
+    height: isSmallPhone ? 60 : (isTablet ? 120 : 80),
+    borderRadius: isSmallPhone ? 30 : (isTablet ? 60 : 40),
     backgroundColor: "#16213e",
     borderWidth: 2,
     borderColor: "#0f3460",
@@ -125,9 +127,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   operationButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: isSmallPhone ? 50 : (isTablet ? 110 : 70), 
+    height: isSmallPhone ? 50 : (isTablet ? 110 : 70),
+    borderRadius: isSmallPhone ? 25 : (isTablet ? 55 : 35),
     backgroundColor: "#16213e",
     borderWidth: 2,
     borderColor: "#0f3460",
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
   },
   operationButtonText: {
     color: "#666",
-    fontSize: 28,
+    fontSize: isSmallPhone ? 20 : (isTablet ? 36 : 28),
     fontWeight: "bold",
   },
   selectedOperationButtonText: {
@@ -156,13 +158,13 @@ const styles = StyleSheet.create({
   },
   movementButtonText: {
     color: "#fff",
-    fontSize: 24,
+    fontSize: isSmallPhone ? 18 : (isTablet ? 32 : 24),
     fontWeight: "bold",
   },
   dropButton: {
-    width: 120, // + ve - tuşlarının toplamından biraz büyük
-    height: 50,
-    borderRadius: 25,
+    width: isSmallPhone ? 80 : (isTablet ? 180 : 120), 
+    height: isSmallPhone ? 40 : (isTablet ? 70 : 50), 
+    borderRadius: isSmallPhone ? 20 : (isTablet ? 35 : 25),
     backgroundColor: "#00d2d3",
     borderWidth: 2,
     borderColor: "#00d2d3",
@@ -171,7 +173,7 @@ const styles = StyleSheet.create({
   },
   dropButtonText: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: isSmallPhone ? 16 : (isTablet ? 28 : 20),
     fontWeight: "bold",
   },
 });

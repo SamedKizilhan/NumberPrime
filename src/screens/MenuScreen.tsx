@@ -317,10 +317,10 @@ const styles = StyleSheet.create({
   },
   logoBackground: {
     backgroundColor: "#16213e",
-    paddingHorizontal: 20, // 30'dan 20'ye
-    paddingVertical: 12, // 20'den 12'ye
-    borderRadius: 15, // 20'den 15'e
-    borderWidth: 2, // 3'ten 2'ye
+    paddingHorizontal: 20, 
+    paddingVertical: 12, 
+    borderRadius: 15, 
+    borderWidth: 2,
     borderColor: "#00d2d3",
     shadowColor: "#00d2d3",
     shadowOffset: {

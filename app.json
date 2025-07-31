@@ -31,11 +31,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-    ],
+    "plugins": [],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "f38264e2-5408-4443-a2ee-81c8b5dcd018"
       }
     }
   }

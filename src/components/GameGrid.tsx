@@ -21,12 +21,28 @@ interface GameGridProps {
 }
 
 const { width, height } = Dimensions.get("window");
-const AVAILABLE_WIDTH = width - 80; // Padding'ler için
-const AVAILABLE_HEIGHT = height * 0.6; // %55'ten %60'a çıkardık
+// Doğru tablet tespiti
+const isTablet = Math.min(width, height) > 700 || 
+                 (width > 1000 || height > 1000);
+const isSmallPhone = Math.min(width, height) <= 360;
+
+const AVAILABLE_WIDTH = width - (isTablet ? 60 : 80);
+
+let AVAILABLE_HEIGHT;
+if (isTablet) {
+  AVAILABLE_HEIGHT = height * 0.68;
+} else if(isSmallPhone) {
+  AVAILABLE_HEIGHT = height * 0.59;
+}
+else {
+  AVAILABLE_HEIGHT = height * 0.6;
+}
 const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
 const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
-export const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT); // Export edildi
-
+export const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT);
+console.log("Final CELL_SIZE_BY_WIDTH:", CELL_SIZE_BY_WIDTH);
+console.log("Final CELL_SIZE_BY_HEIGHT:", CELL_SIZE_BY_HEIGHT);
+console.log("Final CELL_SIZE:", CELL_SIZE);
 const GameGrid: React.FC<GameGridProps> = ({
   grid,
   fallingBlock,
@@ -57,6 +73,9 @@ const GameGrid: React.FC<GameGridProps> = ({
       styles.cell,
       ...(isFalling ? [styles.fallingCell] : []),
       ...(cell.value && isPrime(cell.value) ? [styles.primeCell] : []),
+      ...(cell.value && !isPrime(cell.value) && !isFalling
+        ? [styles.normalCell]
+        : []),
     ];
 
     return (
@@ -119,6 +138,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
+    maxHeight: "100%",
   },
   gridContainer: {
     borderWidth: 4,
@@ -176,6 +196,17 @@ const styles = StyleSheet.create({
     textShadowColor: "#000",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+  },
+  normalCell: {
+    backgroundColor: "#e94560", // Düşen blok ile aynı renk
+    shadowColor: "#e94560",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.4, // Daha hafif gölge
+    shadowRadius: 5,
+    elevation: 5,
   },
 });
 
