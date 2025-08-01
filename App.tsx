@@ -38,7 +38,7 @@ export default function App() {
         setIsI18nReady(true);
 
         // GEÇICI: User profile'ı sıfırla (sadece test için)
-        // await AsyncStorage.removeItem("@NumPrime_UserProfile");
+        await AsyncStorage.removeItem("@NumPrime_UserProfile");
         // console.log("User profile resetlendi");
 
         // Sonra kullanıcı profilini kontrol et

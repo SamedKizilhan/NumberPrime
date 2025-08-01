@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     elevation: 999,
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#999",
     marginBottom: 8,
     textAlign: "left",

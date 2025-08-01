@@ -732,7 +732,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           {t("game.finalScore", { score: gameState.score })}
         </Text>
         <Text style={styles.gameOverTitle}>
-          {t("game.yourTitle")}: {t(getPlayerTitleKey(gameState.score))}
+          {t(getPlayerTitleKey(gameState.score))}
         </Text>
 
         {/* Bir sonraki title bilgisi */}
