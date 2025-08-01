@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   gameOverScore: {
-    fontSize: 24,
+    fontSize: 30,
     color: "#00d2d3",
     textAlign: "center",
     marginBottom: 30,
@@ -948,20 +948,20 @@ const styles = StyleSheet.create({
   },
   nextTitleLabel: {
     color: "#00d2d3",
-    fontSize: 25,
+    fontSize: 28,
     fontWeight: "600",
     textAlign: "center",
     marginBottom: 8,
   },
   nextTitlePoints: {
     color: "#ffd700",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "500",
     textAlign: "center",
   },
   nextTitleText: {
     color: "#ffd700",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
   },
