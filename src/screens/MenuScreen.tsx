@@ -19,6 +19,7 @@ interface MenuScreenProps {
   onStartGame: () => void;
   onShowLeaderboard: () => void;
   onShowCredits: () => void;
+  onShowSupport: () => void;
   playerNickname: string;
   setPlayerNickname: (nickname: string) => void;
 }
@@ -29,6 +30,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   onStartGame,
   onShowLeaderboard,
   onShowCredits,
+  onShowSupport,
   playerNickname,
   setPlayerNickname,
 }) => {
@@ -268,8 +270,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </TouchableOpacity>
 
         {/* Dil Seçici - Nasıl Oynanır butonunun altında - SABİT KONUM */}
-        <View style={styles.languageContainer}>
-          <LanguageSelector />
+        <View style={styles.bottomControls}>
+          <View style={styles.languageContainer}>
+            <LanguageSelector />
+          </View>
+
+          <TouchableOpacity
+            style={styles.supportButton}
+            onPress={onShowSupport}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.supportButtonText}>❤️ {t("menu.support")}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Açılır Kapanır İçerik - OVERLAY olarak */}
@@ -317,9 +329,9 @@ const styles = StyleSheet.create({
   },
   logoBackground: {
     backgroundColor: "#16213e",
-    paddingHorizontal: 20, 
-    paddingVertical: 12, 
-    borderRadius: 15, 
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 15,
     borderWidth: 2,
     borderColor: "#00d2d3",
     shadowColor: "#00d2d3",
@@ -505,9 +517,6 @@ const styles = StyleSheet.create({
 
   // Dil seçici - altta konumlandırıldı ve SABİT
   languageContainer: {
-    marginTop: 20,
-    alignItems: "center",
-    zIndex: 0, // Instructions'ın altında kalacak
   },
   userNameLabel: {
     fontSize: 16,
@@ -568,6 +577,28 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 2,
     borderColor: "#00d2d3",
+  },
+  bottomControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    paddingHorizontal: 10,
+    zIndex: 0,
+  },supportButton: {
+    backgroundColor: '#16213e',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#e94560',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  supportButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#e94560',
   },
 });
 

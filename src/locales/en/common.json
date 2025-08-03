@@ -9,6 +9,7 @@
     "welcome": "Welcome, {{name}}!",
     "leaderboard": "LEADERBOARD",
     "music": "MUSIC",
+    "support": "SUPPORT",
     "howToPlay": "How to Play",
     "instruction1": "• Control and place falling numbers",
     "instruction2": "• Combine equal numbers together",
@@ -87,5 +88,23 @@
     "numberCruncher": "Number Cruncher",
     "mathStudent": "Math Student",
     "beginner": "Beginner"
-  }
+  },
+  "support": {
+    "title": "Support Development",
+    "subtitle": "Help us keep NumPrime amazing!",
+    "loading": "Loading support options...",
+    "welcomeTitle": "Thank you for playing NumPrime!",
+    "welcomeText": "Your support helps us keep the game ad-free and continuously add new features, levels, and improvements.",
+    "chooseSupport": "Choose Your Support Level",
+    "benefitsTitle": "Your Support Helps Us:",
+    "benefit1": "Keep the game completely ad-free",
+    "benefit2": "Add new mathematical puzzles and levels",
+    "benefit3": "Improve performance and fix bugs",
+    "benefit4": "Develop exciting new features",
+    "thankYou": "Thank You",
+    "thankYouText": "Every contribution, no matter the size, means the world to us and helps us continue developing NumPrime!",
+    "back": "← BACK",
+    "error": "Error",
+    "purchaseError": "Unable to complete purchase. Please try again."
+  } 
 }

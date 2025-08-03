@@ -1,3 +1,4 @@
+import SupportScreen from "./src/screens/SupportScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import "intl-pluralrules";
 import { initializeI18n } from "./src/utils/i18n";
@@ -21,8 +22,9 @@ import {
   UserProfile,
 } from "./src/utils/StorageUtils";
 import SoundManager from "./src/utils/SoundManager";
+import IAPManager from './src/utils/IAPManager';
 
-export type Screen = "menu" | "game" | "leaderboard" | "credits";
+export type Screen = "menu" | "game" | "leaderboard" | "credits" | "support";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
@@ -38,7 +40,7 @@ export default function App() {
         setIsI18nReady(true);
 
         // GEÇICI: User profile'ı sıfırla (sadece test için)
-        await AsyncStorage.removeItem("@NumPrime_UserProfile");
+        // await AsyncStorage.removeItem("@NumPrime_UserProfile");
         // console.log("User profile resetlendi");
 
         // Sonra kullanıcı profilini kontrol et
@@ -104,7 +106,11 @@ export default function App() {
       subscription?.remove();
       const soundManager = SoundManager.getInstance();
       soundManager.fullCleanup();
-      console.log("App.tsx: SoundManager tamamen temizlendi");
+
+      const iapManager = IAPManager.getInstance();
+      iapManager.cleanup();
+
+      console.log("App.tsx: Tüm manager'lar temizlendi");
     };
   }, []);
 
@@ -171,6 +177,7 @@ export default function App() {
             onStartGame={handleGameStart}
             onShowLeaderboard={handleLeaderboard}
             onShowCredits={handleShowCredits}
+            onShowSupport={handleShowSupport}
             playerNickname={playerNickname}
             setPlayerNickname={handleNicknameSet}
           />
@@ -189,11 +196,18 @@ export default function App() {
             playerNickname={playerNickname}
           />
         );
+      case "support":
+        return <SupportScreen onBack={handleBackToMenu} />;
       case "credits":
         return <CreditsScreen onBack={handleBackToMenu} />;
       default:
         return null;
     }
+  };
+
+  const handleShowSupport = async () => {
+    // Menu müziği çalmaya devam etsin
+    setCurrentScreen("support");
   };
 
   // Platform specific container
