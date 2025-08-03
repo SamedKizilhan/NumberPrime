@@ -350,14 +350,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1, // 2'den 1'e
   },
   logoNum: {
-    color: "#00d2d3",
-    textShadowColor: "rgba(0, 210, 211, 0.8)",
-    textShadowOffset: { width: 2, height: 2 },
+    color: "#e94560", //e94560
+    textShadowColor: "rgba(233, 69, 96, 0.8)",    textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 10,
   },
   logoPrime: {
-    color: "#e94560",
-    textShadowColor: "rgba(233, 69, 96, 0.8)",
+    color: "#00d2d3",
+    textShadowColor: "rgba(0, 210, 211, 0.8)", //rgba(0, 210, 211, 0.8)
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 10,
   },
@@ -517,6 +516,7 @@ const styles = StyleSheet.create({
 
   // Dil seçici - altta konumlandırıldı ve SABİT
   languageContainer: {
+    marginRight: 15,
   },
   userNameLabel: {
     fontSize: 16,
@@ -559,14 +559,14 @@ const styles = StyleSheet.create({
 
   startButtonText: {
     color: "#1a1a2e",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
     letterSpacing: 1,
   },
 
   welcomeText: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#00d2d3",
     fontWeight: "bold",
     marginBottom: 20,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   },
   bottomControls: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
     paddingHorizontal: 10,
@@ -590,14 +590,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderWidth: 1,
+    borderWidth: 2.5,
     borderColor: '#e94560',
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 15,
   },
   supportButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#e94560',
   },
 });
