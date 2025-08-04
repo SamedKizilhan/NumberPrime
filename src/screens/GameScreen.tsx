@@ -78,6 +78,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     level: 1,
     gameSpeed: calculateGameSpeed(1),
     nextSpecialBlockScore: 1500,
+    specialBlockUsedRanges: [],
   });
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -313,6 +314,33 @@ const GameScreen: React.FC<GameScreenProps> = ({
       grid[cellY][cellX].value = null;
     });
 
+    const currentCell = grid[y][x];
+    const isSpecialBlock =
+      currentCell.isSpecial ||
+      (gameState.fallingBlock?.isSpecial &&
+        gameState.fallingBlock.x === x &&
+        gameState.fallingBlock.y === y);
+
+    // Eğer patlama varsa ve bu özel bloksa, özel patlatma yap
+    if (
+      (hasNeighborMatch || hasPrimeExplosion || has2Explosion) &&
+      isSpecialBlock
+    ) {
+      // Özel blok patlaması: 3 sütunu temizle
+      const columnsToExplode = [x - 1, x, x + 1];
+
+      columnsToExplode.forEach((colX) => {
+        if (colX >= 0 && colX < GRID_WIDTH) {
+          for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
+            if (grid[rowY][colX].value !== null) {
+              cellsToExplode.add(`${colX}-${rowY}`);
+              totalScore += grid[rowY][colX].value! * 3; // Özel bonus
+            }
+          }
+        }
+      });
+    }
+
     return {
       scoreGained: totalScore,
       cellsToExplode,
@@ -492,17 +520,27 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Final state güncelle
     const newScore = state.score + totalScore;
-    const nextSpecialScore = Math.floor(newScore / 1500 + 1) * 1500;
+
+    // Özel blok kullanım takibi
+    let updatedSpecialBlockUsedRanges = [
+      ...(state.specialBlockUsedRanges || []),
+    ];
+    if (fallingBlock.isSpecial) {
+      const currentRange = Math.floor(state.score / 1500);
+      if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
+        updatedSpecialBlockUsedRanges.push(currentRange);
+      }
+    }
 
     setGameState({
       ...state,
       grid: finalGrid,
-      fallingBlock: createNewBlock(newScore, nextSpecialScore),
+      fallingBlock: createNewBlock(newScore, updatedSpecialBlockUsedRanges),
       score: newScore,
       selectedOperation: "none",
       level: Math.floor(newScore / 1500) + 1,
       gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
-      nextSpecialBlockScore: nextSpecialScore,
+      specialBlockUsedRanges: updatedSpecialBlockUsedRanges,
     });
   };
 
@@ -546,48 +584,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
       setIsProcessingGameOver(false); // İşlem bitti
       return; // Fonksiyondan çık
-    }
-
-    // Özel blok kontrolü
-    if (fallingBlock.isSpecial) {
-      // Özel blok timer'ını temizle
-      if (specialBlockTimer) {
-        clearTimeout(specialBlockTimer);
-        setSpecialBlockTimer(null);
-      }
-
-      // Özel blok patlatma
-      const specialExplosion = explodeSpecialBlock(grid, landingX, landingY);
-
-      // Özel blok patlatma animasyonları
-      await triggerExplosions(
-        specialExplosion.cellsToExplode,
-        "prime",
-        false,
-        false,
-        false,
-        landingX,
-        landingY
-      );
-
-      let finalGrid = applyGravity(grid);
-
-      // Yeni blok için skor hesapla
-      const newScore = state.score + specialExplosion.scoreGained;
-      const nextSpecialScore = Math.floor(newScore / 1500 + 1) * 1500;
-
-      setGameState({
-        ...state,
-        grid: finalGrid,
-        fallingBlock: createNewBlock(newScore, nextSpecialScore),
-        score: newScore,
-        selectedOperation: "none",
-        level: Math.floor(newScore / 1500) + 1,
-        gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
-        nextSpecialBlockScore: nextSpecialScore,
-      });
-
-      return;
     }
 
     const newGrid = grid.map((row) => [...row]);
@@ -662,16 +658,28 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Final state güncelle
+    const newScore = state.score + totalScore;
+
+    // Özel blok kullanım takibi
+    let updatedSpecialBlockUsedRanges = [
+      ...(state.specialBlockUsedRanges || []),
+    ];
+    if (fallingBlock.isSpecial) {
+      const currentRange = Math.floor(state.score / 1500);
+      if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
+        updatedSpecialBlockUsedRanges.push(currentRange);
+      }
+    }
+
     setGameState({
       ...state,
       grid: finalGrid,
-      fallingBlock: createNewFallingBlock(),
-      score: state.score + totalScore,
+      fallingBlock: createNewBlock(newScore, updatedSpecialBlockUsedRanges),
+      score: newScore,
       selectedOperation: "none",
-      level: Math.floor((state.score + totalScore) / 1500) + 1,
-      gameSpeed: calculateGameSpeed(
-        Math.floor((state.score + totalScore) / 1500) + 1
-      ),
+      level: Math.floor(newScore / 1500) + 1,
+      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
+      specialBlockUsedRanges: updatedSpecialBlockUsedRanges,
     });
   };
 
@@ -796,12 +804,19 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const createNewBlock = (
     currentScore: number,
-    nextSpecialScore?: number
+    specialBlockUsedRanges: number[] = []
   ): FallingBlock => {
-    // Eğer skor 1500'ün katıysa ve özel blok zamanıysa
-    if (nextSpecialScore && currentScore >= nextSpecialScore) {
+    // Hangi 1500'lük aralıktayız?
+    const currentRange = Math.floor(currentScore / 1500);
+
+    // Bu aralıkta daha önce özel blok kullanıldı mı?
+    const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
+
+    // Eğer 1500'ün katına ulaştıysak ve bu aralıkta özel blok kullanılmadıysa
+    if (currentScore >= (currentRange + 1) * 1500 && !isSpecialUsedInRange) {
       return createSpecialFallingBlock();
     }
+
     return createNewFallingBlock();
   };
 

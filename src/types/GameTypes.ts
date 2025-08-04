@@ -23,6 +23,7 @@ export interface GameState {
   level: number;
   gameSpeed: number;
   nextSpecialBlockScore?: number;
+  specialBlockUsedRanges?: number[];
 }
 
 export interface PlayerScore {
