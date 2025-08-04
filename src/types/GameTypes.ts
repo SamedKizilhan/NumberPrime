@@ -10,6 +10,8 @@ export interface FallingBlock {
   x: number;
   y: number;
   id: string;
+  isSpecial?: boolean;
+  specialTimer?: number; 
 }
 
 export interface GameState {
@@ -20,6 +22,7 @@ export interface GameState {
   selectedOperation: "none" | "add" | "subtract";
   level: number;
   gameSpeed: number;
+  nextSpecialBlockScore?: number;
 }
 
 export interface PlayerScore {

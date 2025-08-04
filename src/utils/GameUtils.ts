@@ -261,3 +261,44 @@ export const calculateGameSpeed = (level: number): number => {
     return Math.max(223, baseSpeed - totalDecrease); // level 9'da max 219 ms'ye ulaşır.
   }
 };
+
+// Özel blok oluşturma
+export const createSpecialFallingBlock = (): FallingBlock => {
+  const centerX = Math.floor(GRID_WIDTH / 2);
+
+  return {
+    value: generateRandomNumber(),
+    x: centerX,
+    y: 0,
+    id: `special-falling-${Date.now()}-${Math.random()}`,
+    isSpecial: true,
+    specialTimer: 47000, // 47 saniye = 47000ms
+  };
+};
+
+// Özel blok patlatma fonksiyonu
+export const explodeSpecialBlock = (
+  grid: GridCell[][],
+  blockX: number,
+  blockY: number
+): { cellsToExplode: Set<string>; scoreGained: number } => {
+  const cellsToExplode = new Set<string>(); // Set<string> olarak değiştir
+  let totalScore = 0;
+
+  // Bulunduğu sütun ve sağ-sol sütunları patlat
+  const columnsToExplode = [blockX - 1, blockX, blockX + 1];
+
+  columnsToExplode.forEach((colX) => {
+    if (colX >= 0 && colX < GRID_WIDTH) {
+      for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
+        if (grid[rowY][colX].value !== null) {
+          // x-y formatında string olarak ekle
+          cellsToExplode.add(`${colX}-${rowY}`);
+          totalScore += grid[rowY][colX].value! * 2; // Özel blok bonus
+        }
+      }
+    }
+  });
+
+  return { cellsToExplode, scoreGained: totalScore };
+};

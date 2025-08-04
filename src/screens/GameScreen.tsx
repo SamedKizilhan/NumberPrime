@@ -20,10 +20,13 @@ import {
   GRID_WIDTH,
   GRID_HEIGHT,
   PlayerScore,
+  FallingBlock,
 } from "../types/GameTypes";
 import {
   createEmptyGrid,
   createNewFallingBlock,
+  createSpecialFallingBlock,
+  explodeSpecialBlock,
   performOperation,
   findMatchingNeighbors,
   findPrimeCrossExplosion,
@@ -87,6 +90,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const soundManager = SoundManager.getInstance();
   const [isLevelTransitioning, setIsLevelTransitioning] =
     useState<boolean>(false);
+  const [specialBlockTimer, setSpecialBlockTimer] =
+    useState<NodeJS.Timeout | null>(null);
 
   const handleLevelTransitionComplete = () => {
     setShowLevelTransition(false);
@@ -540,6 +545,48 @@ const GameScreen: React.FC<GameScreenProps> = ({
       return; // Fonksiyondan çık
     }
 
+    // Özel blok kontrolü
+    if (fallingBlock.isSpecial) {
+      // Özel blok timer'ını temizle
+      if (specialBlockTimer) {
+        clearTimeout(specialBlockTimer);
+        setSpecialBlockTimer(null);
+      }
+
+      // Özel blok patlatma
+      const specialExplosion = explodeSpecialBlock(grid, landingX, landingY);
+
+      // Özel blok patlatma animasyonları
+      await triggerExplosions(
+        specialExplosion.cellsToExplode,
+        "combo",
+        false,
+        false,
+        false,
+        landingX,
+        landingY
+      );
+
+      let finalGrid = applyGravity(grid);
+
+      // Yeni blok için skor hesapla
+      const newScore = state.score + specialExplosion.scoreGained;
+      const nextSpecialScore = Math.floor(newScore / 1500 + 1) * 1500;
+
+      setGameState({
+        ...state,
+        grid: finalGrid,
+        fallingBlock: createNewBlock(newScore, nextSpecialScore),
+        score: newScore,
+        selectedOperation: "none",
+        level: Math.floor(newScore / 1500) + 1,
+        gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
+        nextSpecialBlockScore: nextSpecialScore,
+      });
+
+      return;
+    }
+
     const newGrid = grid.map((row) => [...row]);
 
     // Bloğu mevcut pozisyona yerleştir
@@ -743,6 +790,47 @@ const GameScreen: React.FC<GameScreenProps> = ({
         prevState.selectedOperation === operation ? "none" : operation,
     }));
   };
+
+  const createNewBlock = (
+    currentScore: number,
+    nextSpecialScore?: number
+  ): FallingBlock => {
+    // Eğer skor 1500'ün katıysa ve özel blok zamanıysa
+    if (nextSpecialScore && currentScore >= nextSpecialScore) {
+      return createSpecialFallingBlock();
+    }
+    return createNewFallingBlock();
+  };
+
+  useEffect(() => {
+    if (
+      gameState.fallingBlock?.isSpecial &&
+      gameState.fallingBlock.specialTimer
+    ) {
+      const timer = setTimeout(() => {
+        // 47 saniye sonra normal bloğa dönüştür
+        setGameState((prevState) => {
+          if (prevState.fallingBlock?.isSpecial) {
+            return {
+              ...prevState,
+              fallingBlock: {
+                ...prevState.fallingBlock,
+                isSpecial: false,
+                specialTimer: undefined,
+              },
+            };
+          }
+          return prevState;
+        });
+      }, gameState.fallingBlock.specialTimer);
+
+      setSpecialBlockTimer(timer);
+
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
+  }, [gameState.fallingBlock?.id, gameState.fallingBlock?.isSpecial]);
 
   const togglePause = () => {
     soundManager.playButtonSound(); // Ses ekle

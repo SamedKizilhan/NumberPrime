@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, Animated } from "react-native";
 import {
   GridCell,
   FallingBlock,
@@ -22,8 +22,7 @@ interface GameGridProps {
 
 const { width, height } = Dimensions.get("window");
 // Doğru tablet tespiti
-const isTablet = Math.min(width, height) > 700 || 
-                 (width > 1000 || height > 1000);
+const isTablet = Math.min(width, height) > 700 || width > 1000 || height > 1000;
 const isSmallPhone = Math.min(width, height) <= 360;
 
 const AVAILABLE_WIDTH = width - (isTablet ? 60 : 80);
@@ -31,10 +30,9 @@ const AVAILABLE_WIDTH = width - (isTablet ? 60 : 80);
 let AVAILABLE_HEIGHT;
 if (isTablet) {
   AVAILABLE_HEIGHT = height * 0.68;
-} else if(isSmallPhone) {
+} else if (isSmallPhone) {
   AVAILABLE_HEIGHT = height * 0.59;
-}
-else {
+} else {
   AVAILABLE_HEIGHT = height * 0.6;
 }
 const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
@@ -69,14 +67,52 @@ const GameGrid: React.FC<GameGridProps> = ({
   };
 
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
+    const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
     const cellStyle = [
       styles.cell,
+      isFalling && (isSpecialFalling ? styles.specialCell : styles.fallingCell),
       ...(isFalling ? [styles.fallingCell] : []),
       ...(cell.value && isPrime(cell.value) ? [styles.primeCell] : []),
       ...(cell.value && !isPrime(cell.value) && !isFalling
         ? [styles.normalCell]
         : []),
     ];
+
+    // useEffect ile ışıltı animasyonu
+    const [shimmerAnim] = useState(new Animated.Value(0));
+
+    useEffect(() => {
+      if (fallingBlock?.isSpecial) {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(shimmerAnim, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(shimmerAnim, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+      }
+    }, [fallingBlock?.isSpecial]);
+
+    // Özel blok render'ında animasyonu kullanın
+    {
+      isSpecialFalling && (
+        <Animated.View
+          style={[
+            styles.shimmerOverlay,
+            {
+              opacity: shimmerAnim,
+            },
+          ]}
+        />
+      );
+    }
 
     return (
       <View key={cell.id} style={cellStyle}>
@@ -207,6 +243,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4, // Daha hafif gölge
     shadowRadius: 5,
     elevation: 5,
+  },
+  specialCell: {
+    backgroundColor: "#FFD700", // Altın rengi
+    shadowColor: "#FFD700",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 1,
+    shadowRadius: 15,
+    elevation: 15,
+    borderWidth: 2,
+    borderColor: "#FFF",
+  },
+  shimmerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 4,
   },
 });
 
