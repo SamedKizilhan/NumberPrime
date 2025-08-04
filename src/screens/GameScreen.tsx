@@ -77,6 +77,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     selectedOperation: "none",
     level: 1,
     gameSpeed: calculateGameSpeed(1),
+    nextSpecialBlockScore: 1500,
   });
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -490,16 +491,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Final state güncelle
+    const newScore = state.score + totalScore;
+    const nextSpecialScore = Math.floor(newScore / 1500 + 1) * 1500;
+
     setGameState({
       ...state,
       grid: finalGrid,
-      fallingBlock: createNewFallingBlock(),
-      score: state.score + totalScore,
+      fallingBlock: createNewBlock(newScore, nextSpecialScore),
+      score: newScore,
       selectedOperation: "none",
-      level: Math.floor((state.score + totalScore) / 1500) + 1,
-      gameSpeed: calculateGameSpeed(
-        Math.floor((state.score + totalScore) / 1500) + 1
-      ),
+      level: Math.floor(newScore / 1500) + 1,
+      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
+      nextSpecialBlockScore: nextSpecialScore,
     });
   };
 
@@ -559,7 +562,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       // Özel blok patlatma animasyonları
       await triggerExplosions(
         specialExplosion.cellsToExplode,
-        "combo",
+        "prime",
         false,
         false,
         false,
