@@ -272,7 +272,6 @@ export const createSpecialFallingBlock = (): FallingBlock => {
     y: 0,
     id: `special-falling-${Date.now()}-${Math.random()}`,
     isSpecial: true,
-    specialTimer: 47000, // 47 saniye = 47000ms
   };
 };
 

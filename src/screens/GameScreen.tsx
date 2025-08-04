@@ -240,7 +240,19 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let has2Explosion = false;
     let explosionType: "normal" | "prime" | "prime2" | "combo" = "normal";
 
-    // 1. Önce komşu eşitlik kontrolü
+    // ÖNCE özel blok kontrolünü yap (grid silinmeden önce)
+    const currentCell = grid[y][x];
+    const isSpecialBlock = currentCell.isSpecial;
+
+    console.log(
+      "checkExplosions - isSpecialBlock:",
+      isSpecialBlock,
+      "at",
+      x,
+      y
+    ); // Debug
+
+    // 1. Komşu eşitlik kontrolü
     const directions = [
       [0, 1],
       [0, -1],
@@ -302,22 +314,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       }
     }
 
-    // 3. Combo bonusu
-    if (isCombo && cellsToExplode.size > 0) {
-      explosionType = "combo";
-      totalScore += 150;
-    }
-
-    // Patlamaları uygula (grid'den sil)
-    cellsToExplode.forEach((key) => {
-      const [cellX, cellY] = key.split("-").map(Number);
-      grid[cellY][cellX].value = null;
-    });
-
-    const currentCell = grid[y][x];
-    const isSpecialBlock = currentCell.isSpecial;
-
-    // Eğer patlama varsa ve bu özel bloksa, özel patlatma yap
+    // 3. ÖZEL BLOK KONTROLÜ - Normal patlamalar varsa ve özel bloksa
     if (
       (hasNeighborMatch || hasPrimeExplosion || has2Explosion) &&
       isSpecialBlock
@@ -338,6 +335,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
         }
       });
     }
+
+    // 4. Combo bonusu
+    if (isCombo && cellsToExplode.size > 0) {
+      explosionType = "combo";
+      totalScore += 150;
+    }
+
+    // SON OLARAK patlamaları uygula (grid'den sil)
+    cellsToExplode.forEach((key) => {
+      const [cellX, cellY] = key.split("-").map(Number);
+      grid[cellY][cellX].value = null;
+    });
 
     return {
       scoreGained: totalScore,
@@ -453,6 +462,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
       isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
     };
+
+    if (fallingBlock.isSpecial) {
+      const timer = setTimeout(() => {
+        setGameState((prevState) => {
+          // Grid'deki özel bloğu normal bloğa çevir
+          const updatedGrid = prevState.grid.map((row) => [...row]);
+          updatedGrid[fallingBlock.y][fallingBlock.x] = {
+            ...updatedGrid[fallingBlock.y][fallingBlock.x],
+            isSpecial: false,
+          };
+
+          return {
+            ...prevState,
+            grid: updatedGrid,
+          };
+        });
+      }, 47000); // 47 saniye
+
+      setSpecialBlockTimer(timer);
+    }
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
@@ -596,6 +625,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
       isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
     };
+
+    if (fallingBlock.isSpecial) {
+      const timer = setTimeout(() => {
+        setGameState((prevState) => {
+          // Grid'deki özel bloğu normal bloğa çevir
+          const updatedGrid = prevState.grid.map((row) => [...row]);
+          updatedGrid[landingY][landingX] = {
+            ...updatedGrid[landingY][landingX],
+            isSpecial: false,
+          };
+
+          return {
+            ...prevState,
+            grid: updatedGrid,
+          };
+        });
+      }, 47000); // 47 saniye
+
+      setSpecialBlockTimer(timer);
+    }
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
@@ -826,36 +875,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     return createNewFallingBlock();
   };
-
-  useEffect(() => {
-    if (
-      gameState.fallingBlock?.isSpecial &&
-      gameState.fallingBlock.specialTimer
-    ) {
-      const timer = setTimeout(() => {
-        // 47 saniye sonra normal bloğa dönüştür
-        setGameState((prevState) => {
-          if (prevState.fallingBlock?.isSpecial) {
-            return {
-              ...prevState,
-              fallingBlock: {
-                ...prevState.fallingBlock,
-                isSpecial: false,
-                specialTimer: undefined,
-              },
-            };
-          }
-          return prevState;
-        });
-      }, gameState.fallingBlock.specialTimer);
-
-      setSpecialBlockTimer(timer);
-
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
-    }
-  }, [gameState.fallingBlock?.id, gameState.fallingBlock?.isSpecial]);
 
   const togglePause = () => {
     soundManager.playButtonSound(); // Ses ekle
