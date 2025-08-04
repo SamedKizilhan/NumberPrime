@@ -106,5 +106,8 @@
     "back": "← GERİ",
     "error": "Hata",
     "purchaseError": "Satın alma tamamlanamadı. Lütfen tekrar deneyin."
+  },
+  "levelTransition": {
+    "level": "SEVİYE"
   }
 }

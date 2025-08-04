@@ -35,6 +35,7 @@ import {
 } from "../utils/GameUtils";
 import SoundManager from "../utils/SoundManager";
 import { FirebaseLeaderboard } from "../utils/FirebaseLeaderboard";
+import LevelTransition from "../components/LevelTransition";
 
 interface GameScreenProps {
   onGameEnd: () => void;
@@ -80,7 +81,30 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const [explosionActive, setExplosionActive] = useState<boolean>(false);
   const [scorePopups, setScorePopups] = useState<ScorePopup[]>([]);
   const [isProcessingGameOver, setIsProcessingGameOver] = useState(false);
+  const [showLevelTransition, setShowLevelTransition] =
+    useState<boolean>(false);
+  const [transitionLevel, setTransitionLevel] = useState<number>(1);
   const soundManager = SoundManager.getInstance();
+  const [isLevelTransitioning, setIsLevelTransitioning] =
+    useState<boolean>(false);
+
+  const handleLevelTransitionComplete = () => {
+    setShowLevelTransition(false);
+    setIsLevelTransitioning(false);
+  };
+
+  // Seviye geçiş kontrolü
+  const prevLevelRef = useRef(gameState.level);
+
+  useEffect(() => {
+    if (gameState.level > prevLevelRef.current && gameState.level > 1) {
+      // Seviye arttı, transition göster
+      setTransitionLevel(gameState.level);
+      setShowLevelTransition(true);
+      setIsLevelTransitioning(true);
+    }
+    prevLevelRef.current = gameState.level;
+  }, [gameState.level]);
 
   // Ses sistemini başlat
   useEffect(() => {
@@ -101,7 +125,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   // Oyun döngüsü
   useEffect(() => {
-    if (gameState.isGameOver || isPaused || explosionActive) {
+    if (
+      gameState.isGameOver ||
+      isPaused ||
+      explosionActive ||
+      isLevelTransitioning
+    ) {
       if (gameIntervalRef.current) {
         clearInterval(gameIntervalRef.current);
         gameIntervalRef.current = null;
@@ -119,7 +148,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
         clearInterval(gameIntervalRef.current);
       }
     };
-  }, [gameState.gameSpeed, gameState.isGameOver, isPaused, explosionActive]);
+  }, [
+    gameState.gameSpeed,
+    gameState.isGameOver,
+    isPaused,
+    explosionActive,
+    isLevelTransitioning,
+  ]);
 
   // Geri tuşu kontrolü
   useEffect(() => {
@@ -456,9 +491,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
       fallingBlock: createNewFallingBlock(),
       score: state.score + totalScore,
       selectedOperation: "none",
-      level: Math.floor((state.score + totalScore) / 1000) + 1,
+      level: Math.floor((state.score + totalScore) / 1500) + 1,
       gameSpeed: calculateGameSpeed(
-        Math.floor((state.score + totalScore) / 1000) + 1
+        Math.floor((state.score + totalScore) / 1500) + 1
       ),
     });
   };
@@ -583,9 +618,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
       fallingBlock: createNewFallingBlock(),
       score: state.score + totalScore,
       selectedOperation: "none",
-      level: Math.floor((state.score + totalScore) / 1000) + 1,
+      level: Math.floor((state.score + totalScore) / 1500) + 1,
       gameSpeed: calculateGameSpeed(
-        Math.floor((state.score + totalScore) / 1000) + 1
+        Math.floor((state.score + totalScore) / 1500) + 1
       ),
     });
   };
@@ -793,7 +828,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     );
   }
 
-  if (isPaused) {
+  if (isPaused && !isLevelTransitioning) {
     return (
       <View style={styles.pauseContainer}>
         <Text style={styles.pauseTitle}>{t("game.paused")}</Text>
@@ -822,6 +857,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
+      <LevelTransition
+        level={transitionLevel}
+        isVisible={showLevelTransition}
+        onComplete={handleLevelTransitionComplete}
+      />
       <GameHeader
         score={gameState.score}
         level={gameState.level}

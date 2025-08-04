@@ -106,5 +106,8 @@
     "back": "← BACK",
     "error": "Error",
     "purchaseError": "Unable to complete purchase. Please try again."
-  } 
+  },
+  "levelTransition": {
+    "level": "LEVEL"
+  }
 }
