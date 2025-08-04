@@ -3,6 +3,7 @@ export interface GridCell {
   id: string;
   x: number;
   y: number;
+  isSpecial?: boolean;
 }
 
 export interface FallingBlock {

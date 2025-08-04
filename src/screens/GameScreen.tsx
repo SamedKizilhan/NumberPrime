@@ -315,17 +315,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
     });
 
     const currentCell = grid[y][x];
-    const isSpecialBlock =
-      currentCell.isSpecial ||
-      (gameState.fallingBlock?.isSpecial &&
-        gameState.fallingBlock.x === x &&
-        gameState.fallingBlock.y === y);
+    const isSpecialBlock = currentCell.isSpecial;
 
     // Eğer patlama varsa ve bu özel bloksa, özel patlatma yap
     if (
       (hasNeighborMatch || hasPrimeExplosion || has2Explosion) &&
       isSpecialBlock
     ) {
+      console.log("Special block explosion triggered!"); // Debug
+
       // Özel blok patlaması: 3 sütunu temizle
       const columnsToExplode = [x - 1, x, x + 1];
 
@@ -450,7 +448,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Alt hücreye işlem sonucunu yaz
     newGrid[newY][fallingBlock.x].value = resultValue;
     // Üst hücreye düşen bloğun değerini yaz
-    newGrid[fallingBlock.y][fallingBlock.x].value = fallingBlock.value;
+    newGrid[fallingBlock.y][fallingBlock.x] = {
+      ...newGrid[fallingBlock.y][fallingBlock.x],
+      value: fallingBlock.value,
+      isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
+    };
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
@@ -589,7 +591,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const newGrid = grid.map((row) => [...row]);
 
     // Bloğu mevcut pozisyona yerleştir
-    newGrid[landingY][landingX].value = fallingBlock.value;
+    newGrid[landingY][landingX] = {
+      ...newGrid[landingY][landingX],
+      value: fallingBlock.value,
+      isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
+    };
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
@@ -811,14 +817,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
-
-    // Debug için console.log ekleyin (geçici)
-    console.log("createNewBlock:", {
-      currentScore,
-      currentRange,
-      isSpecialUsedInRange,
-      specialBlockUsedRanges,
-    });
 
     // Eğer bu aralığa yeni girdiyse ve özel blok kullanılmadıysa
     if (currentRange > 0 && !isSpecialUsedInRange) {
