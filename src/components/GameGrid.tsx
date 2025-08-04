@@ -68,58 +68,41 @@ const GameGrid: React.FC<GameGridProps> = ({
 
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
+    const isSpecialStatic = !isFalling && cell.isSpecial;
+
+    // Mevcut style mantığınızı koruyun, sadece özel blok ekleyin
     const cellStyle = [
       styles.cell,
-      isFalling && (isSpecialFalling ? styles.specialCell : styles.fallingCell),
-      ...(isFalling ? [styles.fallingCell] : []),
-      ...(cell.value && isPrime(cell.value) ? [styles.primeCell] : []),
-      ...(cell.value && !isPrime(cell.value) && !isFalling
-        ? [styles.normalCell]
-        : []),
-    ];
-
-    // useEffect ile ışıltı animasyonu
-    const [shimmerAnim] = useState(new Animated.Value(0));
-
-    useEffect(() => {
-      if (fallingBlock?.isSpecial) {
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(shimmerAnim, {
-              toValue: 1,
-              duration: 1000,
-              useNativeDriver: true,
-            }),
-            Animated.timing(shimmerAnim, {
-              toValue: 0,
-              duration: 1000,
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-      }
-    }, [fallingBlock?.isSpecial]);
-
-    // Özel blok render'ında animasyonu kullanın
-    {
-      isSpecialFalling && (
-        <Animated.View
-          style={[
-            styles.shimmerOverlay,
-            {
-              opacity: shimmerAnim,
-            },
-          ]}
-        />
-      );
-    }
+      // Özel blok kontrolü önce
+      isSpecialFalling || isSpecialStatic ? styles.specialCell : null,
+      // Mevcut mantığınız
+      isFalling && !(isSpecialFalling || isSpecialStatic)
+        ? styles.fallingCell
+        : null,
+      cell.value &&
+      isPrime(cell.value) &&
+      !(isSpecialFalling || isSpecialStatic)
+        ? styles.primeCell
+        : null,
+      cell.value &&
+      !isPrime(cell.value) &&
+      !isFalling &&
+      !(isSpecialFalling || isSpecialStatic)
+        ? styles.normalCell
+        : null,
+    ].filter((style) => style !== null);
 
     return (
       <View key={cell.id} style={cellStyle}>
         {cell.value !== null && (
-          <Text style={[styles.cellText, isFalling && styles.fallingCellText]}>
+          <Text
+            style={[styles.cellText, isFalling ? styles.fallingCellText : null]}
+          >
             {cell.value}
           </Text>
+        )}
+        {(isSpecialFalling || isSpecialStatic) && (
+          <View style={styles.shimmerOverlay} />
         )}
       </View>
     );

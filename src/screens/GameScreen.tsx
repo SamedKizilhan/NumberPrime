@@ -456,29 +456,40 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Alt hücreye işlem sonucunu yaz
     newGrid[newY][fallingBlock.x].value = resultValue;
-    // Üst hücreye düşen bloğun değerini yaz
+    // Üst hücreye düşen bloğun değerini yaz - DOĞRU YÖNTEM
     newGrid[fallingBlock.y][fallingBlock.x] = {
       ...newGrid[fallingBlock.y][fallingBlock.x],
       value: fallingBlock.value,
-      isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
+      isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
 
+    // Timer'ı SADECE özel bloksa başlat
     if (fallingBlock.isSpecial) {
+      console.log(
+        "Starting special block timer at position:",
+        fallingBlock.x,
+        fallingBlock.y
+      ); // Debug
       const timer = setTimeout(() => {
         setGameState((prevState) => {
-          // Grid'deki özel bloğu normal bloğa çevir
           const updatedGrid = prevState.grid.map((row) => [...row]);
-          updatedGrid[fallingBlock.y][fallingBlock.x] = {
-            ...updatedGrid[fallingBlock.y][fallingBlock.x],
-            isSpecial: false,
-          };
+          if (
+            updatedGrid[fallingBlock.y] &&
+            updatedGrid[fallingBlock.y][fallingBlock.x]
+          ) {
+            updatedGrid[fallingBlock.y][fallingBlock.x] = {
+              ...updatedGrid[fallingBlock.y][fallingBlock.x],
+              isSpecial: false,
+            };
+            console.log("Special block timer expired, converted to normal"); // Debug
+          }
 
           return {
             ...prevState,
             grid: updatedGrid,
           };
         });
-      }, 47000); // 47 saniye
+      }, 47000);
 
       setSpecialBlockTimer(timer);
     }
@@ -619,29 +630,37 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     const newGrid = grid.map((row) => [...row]);
 
-    // Bloğu mevcut pozisyona yerleştir
+    // Bloğu mevcut pozisyona yerleştir - DOĞRU YÖNTEM
     newGrid[landingY][landingX] = {
       ...newGrid[landingY][landingX],
       value: fallingBlock.value,
-      isSpecial: fallingBlock.isSpecial, // Bu satırı ekleyin
+      isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
 
+    // Timer'ı SADECE özel bloksa başlat
     if (fallingBlock.isSpecial) {
+      console.log(
+        "Starting special block timer at position:",
+        landingX,
+        landingY
+      ); // Debug
       const timer = setTimeout(() => {
         setGameState((prevState) => {
-          // Grid'deki özel bloğu normal bloğa çevir
           const updatedGrid = prevState.grid.map((row) => [...row]);
-          updatedGrid[landingY][landingX] = {
-            ...updatedGrid[landingY][landingX],
-            isSpecial: false,
-          };
+          if (updatedGrid[landingY] && updatedGrid[landingY][landingX]) {
+            updatedGrid[landingY][landingX] = {
+              ...updatedGrid[landingY][landingX],
+              isSpecial: false,
+            };
+            console.log("Special block timer expired, converted to normal"); // Debug
+          }
 
           return {
             ...prevState,
             grid: updatedGrid,
           };
         });
-      }, 47000); // 47 saniye
+      }, 47000);
 
       setSpecialBlockTimer(timer);
     }
