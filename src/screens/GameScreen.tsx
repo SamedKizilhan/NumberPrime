@@ -812,8 +812,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
 
-    // Eğer 1500'ün katına ulaştıysak ve bu aralıkta özel blok kullanılmadıysa
-    if (currentScore >= (currentRange + 1) * 1500 && !isSpecialUsedInRange) {
+    // Debug için console.log ekleyin (geçici)
+    console.log("createNewBlock:", {
+      currentScore,
+      currentRange,
+      isSpecialUsedInRange,
+      specialBlockUsedRanges,
+    });
+
+    // Eğer bu aralığa yeni girdiyse ve özel blok kullanılmadıysa
+    if (currentRange > 0 && !isSpecialUsedInRange) {
+      console.log("Creating special block!");
       return createSpecialFallingBlock();
     }
 
