@@ -5,7 +5,7 @@ interface ExplosionAnimationProps {
   x: number;
   y: number;
   cellSize: number;
-  type: "normal" | "prime" | "prime2" | "combo";
+  type: "normal" | "prime" | "prime2" | "combo" | "special";
   onComplete: () => void;
 }
 
@@ -83,6 +83,15 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
           color: "#FF00FF",
           borderColor: "#e94560",
           glowColor: "rgba(255, 0, 255, 0.9)",
+        };
+      case "special": // Yeni case
+        return {
+          size: cellSize * 2.2,
+          rayLength: cellSize * 4,
+          rayWidth: 8,
+          color: "#FFD700", // Özel blok rengi (sarı)
+          borderColor: "#FFA500",
+          glowColor: "rgba(255, 215, 0, 0.9)", // Altın parıltısı
         };
       case "combo":
         return {

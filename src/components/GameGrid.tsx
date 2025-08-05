@@ -15,7 +15,7 @@ interface GameGridProps {
   explosions?: Array<{
     x: number;
     y: number;
-    type: "normal" | "prime" | "prime2" | "combo";
+    type: "normal" | "prime" | "prime2" | "combo" | "special";
     id: string;
   }>;
 }
@@ -50,7 +50,7 @@ const GameGrid: React.FC<GameGridProps> = ({
     Array<{
       x: number;
       y: number;
-      type: "normal" | "prime" | "prime2" | "combo";
+      type: "normal" | "prime" | "prime2" | "combo" | "special";
       id: string;
     }>
   >([]);

@@ -49,7 +49,7 @@ interface GameScreenProps {
 interface Explosion {
   x: number;
   y: number;
-  type: "normal" | "prime" | "prime2" | "combo";
+  type: "normal" | "prime" | "prime2" | "combo" | "special"
   id: string;
 }
 
@@ -296,7 +296,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let hasNeighborMatch = false;
     let hasPrimeExplosion = false;
     let has2Explosion = false;
-    let explosionType: "normal" | "prime" | "prime2" | "combo" = "normal";
+    let explosionType: "normal" | "prime" | "prime2" | "combo" | "special" =
+      "normal";
 
     // ÖNCE özel blok kontrolünü yap (grid silinmeden önce)
     const currentCell = grid[y][x];
@@ -346,10 +347,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
       }
     }
 
-    // 2. ÖZEL BLOK KONTROLÜ - EN ÖNCELİKLİ! Özel bloksa her türlü özel patlama
-    if (isSpecialBlock && (hasNeighborMatch || isPrime(value))) {
+    // 2. ÖZEL BLOK KONTROLÜ - SADECE EŞLEŞMESİ VARSA
+    if (isSpecialBlock && hasNeighborMatch) {
       console.log("Special block explosion triggered!"); // Debug
-      explosionType = "prime2"; // Özel blok için prime2 explosion type kullan
+      explosionType = "normal";
 
       // Normal patlamaları temizle, özel patlamaya geçiyoruz
       cellsToExplode.clear();
@@ -363,7 +364,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
             if (grid[rowY][colX].value !== null) {
               cellsToExplode.add(`${colX}-${rowY}`);
-              totalScore += grid[rowY][colX].value! * 3; // Özel bonus
+              totalScore += grid[rowY][colX].value!; // Normal puan, fazladan yok
             }
           }
         }
@@ -412,13 +413,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       explosionType,
       hasNeighborMatch,
       hasPrimeExplosion,
-      has2Explosion,
+      has2Explosion: isSpecialBlock ? false : has2Explosion, // Özel blok için +200 popup'ı engelle
     };
   };
 
   const triggerExplosions = async (
     cellsToExplode: Set<string>,
-    explosionType: "normal" | "prime" | "prime2" | "combo",
+    explosionType: "normal" | "prime" | "prime2" | "combo" | "special",
     hasNeighborMatch: boolean,
     hasPrimeExplosion: boolean,
     has2Explosion: boolean,
@@ -468,7 +469,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Patlama seslerini çal
-    if (explosionType === "combo") {
+    if (explosionType === "special") {
+      soundManager.playPrime2Sound(); // Özel blok için prime2 sesi
+    } else if (explosionType === "combo") {
       soundManager.playComboSound();
     } else if (has2Explosion) {
       soundManager.playPrime2Sound();
