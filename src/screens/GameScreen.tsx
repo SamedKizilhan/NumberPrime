@@ -346,8 +346,31 @@ const GameScreen: React.FC<GameScreenProps> = ({
       }
     }
 
-    // 2. Eğer komşu eşleşmesi varsa VE sayı asal ise çapraz patlama da ekle
-    if (hasNeighborMatch && isPrime(value)) {
+    // 2. ÖZEL BLOK KONTROLÜ - EN ÖNCELİKLİ! Özel bloksa her türlü özel patlama
+    if (isSpecialBlock && (hasNeighborMatch || isPrime(value))) {
+      console.log("Special block explosion triggered!"); // Debug
+      explosionType = "prime2"; // Özel blok için prime2 explosion type kullan
+
+      // Normal patlamaları temizle, özel patlamaya geçiyoruz
+      cellsToExplode.clear();
+      totalScore = 0;
+
+      // Özel blok patlaması: 3 sütunu temizle
+      const columnsToExplode = [x - 1, x, x + 1];
+
+      columnsToExplode.forEach((colX) => {
+        if (colX >= 0 && colX < GRID_WIDTH) {
+          for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
+            if (grid[rowY][colX].value !== null) {
+              cellsToExplode.add(`${colX}-${rowY}`);
+              totalScore += grid[rowY][colX].value! * 3; // Özel bonus
+            }
+          }
+        }
+      });
+    }
+    // 3. Normal asal patlama (sadece özel blok değilse)
+    else if (hasNeighborMatch && isPrime(value)) {
       hasPrimeExplosion = true;
       explosionType = "prime";
 
@@ -371,31 +394,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
         totalScore += 200;
       }
     }
-
-    // 3. ÖZEL BLOK KONTROLÜ - Normal patlamalar varsa ve özel bloksa
-    if (
-      (hasNeighborMatch || hasPrimeExplosion || has2Explosion) &&
-      isSpecialBlock
-    ) {
-      console.log("Special block explosion triggered!"); // Debug
-
-      // Özel blok patlaması: 3 sütunu temizle
-      const columnsToExplode = [x - 1, x, x + 1];
-
-      columnsToExplode.forEach((colX) => {
-        if (colX >= 0 && colX < GRID_WIDTH) {
-          for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
-            if (grid[rowY][colX].value !== null) {
-              cellsToExplode.add(`${colX}-${rowY}`);
-              totalScore += grid[rowY][colX].value! * 3; // Özel bonus
-            }
-          }
-        }
-      });
-    }
-
-    // 4. Combo bonusu
-    if (isCombo && cellsToExplode.size > 0) {
+    // 4. Normal combo bonusu (sadece özel blok değilse)
+    else if (isCombo && cellsToExplode.size > 0) {
       explosionType = "combo";
       totalScore += 150;
     }
