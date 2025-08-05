@@ -146,17 +146,24 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
   for (let x = 0; x < GRID_WIDTH; x++) {
     const column = [];
 
-    // Boş olmayan hücreleri topla
+    // Boş olmayan hücreleri topla ve isSpecial bilgisini koru
     for (let y = GRID_HEIGHT - 1; y >= 0; y--) {
       if (grid[y][x].value !== null) {
-        column.push(grid[y][x].value);
+        column.push({
+          value: grid[y][x].value,
+          isSpecial: grid[y][x].isSpecial || false, // isSpecial bilgisini koru
+        });
       }
     }
 
-    // Alt taraftan doldur
+    // Alt sıralardan yukarı doğru doldur
     for (let i = 0; i < column.length; i++) {
-      const y = GRID_HEIGHT - 1 - i;
-      newGrid[y][x].value = column[i];
+      const targetY = GRID_HEIGHT - 1 - i;
+      newGrid[targetY][x] = {
+        ...newGrid[targetY][x],
+        value: column[i].value,
+        isSpecial: column[i].isSpecial, // isSpecial bilgisini koru
+      };
     }
   }
 

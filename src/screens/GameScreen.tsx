@@ -103,6 +103,64 @@ const GameScreen: React.FC<GameScreenProps> = ({
   // Seviye geçiş kontrolü
   const prevLevelRef = useRef(gameState.level);
 
+  // Özel blok timer'ı - sadece grid'de özel blok varsa çalışır
+  useEffect(() => {
+    // Grid'de özel blok var mı kontrol et
+    let hasSpecialBlock = false;
+    let specialBlockPosition = null;
+
+    for (let y = 0; y < GRID_HEIGHT; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
+        if (
+          gameState.grid[y][x].isSpecial &&
+          gameState.grid[y][x].value !== null
+        ) {
+          hasSpecialBlock = true;
+          specialBlockPosition = { x, y };
+          break;
+        }
+      }
+      if (hasSpecialBlock) break;
+    }
+
+    if (hasSpecialBlock && specialBlockPosition) {
+      console.log(
+        "Starting special block timer for grid position:",
+        specialBlockPosition
+      );
+
+      const timer = setTimeout(() => {
+        setGameState((prevState) => {
+          const updatedGrid = prevState.grid.map((row) => [...row]);
+          if (
+            updatedGrid[specialBlockPosition.y] &&
+            updatedGrid[specialBlockPosition.y][specialBlockPosition.x]
+          ) {
+            updatedGrid[specialBlockPosition.y][specialBlockPosition.x] = {
+              ...updatedGrid[specialBlockPosition.y][specialBlockPosition.x],
+              isSpecial: false,
+            };
+            console.log(
+              "Special block timer expired, converted to normal at:",
+              specialBlockPosition
+            );
+          }
+
+          return {
+            ...prevState,
+            grid: updatedGrid,
+          };
+        });
+      }, 47000);
+
+      setSpecialBlockTimer(timer);
+
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
+  }, [gameState.grid]); // Grid değişince kontrol et
+
   useEffect(() => {
     if (gameState.level > prevLevelRef.current && gameState.level > 1) {
       // Seviye arttı, transition göster
@@ -463,37 +521,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
 
-    // Timer'ı SADECE özel bloksa başlat
-    if (fallingBlock.isSpecial) {
-      console.log(
-        "Starting special block timer at position:",
-        fallingBlock.x,
-        fallingBlock.y
-      ); // Debug
-      const timer = setTimeout(() => {
-        setGameState((prevState) => {
-          const updatedGrid = prevState.grid.map((row) => [...row]);
-          if (
-            updatedGrid[fallingBlock.y] &&
-            updatedGrid[fallingBlock.y][fallingBlock.x]
-          ) {
-            updatedGrid[fallingBlock.y][fallingBlock.x] = {
-              ...updatedGrid[fallingBlock.y][fallingBlock.x],
-              isSpecial: false,
-            };
-            console.log("Special block timer expired, converted to normal"); // Debug
-          }
-
-          return {
-            ...prevState,
-            grid: updatedGrid,
-          };
-        });
-      }, 47000);
-
-      setSpecialBlockTimer(timer);
-    }
-
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
       newGrid,
@@ -636,34 +663,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
       isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
-
-    // Timer'ı SADECE özel bloksa başlat
-    if (fallingBlock.isSpecial) {
-      console.log(
-        "Starting special block timer at position:",
-        landingX,
-        landingY
-      ); // Debug
-      const timer = setTimeout(() => {
-        setGameState((prevState) => {
-          const updatedGrid = prevState.grid.map((row) => [...row]);
-          if (updatedGrid[landingY] && updatedGrid[landingY][landingX]) {
-            updatedGrid[landingY][landingX] = {
-              ...updatedGrid[landingY][landingX],
-              isSpecial: false,
-            };
-            console.log("Special block timer expired, converted to normal"); // Debug
-          }
-
-          return {
-            ...prevState,
-            grid: updatedGrid,
-          };
-        });
-      }, 47000);
-
-      setSpecialBlockTimer(timer);
-    }
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
