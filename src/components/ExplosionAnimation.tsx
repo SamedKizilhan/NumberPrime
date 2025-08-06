@@ -111,7 +111,7 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
   const explosionProps = getExplosionProps();
 
   // Prime explosions için ışın efekti
-  if (type === "prime" || type === "prime2") {
+  if (type === "prime" || type === "prime2" || type === "special") {
     const centerX = x * cellSize + cellSize / 2;
     const centerY = y * cellSize + cellSize / 2;
 

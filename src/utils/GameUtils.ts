@@ -255,10 +255,10 @@ export const getNextTitleRequirement = (
 
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
-  const baseSpeed = 786;
+  const baseSpeed = 777;
 
   if (level > 1 && level <= 5) {
-    // Level 2-5: Her level 89ms hızlanma
+    // Level 2-5: Her level 90ms hızlanma
     const speedIncrease = (level - 1) * 90;
     return baseSpeed - speedIncrease;
   } else {

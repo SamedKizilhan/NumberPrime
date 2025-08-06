@@ -350,7 +350,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // 2. ÖZEL BLOK KONTROLÜ - SADECE EŞLEŞMESİ VARSA
     if (isSpecialBlock && hasNeighborMatch) {
       console.log("Special block explosion triggered!"); // Debug
-      explosionType = "normal";
+      explosionType = "special";
 
       // Normal patlamaları temizle, özel patlamaya geçiyoruz
       cellsToExplode.clear();
