@@ -49,7 +49,7 @@ interface GameScreenProps {
 interface Explosion {
   x: number;
   y: number;
-  type: "normal" | "prime" | "prime2" | "combo" | "special"
+  type: "normal" | "prime" | "prime2" | "combo" | "special";
   id: string;
 }
 
@@ -123,6 +123,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
       if (hasSpecialBlock) break;
     }
 
+    // Mevcut timer'ı her durumda temizle
+    if (specialBlockTimer) {
+      clearTimeout(specialBlockTimer);
+      setSpecialBlockTimer(null);
+    }
+
     if (hasSpecialBlock && specialBlockPosition) {
       console.log(
         "Starting special block timer for grid position:",
@@ -132,9 +138,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       const timer = setTimeout(() => {
         setGameState((prevState) => {
           const updatedGrid = prevState.grid.map((row) => [...row]);
+
+          // Pozisyonu tekrar kontrol et (grid değişmiş olabilir)
           if (
             updatedGrid[specialBlockPosition.y] &&
+            updatedGrid[specialBlockPosition.y][specialBlockPosition.x] &&
             updatedGrid[specialBlockPosition.y][specialBlockPosition.x]
+              .isSpecial
           ) {
             updatedGrid[specialBlockPosition.y][specialBlockPosition.x] = {
               ...updatedGrid[specialBlockPosition.y][specialBlockPosition.x],
@@ -151,15 +161,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
             grid: updatedGrid,
           };
         });
-      }, 47000);
+      }, 33000);
 
       setSpecialBlockTimer(timer);
 
+      // Cleanup function
       return () => {
-        if (timer) clearTimeout(timer);
+        if (timer) {
+          clearTimeout(timer);
+        }
       };
     }
-  }, [gameState.grid]); // Grid değişince kontrol et
+  }, [gameState.grid]); // Sadece grid değişikliklerini dinle
 
   useEffect(() => {
     if (gameState.level > prevLevelRef.current && gameState.level > 1) {
@@ -309,7 +322,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       "at",
       x,
       y
-    ); // Debug
+    );
 
     // 1. Komşu eşitlik kontrolü
     const directions = [
@@ -333,45 +346,61 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
         if (neighborValue === value) {
           hasNeighborMatch = true;
-          // Tüm eşleşen komşuları bul
-          const matchingCells = findMatchingNeighbors(grid, x, y, value);
-          matchingCells.forEach((cell) => {
-            if (cell.value !== null) {
-              cellsToExplode.add(`${cell.x}-${cell.y}`);
-              // YENİ PUANLAMA: Normal patlama = 40 puan
-              totalScore += 40;
-            }
-          });
+          // Eğer özel blok DEĞİLSE normal komşu patlama mantığını uygula
+          if (!isSpecialBlock) {
+            const matchingCells = findMatchingNeighbors(grid, x, y, value);
+            matchingCells.forEach((cell) => {
+              if (cell.value !== null) {
+                cellsToExplode.add(`${cell.x}-${cell.y}`);
+                totalScore += 40;
+              }
+            });
+          }
           break;
         }
       }
     }
 
-    // 2. ÖZEL BLOK KONTROLÜ - SADECE EŞLEŞMESİ VARSA
+    // 2. ÖZEL BLOK KONTROLÜ - EN ÖNCELİKLİ! Eşleşme varsa özel patlama
     if (isSpecialBlock && hasNeighborMatch) {
-      console.log("Special block explosion triggered!"); // Debug
+      console.log("Special block explosion triggered!");
       explosionType = "special";
 
-      // Normal patlamaları temizle, özel patlamaya geçiyoruz
+      // Önceki patlamaları temizle
       cellsToExplode.clear();
       totalScore = 0;
 
       // Özel blok patlaması: 3 sütunu temizle
       const columnsToExplode = [x - 1, x, x + 1];
-
       columnsToExplode.forEach((colX) => {
         if (colX >= 0 && colX < GRID_WIDTH) {
           for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
             if (grid[rowY][colX].value !== null) {
               cellsToExplode.add(`${colX}-${rowY}`);
-              totalScore += grid[rowY][colX].value!; // Normal puan, fazladan yok
+              totalScore += grid[rowY][colX].value!;
             }
           }
         }
       });
+
+      // Return early - özel blok patlaması varsa diğer kontrolleri atla
+      cellsToExplode.forEach((key) => {
+        const [cellX, cellY] = key.split("-").map(Number);
+        grid[cellY][cellX].value = null;
+      });
+
+      return {
+        scoreGained: totalScore,
+        cellsToExplode,
+        explosionType,
+        hasNeighborMatch,
+        hasPrimeExplosion: false,
+        has2Explosion: false,
+      };
     }
+
     // 3. Normal asal patlama (sadece özel blok değilse)
-    else if (hasNeighborMatch && isPrime(value)) {
+    if (hasNeighborMatch && isPrime(value) && !isSpecialBlock) {
       hasPrimeExplosion = true;
       explosionType = "prime";
 
@@ -385,7 +414,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
       primeCells.forEach((cell) => {
         if (cell.value !== null) {
           cellsToExplode.add(`${cell.x}-${cell.y}`);
-          // YENİ PUANLAMA: Asal patlama = kutucuk başına 30 puan
           totalScore += 30;
         }
       });
@@ -395,8 +423,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
         totalScore += 200;
       }
     }
-    // 4. Normal combo bonusu (sadece özel blok değilse)
-    else if (isCombo && cellsToExplode.size > 0) {
+
+    // 4. Normal combo bonusu
+    if (isCombo && cellsToExplode.size > 0 && !isSpecialBlock) {
       explosionType = "combo";
       totalScore += 150;
     }
@@ -413,7 +442,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       explosionType,
       hasNeighborMatch,
       hasPrimeExplosion,
-      has2Explosion: isSpecialBlock ? false : has2Explosion, // Özel blok için +200 popup'ı engelle
+      has2Explosion,
     };
   };
 
@@ -598,7 +627,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1500);
+      const currentRange = Math.floor(state.score / 1700);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -883,7 +912,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     specialBlockUsedRanges: number[] = []
   ): FallingBlock => {
     // Hangi 1500'lük aralıktayız?
-    const currentRange = Math.floor(currentScore / 1500);
+    const currentRange = Math.floor(currentScore / 1700);
 
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);

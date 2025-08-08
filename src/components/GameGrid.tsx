@@ -96,7 +96,12 @@ const GameGrid: React.FC<GameGridProps> = ({
       <View key={cell.id} style={cellStyle}>
         {cell.value !== null && (
           <Text
-            style={[styles.cellText, isFalling ? styles.fallingCellText : null]}
+            style={[
+              styles.cellText,
+              isFalling ? styles.fallingCellText : null,
+              // Special blok için siyah text rengi
+              isSpecialFalling || isSpecialStatic ? { color: "#000000" } : null,
+            ]}
           >
             {cell.value}
           </Text>

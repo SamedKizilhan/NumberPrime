@@ -22,7 +22,7 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
   const rayOpacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (type === "prime" || type === "prime2") {
+    if (type === "prime" || type === "prime2" || type === "special") {
       // Prime explosion için ışın animasyonu
       Animated.parallel([
         Animated.timing(rayScaleAnim, {
