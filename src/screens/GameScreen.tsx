@@ -523,7 +523,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           );
           return { ...prevState, grid: updatedGrid };
         });
-      }, 25000);
+      }, 33000);
 
       setSpecialBlockTimer(timer);
     }
@@ -602,7 +602,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1000);
+      const currentRange = Math.floor(state.score / 1700);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -703,7 +703,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           );
           return { ...prevState, grid: updatedGrid };
         });
-      }, 25000);
+      }, 33000);
 
       setSpecialBlockTimer(timer);
     }
@@ -782,7 +782,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1500);
+      const currentRange = Math.floor(state.score / 1700);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -924,7 +924,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     specialBlockUsedRanges: number[] = []
   ): FallingBlock => {
     // Hangi 1500'lük aralıktayız?
-    const currentRange = Math.floor(currentScore / 1000);
+    const currentRange = Math.floor(currentScore / 1700);
 
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
