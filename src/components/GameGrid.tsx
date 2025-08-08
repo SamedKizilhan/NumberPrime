@@ -68,29 +68,36 @@ const GameGrid: React.FC<GameGridProps> = ({
 
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
-    const isSpecialStatic = !isFalling && cell.isSpecial;
+    const isSpecialStatic = !isFalling && cell.isSpecial; // Grid'deki özel blok
 
-    // Mevcut style mantığınızı koruyun, sadece özel blok ekleyin
+    // Style priority: Special > Prime > Normal > Falling
     const cellStyle = [
       styles.cell,
-      // Özel blok kontrolü önce
+      // 1. Önce özel blok kontrolü
       isSpecialFalling || isSpecialStatic ? styles.specialCell : null,
-      // Mevcut mantığınız
+      // 2. Özel blok DEĞİLSE ve düşüyorsa falling style
       isFalling && !(isSpecialFalling || isSpecialStatic)
         ? styles.fallingCell
         : null,
-      cell.value &&
-      isPrime(cell.value) &&
-      !(isSpecialFalling || isSpecialStatic)
+      // 3. Özel blok DEĞİLSE ve asal sayıysa prime style
+      !isSpecialFalling && !isSpecialStatic && cell.value && isPrime(cell.value)
         ? styles.primeCell
         : null,
+      // 4. Özel blok DEĞİLSE ve asal olmayan sayıysa normal style
+      !isSpecialFalling &&
+      !isSpecialStatic &&
       cell.value &&
       !isPrime(cell.value) &&
-      !isFalling &&
-      !(isSpecialFalling || isSpecialStatic)
+      !isFalling
         ? styles.normalCell
         : null,
     ].filter((style) => style !== null);
+
+    // Text color logic
+    let textColor = "#fff"; // Default beyaz
+    if (isSpecialFalling || isSpecialStatic) {
+      textColor = "#000000"; // Special blok için siyah
+    }
 
     return (
       <View key={cell.id} style={cellStyle}>
@@ -99,8 +106,7 @@ const GameGrid: React.FC<GameGridProps> = ({
             style={[
               styles.cellText,
               isFalling ? styles.fallingCellText : null,
-              // Special blok için siyah text rengi
-              isSpecialFalling || isSpecialStatic ? { color: "#000000" } : null,
+              { color: textColor }, // Dynamic text color
             ]}
           >
             {cell.value}
@@ -112,7 +118,7 @@ const GameGrid: React.FC<GameGridProps> = ({
       </View>
     );
   };
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.gridContainer}>
