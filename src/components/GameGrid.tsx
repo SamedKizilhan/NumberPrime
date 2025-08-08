@@ -68,7 +68,14 @@ const GameGrid: React.FC<GameGridProps> = ({
 
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
-    const isSpecialStatic = !isFalling && cell.isSpecial; // Grid'deki özel blok
+    const isSpecialStatic = !isFalling && cell.isSpecial;
+
+    // Debug için log ekleyin
+    if (cell.value !== null) {
+      console.log(
+        `Cell ${cell.x}-${cell.y}: value=${cell.value}, isSpecial=${cell.isSpecial}, isFalling=${isFalling}, fallingBlock.isSpecial=${fallingBlock?.isSpecial}`
+      );
+    }
 
     // Style priority: Special > Prime > Normal > Falling
     const cellStyle = [
@@ -106,7 +113,7 @@ const GameGrid: React.FC<GameGridProps> = ({
             style={[
               styles.cellText,
               isFalling ? styles.fallingCellText : null,
-              { color: textColor }, // Dynamic text color
+              { color: textColor },
             ]}
           >
             {cell.value}
@@ -118,7 +125,7 @@ const GameGrid: React.FC<GameGridProps> = ({
       </View>
     );
   };
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.gridContainer}>
@@ -138,6 +145,7 @@ const GameGrid: React.FC<GameGridProps> = ({
                     ...cell,
                     value: fallingBlock.value,
                     id: fallingBlock.id,
+                    isSpecial: fallingBlock.isSpecial,
                   };
                   return renderCell(fallingCell, true);
                 }

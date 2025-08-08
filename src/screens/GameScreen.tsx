@@ -103,77 +103,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   // Seviye geçiş kontrolü
   const prevLevelRef = useRef(gameState.level);
 
-  // Özel blok timer'ı - sadece grid'de özel blok varsa çalışır
-  useEffect(() => {
-    // Grid'de özel blok var mı kontrol et
-    let hasSpecialBlock = false;
-    let specialBlockPosition = null;
-
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        if (
-          gameState.grid[y][x].isSpecial &&
-          gameState.grid[y][x].value !== null
-        ) {
-          hasSpecialBlock = true;
-          specialBlockPosition = { x, y };
-          break;
-        }
-      }
-      if (hasSpecialBlock) break;
-    }
-
-    // Mevcut timer'ı her durumda temizle
-    if (specialBlockTimer) {
-      clearTimeout(specialBlockTimer);
-      setSpecialBlockTimer(null);
-    }
-
-    if (hasSpecialBlock && specialBlockPosition) {
-      console.log(
-        "Starting special block timer for grid position:",
-        specialBlockPosition
-      );
-
-      const timer = setTimeout(() => {
-        setGameState((prevState) => {
-          const updatedGrid = prevState.grid.map((row) => [...row]);
-
-          // Pozisyonu tekrar kontrol et (grid değişmiş olabilir)
-          if (
-            updatedGrid[specialBlockPosition.y] &&
-            updatedGrid[specialBlockPosition.y][specialBlockPosition.x] &&
-            updatedGrid[specialBlockPosition.y][specialBlockPosition.x]
-              .isSpecial
-          ) {
-            updatedGrid[specialBlockPosition.y][specialBlockPosition.x] = {
-              ...updatedGrid[specialBlockPosition.y][specialBlockPosition.x],
-              isSpecial: false,
-            };
-            console.log(
-              "Special block timer expired, converted to normal at:",
-              specialBlockPosition
-            );
-          }
-
-          return {
-            ...prevState,
-            grid: updatedGrid,
-          };
-        });
-      }, 33000);
-
-      setSpecialBlockTimer(timer);
-
-      // Cleanup function
-      return () => {
-        if (timer) {
-          clearTimeout(timer);
-        }
-      };
-    }
-  }, [gameState.grid]); // Sadece grid değişikliklerini dinle
-
   useEffect(() => {
     if (gameState.level > prevLevelRef.current && gameState.level > 1) {
       // Seviye arttı, transition göster
@@ -248,6 +177,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
     );
 
     return () => backHandler.remove();
+  }, []);
+
+  // Component cleanup
+  useEffect(() => {
+    return () => {
+      if (specialBlockTimer) {
+        clearTimeout(specialBlockTimer);
+      }
+    };
   }, []);
 
   // moveBlockDown fonksiyonunu ref olarak sakla
@@ -553,6 +491,43 @@ const GameScreen: React.FC<GameScreenProps> = ({
       isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
 
+    // ÖZELLİK: Özel blok timer'ını SADECE BURADA başlat
+    if (fallingBlock.isSpecial) {
+      console.log(
+        "Starting special block timer at handleOperationAsync:",
+        fallingBlock.x,
+        fallingBlock.y
+      );
+
+      // Mevcut timer'ı temizle
+      if (specialBlockTimer) {
+        clearTimeout(specialBlockTimer);
+      }
+
+      const timer = setTimeout(() => {
+        console.log("TIMER: Converting special block to normal");
+
+        setGameState((prevState) => {
+          const updatedGrid = prevState.grid.map((row, rowIndex) =>
+            row.map((cell, colIndex) => {
+              if (
+                rowIndex === fallingBlock.y &&
+                colIndex === fallingBlock.x &&
+                cell.isSpecial
+              ) {
+                console.log("TIMER: Found and converting special cell");
+                return { ...cell, isSpecial: false };
+              }
+              return cell;
+            })
+          );
+          return { ...prevState, grid: updatedGrid };
+        });
+      }, 25000);
+
+      setSpecialBlockTimer(timer);
+    }
+
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
       newGrid,
@@ -627,7 +602,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1700);
+      const currentRange = Math.floor(state.score / 1000);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -695,6 +670,43 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
       isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
+
+    // ÖZELLİK: Özel blok timer'ını SADECE BURADA başlat
+    if (fallingBlock.isSpecial) {
+      console.log(
+        "Starting special block timer at landBlockAsync:",
+        landingX,
+        landingY
+      );
+
+      // Mevcut timer'ı temizle
+      if (specialBlockTimer) {
+        clearTimeout(specialBlockTimer);
+      }
+
+      const timer = setTimeout(() => {
+        console.log("TIMER: Converting special block to normal");
+
+        setGameState((prevState) => {
+          const updatedGrid = prevState.grid.map((row, rowIndex) =>
+            row.map((cell, colIndex) => {
+              if (
+                rowIndex === landingY &&
+                colIndex === landingX &&
+                cell.isSpecial
+              ) {
+                console.log("TIMER: Found and converting special cell");
+                return { ...cell, isSpecial: false };
+              }
+              return cell;
+            })
+          );
+          return { ...prevState, grid: updatedGrid };
+        });
+      }, 25000);
+
+      setSpecialBlockTimer(timer);
+    }
 
     // İlk patlama kontrolü
     const firstExplosion = checkExplosions(
@@ -912,7 +924,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     specialBlockUsedRanges: number[] = []
   ): FallingBlock => {
     // Hangi 1500'lük aralıktayız?
-    const currentRange = Math.floor(currentScore / 1700);
+    const currentRange = Math.floor(currentScore / 1000);
 
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
