@@ -80,7 +80,9 @@
     "userNameTooShort": "Username must be at least 3 characters!"
   },
   "titles": {
+    "numPrimeMaster": "NumPrime Master",
     "primeMaster": "Prime Master",
+    "primeGuardian":"Prime Guardian",
     "mathGenius": "Math Genius",
     "numberSage": "Number Sage",
     "calculationExpert": "Calculation Expert",

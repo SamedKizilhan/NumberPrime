@@ -171,7 +171,9 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
 };
 
 export const getPlayerTitleKey = (score: number): string => {
-  if (score >= 15000) return "titles.primeMaster";
+  if (score >= 25000) return "titles.numPrimeMaster";
+  if (score >= 20000) return "titles.primeMaster";
+  if (score >= 15000) return "titles.primeGuardian";
   if (score >= 12000) return "titles.mathGenius";
   if (score >= 9000) return "titles.numberSage";
   if (score >= 6000) return "titles.calculationExpert";
@@ -197,16 +199,30 @@ export const getPlayerTitleKey = (score: number): string => {
 export const getNextTitleRequirement = (
   currentScore: number
 ): { nextTitleKey: string; requiredScore: number; isMaxTitle: boolean } => {
+  if (currentScore >= 25000) {
+    return {
+      nextTitleKey: "titles.numPrimeMaster",
+      requiredScore: 25000,
+      isMaxTitle: true,
+    };
+  }
+  if (currentScore >= 20000) {
+    return {
+      nextTitleKey: "titles.numPrimeMaster",
+      requiredScore: 25000,
+      isMaxTitle: false,
+    };
+  }
   if (currentScore >= 15000) {
     return {
       nextTitleKey: "titles.primeMaster",
-      requiredScore: 15000,
-      isMaxTitle: true,
+      requiredScore: 20000,
+      isMaxTitle: false,
     };
   }
   if (currentScore >= 12000) {
     return {
-      nextTitleKey: "titles.primeMaster",
+      nextTitleKey: "titles.primeGuardian",
       requiredScore: 15000,
       isMaxTitle: false,
     };
@@ -256,17 +272,20 @@ export const getNextTitleRequirement = (
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
   const baseSpeed = 777;
+  const speedIncrease = (level - 1) * 61;
+  return Math.max(237, baseSpeed - speedIncrease);
 
-  if (level > 1 && level <= 5) {
-    // Level 2-5: Her level 90ms hızlanma
-    const speedIncrease = (level - 1) * 90;
-    return baseSpeed - speedIncrease;
-  } else {
-    const firstFiveLevelsDecrease = 4 * 90; // 360ms
-    const additionalLevelsDecrease = (level - 5) * 55;
-    const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
-    return Math.max(223, baseSpeed - totalDecrease); // level 9'da max 219 ms'ye ulaşır.
-  }
+  // if (level > 1 && level <= 5) {
+  //   // Level 2-5: Her level 90ms hızlanma
+  //   const speedIncrease = (level - 1) * 71;
+  //   return baseSpeed - speedIncrease;
+  // } else {
+  //   const firstFiveLevelsDecrease = 4 * 90; // 360ms
+  //   const additionalLevelsDecrease = (level - 5) * 55;
+  //   const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
+  //   return Math.max(231, baseSpeed - totalDecrease); // level 9'da max 219 ms'ye ulaşır.
+  // }
+
 };
 
 // Özel blok oluşturma

@@ -80,7 +80,9 @@
     "userNameTooShort": "Kullanıcı adı en az 3 karakter olmalı!"
   },
   "titles": {
-    "primeMaster": "NumPrime Ustası",
+    "numPrimeMaster":"NumPrime Ustası",
+    "primeMaster": "Asal Sayı Ustası",
+    "primeGuardian":"Asal Sayı Muhafızı",
     "mathGenius": "Matematik Dehası",
     "numberSage": "Sayı Bilgini",
     "calculationExpert": "Hesap Uzmanı",
