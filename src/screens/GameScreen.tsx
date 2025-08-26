@@ -254,14 +254,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     const currentCell = grid[y][x];
     const isSpecialBlock = currentCell.isSpecial;
 
-    console.log(
-      "checkExplosions - isSpecialBlock:",
-      isSpecialBlock,
-      "at",
-      x,
-      y
-    );
-
     // 1. Komşu eşitlik kontrolü
     const directions = [
       [0, 1],
@@ -315,7 +307,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
             if (grid[rowY][colX].value !== null) {
               cellsToExplode.add(`${colX}-${rowY}`);
-              totalScore += grid[rowY][colX].value!;
+              totalScore += 30;
             }
           }
         }
@@ -523,7 +515,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           );
           return { ...prevState, grid: updatedGrid };
         });
-      }, 33000);
+      },47000);
 
       setSpecialBlockTimer(timer);
     }
@@ -602,7 +594,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1700);
+      const currentRange = Math.floor(state.score / 900);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -703,7 +695,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
           );
           return { ...prevState, grid: updatedGrid };
         });
-      }, 33000);
+      }, 47000);
 
       setSpecialBlockTimer(timer);
     }
@@ -782,7 +774,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       ...(state.specialBlockUsedRanges || []),
     ];
     if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 1700);
+      const currentRange = Math.floor(state.score / 900);
       if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
         updatedSpecialBlockUsedRanges.push(currentRange);
       }
@@ -923,8 +915,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
     currentScore: number,
     specialBlockUsedRanges: number[] = []
   ): FallingBlock => {
-    // Hangi 1500'lük aralıktayız?
-    const currentRange = Math.floor(currentScore / 1700);
+    // Hangi 1700'lük aralıktayız?
+    const currentRange = Math.floor(currentScore / 900);
 
     // Bu aralıkta daha önce özel blok kullanıldı mı?
     const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
