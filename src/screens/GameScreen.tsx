@@ -720,7 +720,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       let newY = currentBlock.y;
       const blockX = currentBlock.x;
 
-      // Normal drop logic
+      // Bloğu mümkün olduğunca aşağı indir
       while (
         newY + 1 < GRID_HEIGHT &&
         prevState.grid[newY + 1][blockX].value === null
@@ -728,8 +728,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
         newY++;
       }
 
+      // Blok pozisyonu değiştiyse önce pozisyonu güncelle
       if (newY > currentBlock.y) {
-        return {
+        // Pozisyonu güncelle ama landBlockAsync'i hemen çağır
+        const updatedState = {
           ...prevState,
           fallingBlock: {
             ...prevState.fallingBlock,
@@ -737,8 +739,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
             x: blockX,
           },
         };
+
+        // Async olarak bloku yerleştir
+        landBlockAsync(updatedState);
+
+        return updatedState;
       } else {
-        // Sadece landBlockAsync çağır, oyun bitiş kontrolü orada
+        // Blok zaten durmuş, direkt yerleştir
         landBlockAsync(prevState);
         return prevState;
       }
