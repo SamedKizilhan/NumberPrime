@@ -5,7 +5,7 @@ interface ExplosionAnimationProps {
   x: number;
   y: number;
   cellSize: number;
-  type: "normal" | "prime" | "prime2" | "combo" | "special";
+  type: "normal" | "prime" | "prime2" | "combo";
   onComplete: () => void;
 }
 
@@ -22,7 +22,7 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
   const rayOpacityAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (type === "prime" || type === "prime2" || type === "special") {
+    if (type === "prime" || type === "prime2") {
       // Prime explosion için ışın animasyonu
       Animated.parallel([
         Animated.timing(rayScaleAnim, {
@@ -84,15 +84,6 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
           borderColor: "#e94560",
           glowColor: "rgba(255, 0, 255, 0.9)",
         };
-      case "special": // Yeni case
-        return {
-          size: cellSize * 2.2,
-          rayLength: cellSize * 4,
-          rayWidth: 8,
-          color: "#FFD700", // Özel blok rengi (sarı)
-          borderColor: "#FFA500",
-          glowColor: "rgba(255, 215, 0, 0.9)", // Altın parıltısı
-        };
       case "combo":
         return {
           size: cellSize * 2.8,
@@ -111,7 +102,7 @@ const ExplosionAnimation: React.FC<ExplosionAnimationProps> = ({
   const explosionProps = getExplosionProps();
 
   // Prime explosions için ışın efekti
-  if (type === "prime" || type === "prime2" || type === "special") {
+  if (type === "prime" || type === "prime2") {
     const centerX = x * cellSize + cellSize / 2;
     const centerY = y * cellSize + cellSize / 2;
 

@@ -3,7 +3,6 @@ export interface GridCell {
   id: string;
   x: number;
   y: number;
-  isSpecial?: boolean;
 }
 
 export interface FallingBlock {
@@ -11,8 +10,6 @@ export interface FallingBlock {
   x: number;
   y: number;
   id: string;
-  isSpecial?: boolean;
-  specialTimer?: number; 
 }
 
 export interface GameState {
@@ -23,8 +20,6 @@ export interface GameState {
   selectedOperation: "none" | "add" | "subtract";
   level: number;
   gameSpeed: number;
-  nextSpecialBlockScore?: number;
-  specialBlockUsedRanges?: number[];
 }
 
 export interface PlayerScore {

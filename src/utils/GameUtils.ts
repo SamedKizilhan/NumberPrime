@@ -146,12 +146,11 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
   for (let x = 0; x < GRID_WIDTH; x++) {
     const column = [];
 
-    // Boş olmayan hücreleri topla ve isSpecial bilgisini koru
+    // Boş olmayan hücreleri topla
     for (let y = GRID_HEIGHT - 1; y >= 0; y--) {
       if (grid[y][x].value !== null) {
         column.push({
           value: grid[y][x].value,
-          isSpecial: grid[y][x].isSpecial || false, // isSpecial bilgisini koru
         });
       }
     }
@@ -162,7 +161,6 @@ export const applyGravity = (grid: GridCell[][]): GridCell[][] => {
       newGrid[targetY][x] = {
         ...newGrid[targetY][x],
         value: column[i].value,
-        isSpecial: column[i].isSpecial, // isSpecial bilgisini koru
       };
     }
   }
@@ -182,18 +180,6 @@ export const getPlayerTitleKey = (score: number): string => {
   if (score >= 1500) return "titles.mathStudent";
   return "titles.beginner";
 };
-
-// Oyuncu title'ı belirleme
-// export const getPlayerTitle = (score: number): string => {
-//   if (score >= 13000) return "Prime Master";
-//   if (score >= 10000) return "Math Genius";
-//   if (score >= 8000) return "Number Sage";
-//   if (score >= 6000) return "Calculation Expert";
-//   if (score >= 4500) return "Math Enthusiast";
-//   if (score >= 3000) return "Number Cruncher";
-//   if (score >= 1500) return "Math Student";
-//   return "Beginner";
-// };
 
 // Bir sonraki title için gerekli puanı döndüren fonksiyon
 export const getNextTitleRequirement = (
@@ -275,55 +261,4 @@ export const calculateGameSpeed = (level: number): number => {
   const speedIncrease = (level - 1) * 61;
   return Math.max(237, baseSpeed - speedIncrease);
 
-  // if (level > 1 && level <= 5) {
-  //   // Level 2-5: Her level 90ms hızlanma
-  //   const speedIncrease = (level - 1) * 71;
-  //   return baseSpeed - speedIncrease;
-  // } else {
-  //   const firstFiveLevelsDecrease = 4 * 90; // 360ms
-  //   const additionalLevelsDecrease = (level - 5) * 55;
-  //   const totalDecrease = firstFiveLevelsDecrease + additionalLevelsDecrease;
-  //   return Math.max(231, baseSpeed - totalDecrease); // level 9'da max 219 ms'ye ulaşır.
-  // }
-
-};
-
-// Özel blok oluşturma
-export const createSpecialFallingBlock = (): FallingBlock => {
-  const centerX = Math.floor(GRID_WIDTH / 2);
-
-  return {
-    value: generateRandomNumber(),
-    x: centerX,
-    y: 0,
-    id: `special-falling-${Date.now()}-${Math.random()}`,
-    isSpecial: true,
-  };
-};
-
-// Özel blok patlatma fonksiyonu
-export const explodeSpecialBlock = (
-  grid: GridCell[][],
-  blockX: number,
-  blockY: number
-): { cellsToExplode: Set<string>; scoreGained: number } => {
-  const cellsToExplode = new Set<string>(); // Set<string> olarak değiştir
-  let totalScore = 0;
-
-  // Bulunduğu sütun ve sağ-sol sütunları patlat
-  const columnsToExplode = [blockX - 1, blockX, blockX + 1];
-
-  columnsToExplode.forEach((colX) => {
-    if (colX >= 0 && colX < GRID_WIDTH) {
-      for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
-        if (grid[rowY][colX].value !== null) {
-          // x-y formatında string olarak ekle
-          cellsToExplode.add(`${colX}-${rowY}`);
-          totalScore += grid[rowY][colX].value! * 2; // Özel blok bonus
-        }
-      }
-    }
-  });
-
-  return { cellsToExplode, scoreGained: totalScore };
 };

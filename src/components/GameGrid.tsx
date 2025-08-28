@@ -38,9 +38,6 @@ if (isTablet) {
 const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
 const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
 export const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT);
-console.log("Final CELL_SIZE_BY_WIDTH:", CELL_SIZE_BY_WIDTH);
-console.log("Final CELL_SIZE_BY_HEIGHT:", CELL_SIZE_BY_HEIGHT);
-console.log("Final CELL_SIZE:", CELL_SIZE);
 const GameGrid: React.FC<GameGridProps> = ({
   grid,
   fallingBlock,
@@ -69,13 +66,6 @@ const GameGrid: React.FC<GameGridProps> = ({
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
     const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
     const isSpecialStatic = !isFalling && cell.isSpecial;
-
-    // Debug için log ekleyin
-    if (cell.value !== null) {
-      console.log(
-        `Cell ${cell.x}-${cell.y}: value=${cell.value}, isSpecial=${cell.isSpecial}, isFalling=${isFalling}, fallingBlock.isSpecial=${fallingBlock?.isSpecial}`
-      );
-    }
 
     // Style priority: Special > Prime > Normal > Falling
     const cellStyle = [

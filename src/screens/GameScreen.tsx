@@ -25,8 +25,6 @@ import {
 import {
   createEmptyGrid,
   createNewFallingBlock,
-  createSpecialFallingBlock,
-  explodeSpecialBlock,
   performOperation,
   findMatchingNeighbors,
   findPrimeCrossExplosion,
@@ -49,7 +47,7 @@ interface GameScreenProps {
 interface Explosion {
   x: number;
   y: number;
-  type: "normal" | "prime" | "prime2" | "combo" | "special";
+  type: "normal" | "prime" | "prime2" | "combo";
   id: string;
 }
 
@@ -77,8 +75,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     selectedOperation: "none",
     level: 1,
     gameSpeed: calculateGameSpeed(1),
-    nextSpecialBlockScore: 1500,
-    specialBlockUsedRanges: [],
   });
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -92,9 +88,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const soundManager = SoundManager.getInstance();
   const [isLevelTransitioning, setIsLevelTransitioning] =
     useState<boolean>(false);
-  const [specialBlockTimer, setSpecialBlockTimer] =
-    useState<NodeJS.Timeout | null>(null);
-
   const handleLevelTransitionComplete = () => {
     setShowLevelTransition(false);
     setIsLevelTransitioning(false);
@@ -179,15 +172,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return () => backHandler.remove();
   }, []);
 
-  // Component cleanup
-  useEffect(() => {
-    return () => {
-      if (specialBlockTimer) {
-        clearTimeout(specialBlockTimer);
-      }
-    };
-  }, []);
-
   // moveBlockDown fonksiyonunu ref olarak sakla
   const moveBlockDownRef = useRef(() => {});
 
@@ -247,20 +231,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let hasNeighborMatch = false;
     let hasPrimeExplosion = false;
     let has2Explosion = false;
-    let explosionType: "normal" | "prime" | "prime2" | "combo" | "special" =
-      "normal";
+    let explosionType: "normal" | "prime" | "prime2" | "combo" = "normal";
 
-    // ÖNCE özel blok kontrolünü yap (grid silinmeden önce)
-    const currentCell = grid[y][x];
-    const isSpecialBlock = currentCell.isSpecial;
-
-    // 1. Komşu eşitlik kontrolü
+    // 1. Komşu eşitlik kontrolü (sadece alt, sol, sağ - yukarı değil)
     const directions = [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ]; // aşağı, yukarı, sağ, sol
+      [0, 1], // aşağı
+      [1, 0], // sağ
+      [-1, 0], // sol
+    ];
 
     for (const [dx, dy] of directions) {
       const neighborX = x + dx;
@@ -276,91 +254,55 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
         if (neighborValue === value) {
           hasNeighborMatch = true;
-          // Eğer özel blok DEĞİLSE normal komşu patlama mantığını uygula
-          if (!isSpecialBlock) {
-            const matchingCells = findMatchingNeighbors(grid, x, y, value);
-            matchingCells.forEach((cell) => {
-              if (cell.value !== null) {
-                cellsToExplode.add(`${cell.x}-${cell.y}`);
-                totalScore += 40;
-              }
-            });
-          }
           break;
         }
       }
     }
 
-    // 2. ÖZEL BLOK KONTROLÜ - EN ÖNCELİKLİ! Eşleşme varsa özel patlama
-    if (isSpecialBlock && hasNeighborMatch) {
-      console.log("Special block explosion triggered!");
-      explosionType = "special";
+    // 2. Eşleşme varsa uygun patlama türünü belirle
+    if (hasNeighborMatch) {
+      if (isPrime(value)) {
+        hasPrimeExplosion = true;
+        explosionType = "prime";
 
-      // Önceki patlamaları temizle
-      cellsToExplode.clear();
-      totalScore = 0;
+        // 2 sayısı özel kontrolü
+        if (value === 2) {
+          has2Explosion = true;
+          explosionType = "prime2";
+        }
 
-      // Özel blok patlaması: 3 sütunu temizle
-      const columnsToExplode = [x - 1, x, x + 1];
-      columnsToExplode.forEach((colX) => {
-        if (colX >= 0 && colX < GRID_WIDTH) {
-          for (let rowY = 0; rowY < GRID_HEIGHT; rowY++) {
-            if (grid[rowY][colX].value !== null) {
-              cellsToExplode.add(`${colX}-${rowY}`);
-              totalScore += 30;
-            }
+        // Asal patlama: + şeklinde patlat
+        const primeCells = findPrimeCrossExplosion(grid, x, y);
+        primeCells.forEach((cell) => {
+          if (cell.value !== null) {
+            cellsToExplode.add(`${cell.x}-${cell.y}`);
+            totalScore += 30;
           }
+        });
+
+        // 2 sayısı ise ekstra +200 puan
+        if (has2Explosion) {
+          totalScore += 200;
         }
-      });
-
-      // Return early - özel blok patlaması varsa diğer kontrolleri atla
-      cellsToExplode.forEach((key) => {
-        const [cellX, cellY] = key.split("-").map(Number);
-        grid[cellY][cellX].value = null;
-      });
-
-      return {
-        scoreGained: totalScore,
-        cellsToExplode,
-        explosionType,
-        hasNeighborMatch,
-        hasPrimeExplosion: false,
-        has2Explosion: false,
-      };
-    }
-
-    // 3. Normal asal patlama (sadece özel blok değilse)
-    if (hasNeighborMatch && isPrime(value) && !isSpecialBlock) {
-      hasPrimeExplosion = true;
-      explosionType = "prime";
-
-      // 2 sayısı özel kontrolü
-      if (value === 2) {
-        has2Explosion = true;
-        explosionType = "prime2";
+      } else {
+        // Asal değil - normal patlama
+        const matchingCells = findMatchingNeighbors(grid, x, y, value);
+        matchingCells.forEach((cell) => {
+          if (cell.value !== null) {
+            cellsToExplode.add(`${cell.x}-${cell.y}`);
+            totalScore += 40;
+          }
+        });
       }
 
-      const primeCells = findPrimeCrossExplosion(grid, x, y);
-      primeCells.forEach((cell) => {
-        if (cell.value !== null) {
-          cellsToExplode.add(`${cell.x}-${cell.y}`);
-          totalScore += 30;
-        }
-      });
-
-      // 2 sayısı ise ekstra +200 puan
-      if (has2Explosion) {
-        totalScore += 200;
+      // 3. Combo bonusu (ikinci ve sonraki patlamalar için)
+      if (isCombo && cellsToExplode.size > 0) {
+        explosionType = "combo";
+        totalScore += 150;
       }
     }
 
-    // 4. Normal combo bonusu
-    if (isCombo && cellsToExplode.size > 0 && !isSpecialBlock) {
-      explosionType = "combo";
-      totalScore += 150;
-    }
-
-    // SON OLARAK patlamaları uygula (grid'den sil)
+    // 4. Patlamaları uygula (grid'den sil)
     cellsToExplode.forEach((key) => {
       const [cellX, cellY] = key.split("-").map(Number);
       grid[cellY][cellX].value = null;
@@ -378,7 +320,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const triggerExplosions = async (
     cellsToExplode: Set<string>,
-    explosionType: "normal" | "prime" | "prime2" | "combo" | "special",
+    explosionType: "normal" | "prime" | "prime2" | "combo",
     hasNeighborMatch: boolean,
     hasPrimeExplosion: boolean,
     has2Explosion: boolean,
@@ -428,9 +370,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Patlama seslerini çal
-    if (explosionType === "special") {
-      soundManager.playPrime2Sound(); // Özel blok için prime2 sesi
-    } else if (explosionType === "combo") {
+    if (explosionType === "combo") {
       soundManager.playComboSound();
     } else if (has2Explosion) {
       soundManager.playPrime2Sound();
@@ -476,51 +416,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // Alt hücreye işlem sonucunu yaz
     newGrid[newY][fallingBlock.x].value = resultValue;
-    // Üst hücreye düşen bloğun değerini yaz - DOĞRU YÖNTEM
+    // Üst hücreye düşen bloğun değerini yaz
     newGrid[fallingBlock.y][fallingBlock.x] = {
       ...newGrid[fallingBlock.y][fallingBlock.x],
       value: fallingBlock.value,
-      isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
     };
 
-    // ÖZELLİK: Özel blok timer'ını SADECE BURADA başlat
-    if (fallingBlock.isSpecial) {
-      console.log(
-        "Starting special block timer at handleOperationAsync:",
-        fallingBlock.x,
-        fallingBlock.y
-      );
-
-      // Mevcut timer'ı temizle
-      if (specialBlockTimer) {
-        clearTimeout(specialBlockTimer);
-      }
-
-      const timer = setTimeout(() => {
-        console.log("TIMER: Converting special block to normal");
-
-        setGameState((prevState) => {
-          const updatedGrid = prevState.grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => {
-              if (
-                rowIndex === fallingBlock.y &&
-                colIndex === fallingBlock.x &&
-                cell.isSpecial
-              ) {
-                console.log("TIMER: Found and converting special cell");
-                return { ...cell, isSpecial: false };
-              }
-              return cell;
-            })
-          );
-          return { ...prevState, grid: updatedGrid };
-        });
-      },47000);
-
-      setSpecialBlockTimer(timer);
-    }
-
-    // İlk patlama kontrolü
+    // İlk patlama kontrolü - işlem sonucu değeri ile
     const firstExplosion = checkExplosions(
       newGrid,
       fallingBlock.x,
@@ -530,16 +432,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     let totalScore = firstExplosion.scoreGained;
 
-    // Explosion animasyonlarını tetikle ve bekle
-    await triggerExplosions(
-      firstExplosion.cellsToExplode,
-      firstExplosion.explosionType,
-      firstExplosion.hasNeighborMatch,
-      firstExplosion.hasPrimeExplosion,
-      firstExplosion.has2Explosion,
-      fallingBlock.x,
-      newY
-    );
+    // İlk patlama varsa animasyonlarını tetikle ve bekle
+    if (firstExplosion.hasNeighborMatch) {
+      await triggerExplosions(
+        firstExplosion.cellsToExplode,
+        firstExplosion.explosionType,
+        firstExplosion.hasNeighborMatch,
+        firstExplosion.hasPrimeExplosion,
+        firstExplosion.has2Explosion,
+        fallingBlock.x,
+        newY
+      );
+    }
 
     // Gravity uygula
     let finalGrid = applyGravity(newGrid);
@@ -589,39 +493,43 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Final state güncelle
     const newScore = state.score + totalScore;
 
-    // Özel blok kullanım takibi
-    let updatedSpecialBlockUsedRanges = [
-      ...(state.specialBlockUsedRanges || []),
-    ];
-    if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 900);
-      if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
-        updatedSpecialBlockUsedRanges.push(currentRange);
-      }
-    }
-
     setGameState({
       ...state,
       grid: finalGrid,
-      fallingBlock: createNewBlock(newScore, updatedSpecialBlockUsedRanges),
+      fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
       level: Math.floor(newScore / 1500) + 1,
       gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
-      specialBlockUsedRanges: updatedSpecialBlockUsedRanges,
     });
   };
 
   const landBlockAsync = async (state: GameState) => {
-    if (!state.fallingBlock || state.isGameOver || isProcessingGameOver) return; // isProcessingGameOver kontrolü eklendi
+    if (!state.fallingBlock || state.isGameOver || isProcessingGameOver) return;
 
     const { fallingBlock, grid } = state;
     const landingY = fallingBlock.y;
     const landingX = fallingBlock.x;
 
-    // Oyun bitme kontrolü - eğer en üstteyse
-    if (landingY <= 0) {
-      setIsProcessingGameOver(true); // Flag set et
+    const newGrid = grid.map((row) => [...row]);
+
+    // Bloğu mevcut pozisyona yerleştir
+    newGrid[landingY][landingX] = {
+      ...newGrid[landingY][landingX],
+      value: fallingBlock.value,
+    };
+
+    // ÖNİLK OLARAK patlama kontrolü yap
+    const firstExplosion = checkExplosions(
+      newGrid,
+      landingX,
+      landingY,
+      fallingBlock.value
+    );
+
+    // OYUN BİTİŞ KONTROLÜ - sadece patlama yoksa ve üst seviyedeyse
+    if (!firstExplosion.hasNeighborMatch && landingY <= 0) {
+      setIsProcessingGameOver(true);
 
       console.log("Game over detected! Setting game over state...");
 
@@ -650,76 +558,24 @@ const GameScreen: React.FC<GameScreenProps> = ({
         isGameOver: true,
       }));
 
-      setIsProcessingGameOver(false); // İşlem bitti
-      return; // Fonksiyondan çık
+      setIsProcessingGameOver(false);
+      return;
     }
-
-    const newGrid = grid.map((row) => [...row]);
-
-    // Bloğu mevcut pozisyona yerleştir - DOĞRU YÖNTEM
-    newGrid[landingY][landingX] = {
-      ...newGrid[landingY][landingX],
-      value: fallingBlock.value,
-      isSpecial: fallingBlock.isSpecial || false, // Explicit olarak set et
-    };
-
-    // ÖZELLİK: Özel blok timer'ını SADECE BURADA başlat
-    if (fallingBlock.isSpecial) {
-      console.log(
-        "Starting special block timer at landBlockAsync:",
-        landingX,
-        landingY
-      );
-
-      // Mevcut timer'ı temizle
-      if (specialBlockTimer) {
-        clearTimeout(specialBlockTimer);
-      }
-
-      const timer = setTimeout(() => {
-        console.log("TIMER: Converting special block to normal");
-
-        setGameState((prevState) => {
-          const updatedGrid = prevState.grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => {
-              if (
-                rowIndex === landingY &&
-                colIndex === landingX &&
-                cell.isSpecial
-              ) {
-                console.log("TIMER: Found and converting special cell");
-                return { ...cell, isSpecial: false };
-              }
-              return cell;
-            })
-          );
-          return { ...prevState, grid: updatedGrid };
-        });
-      }, 47000);
-
-      setSpecialBlockTimer(timer);
-    }
-
-    // İlk patlama kontrolü
-    const firstExplosion = checkExplosions(
-      newGrid,
-      landingX,
-      landingY,
-      fallingBlock.value
-    );
 
     let totalScore = firstExplosion.scoreGained;
 
-    // Explosion animasyonlarını tetikle ve bekle
-    await triggerExplosions(
-      firstExplosion.cellsToExplode,
-      firstExplosion.explosionType,
-      firstExplosion.hasNeighborMatch,
-      firstExplosion.hasPrimeExplosion,
-      firstExplosion.has2Explosion,
-      landingX,
-      landingY
-    );
+    // İlk patlama varsa animasyonlarını tetikle ve bekle
+    if (firstExplosion.hasNeighborMatch) {
+      await triggerExplosions(
+        firstExplosion.cellsToExplode,
+        firstExplosion.explosionType,
+        firstExplosion.hasNeighborMatch,
+        firstExplosion.hasPrimeExplosion,
+        firstExplosion.has2Explosion,
+        landingX,
+        landingY
+      );
+    }
 
     // Gravity uygula
     let finalGrid = applyGravity(newGrid);
@@ -769,26 +625,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Final state güncelle
     const newScore = state.score + totalScore;
 
-    // Özel blok kullanım takibi
-    let updatedSpecialBlockUsedRanges = [
-      ...(state.specialBlockUsedRanges || []),
-    ];
-    if (fallingBlock.isSpecial) {
-      const currentRange = Math.floor(state.score / 900);
-      if (!updatedSpecialBlockUsedRanges.includes(currentRange)) {
-        updatedSpecialBlockUsedRanges.push(currentRange);
-      }
-    }
-
     setGameState({
       ...state,
       grid: finalGrid,
-      fallingBlock: createNewBlock(newScore, updatedSpecialBlockUsedRanges),
+      fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
       level: Math.floor(newScore / 1500) + 1,
       gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
-      specialBlockUsedRanges: updatedSpecialBlockUsedRanges,
     });
   };
 
@@ -911,22 +755,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }));
   };
 
-  const createNewBlock = (
-    currentScore: number,
-    specialBlockUsedRanges: number[] = []
-  ): FallingBlock => {
-    // Hangi 1700'lük aralıktayız?
-    const currentRange = Math.floor(currentScore / 900);
-
-    // Bu aralıkta daha önce özel blok kullanıldı mı?
-    const isSpecialUsedInRange = specialBlockUsedRanges.includes(currentRange);
-
-    // Eğer bu aralığa yeni girdiyse ve özel blok kullanılmadıysa
-    if (currentRange > 0 && !isSpecialUsedInRange) {
-      console.log("Creating special block!");
-      return createSpecialFallingBlock();
-    }
-
+  const createNewBlock = (): FallingBlock => {
     return createNewFallingBlock();
   };
 
