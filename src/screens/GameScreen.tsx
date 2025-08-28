@@ -711,12 +711,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
       explosionActive ||
       gameState.isGameOver ||
       isProcessingGameOver ||
-      isDropping // Drop işlemi devam ediyorsa engelle
+      isDropping
     )
       return;
 
     soundManager.playDropSound();
-    setIsDropping(true); // Drop işlemini başlat
+    setIsDropping(true);
 
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) {
@@ -736,30 +736,71 @@ const GameScreen: React.FC<GameScreenProps> = ({
         newY++;
       }
 
-      // Blok pozisyonu değiştiyse önce pozisyonu güncelle
-      if (newY > currentBlock.y) {
-        // Pozisyonu güncelle
+      // Final pozisyona geldiğinde işlem kontrolü yap
+      const finalY = newY;
+
+      // Eğer finalY pozisyonunda bir blok varsa işlem kontrolü yap
+      if (
+        finalY + 1 < GRID_HEIGHT &&
+        prevState.grid[finalY + 1][blockX].value !== null
+      ) {
+        // Alt hücre dolu - işlem kontrolü
+        const { selectedOperation } = prevState;
+
+        if (selectedOperation === "add" || selectedOperation === "subtract") {
+          // Pozisyonu güncelle
+          const updatedState = {
+            ...prevState,
+            fallingBlock: {
+              ...prevState.fallingBlock,
+              y: finalY,
+              x: blockX,
+            },
+          };
+
+          // İşlem yap
+          handleOperationAsync(
+            updatedState,
+            selectedOperation,
+            finalY + 1
+          ).finally(() => {
+            setIsDropping(false);
+          });
+
+          return updatedState;
+        } else {
+          // İşlem seçilmemiş - normal yerleştir
+          const updatedState = {
+            ...prevState,
+            fallingBlock: {
+              ...prevState.fallingBlock,
+              y: finalY,
+              x: blockX,
+            },
+          };
+
+          landBlockAsync(updatedState).finally(() => {
+            setIsDropping(false);
+          });
+
+          return updatedState;
+        }
+      } else {
+        // Alt hücre boş - normal yerleştir
         const updatedState = {
           ...prevState,
           fallingBlock: {
             ...prevState.fallingBlock,
-            y: newY,
+            y: finalY,
             x: blockX,
           },
         };
 
-        // Async olarak bloku yerleştir
         landBlockAsync(updatedState).finally(() => {
-          setIsDropping(false); // Drop işlemi bitti
+          setIsDropping(false);
         });
 
         return updatedState;
-      } else {
-        // Blok zaten durmuş, direkt yerleştir
-        landBlockAsync(prevState).finally(() => {
-          setIsDropping(false); // Drop işlemi bitti
-        });
-        return prevState;
       }
     });
   };
