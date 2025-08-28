@@ -92,6 +92,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setShowLevelTransition(false);
     setIsLevelTransitioning(false);
   };
+  const [isDropping, setIsDropping] = useState<boolean>(false);
 
   // Seviye geçiş kontrolü
   const prevLevelRef = useRef(gameState.level);
@@ -129,7 +130,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       gameState.isGameOver ||
       isPaused ||
       explosionActive ||
-      isLevelTransitioning
+      isLevelTransitioning ||
+      isDropping
     ) {
       if (gameIntervalRef.current) {
         clearInterval(gameIntervalRef.current);
@@ -154,6 +156,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     isPaused,
     explosionActive,
     isLevelTransitioning,
+    isDropping,
   ]);
 
   // Geri tuşu kontrolü
@@ -176,7 +179,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const moveBlockDownRef = useRef(() => {});
 
   moveBlockDownRef.current = () => {
-    if (explosionActive) return; // Explosion aktifken hiçbir şey yapma
+    if (explosionActive || isDropping) return; // Drop işlemi sırasında blok inmesin
 
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
@@ -188,7 +191,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       if (newY >= GRID_HEIGHT) {
         // Async landBlock çağır
         landBlockAsync(prevState);
-        return prevState; // Şimdilik eski state'i döndür
+        return prevState;
       }
 
       // Hedef hücre dolu mu?
@@ -199,7 +202,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         if (selectedOperation === "add" || selectedOperation === "subtract") {
           // Async işlem yap
           handleOperationAsync(prevState, selectedOperation, newY);
-          return prevState; // Şimdilik eski state'i döndür
+          return prevState;
         } else {
           // İşlem yok - blok mevcut pozisyonda dur
           landBlockAsync(prevState);
@@ -637,8 +640,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const moveBlockLeft = () => {
-    if (isPaused || explosionActive) return;
-    soundManager.playMoveSound(); // Ses ekle
+    if (isPaused || explosionActive || isDropping) return; // Drop sırasında hareket etme
+    soundManager.playMoveSound();
+
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -649,7 +653,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       // Sol sınır kontrolü
       if (newX < 0) return prevState;
 
-      // Hedef pozisyon boş mu kontrolü - grid[y][x] formatında
+      // Hedef pozisyon boş mu kontrolü
       if (
         currentY < GRID_HEIGHT &&
         prevState.grid[currentY][newX].value !== null
@@ -662,7 +666,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
         fallingBlock: {
           ...prevState.fallingBlock,
           x: newX,
-          // y koordinatı açıkça belirtiyoruz - değişmemeli
           y: currentY,
         },
       };
@@ -670,8 +673,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const moveBlockRight = () => {
-    if (isPaused || explosionActive) return;
-    soundManager.playMoveSound(); // Ses ekle
+    if (isPaused || explosionActive || isDropping) return; // Drop sırasında hareket etme
+    soundManager.playMoveSound();
+
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
 
@@ -682,7 +686,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       // Sağ sınır kontrolü
       if (newX >= GRID_WIDTH) return prevState;
 
-      // Hedef pozisyon boş mu kontrolü - grid[y][x] formatında
+      // Hedef pozisyon boş mu kontrolü
       if (
         currentY < GRID_HEIGHT &&
         prevState.grid[currentY][newX].value !== null
@@ -695,7 +699,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
         fallingBlock: {
           ...prevState.fallingBlock,
           x: newX,
-          // y koordinatı açıkça belirtiyoruz - değişmemeli
           y: currentY,
         },
       };
@@ -707,14 +710,19 @@ const GameScreen: React.FC<GameScreenProps> = ({
       isPaused ||
       explosionActive ||
       gameState.isGameOver ||
-      isProcessingGameOver
+      isProcessingGameOver ||
+      isDropping // Drop işlemi devam ediyorsa engelle
     )
       return;
 
     soundManager.playDropSound();
+    setIsDropping(true); // Drop işlemini başlat
 
     setGameState((prevState) => {
-      if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
+      if (!prevState.fallingBlock || prevState.isGameOver) {
+        setIsDropping(false);
+        return prevState;
+      }
 
       const currentBlock = prevState.fallingBlock;
       let newY = currentBlock.y;
@@ -730,7 +738,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
       // Blok pozisyonu değiştiyse önce pozisyonu güncelle
       if (newY > currentBlock.y) {
-        // Pozisyonu güncelle ama landBlockAsync'i hemen çağır
+        // Pozisyonu güncelle
         const updatedState = {
           ...prevState,
           fallingBlock: {
@@ -741,12 +749,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
         };
 
         // Async olarak bloku yerleştir
-        landBlockAsync(updatedState);
+        landBlockAsync(updatedState).finally(() => {
+          setIsDropping(false); // Drop işlemi bitti
+        });
 
         return updatedState;
       } else {
         // Blok zaten durmuş, direkt yerleştir
-        landBlockAsync(prevState);
+        landBlockAsync(prevState).finally(() => {
+          setIsDropping(false); // Drop işlemi bitti
+        });
         return prevState;
       }
     });
