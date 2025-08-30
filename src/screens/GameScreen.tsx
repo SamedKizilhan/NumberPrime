@@ -179,7 +179,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const moveBlockDownRef = useRef(() => {});
 
   moveBlockDownRef.current = () => {
-    if (explosionActive || isDropping) return; // Drop işlemi sırasında blok inmesin
+    if (explosionActive || isDropping) return;
 
     setGameState((prevState) => {
       if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
@@ -200,11 +200,29 @@ const GameScreen: React.FC<GameScreenProps> = ({
         const { selectedOperation } = prevState;
 
         if (selectedOperation === "add" || selectedOperation === "subtract") {
+          // İşlem yapılacak - bloğu engellemek için flag set et
+          setIsDropping(true);
+
+          // ÖNCE bloğu yerleştir
+          const updatedState = {
+            ...prevState,
+            fallingBlock: {
+              ...prevState.fallingBlock,
+              y: currentBlock.y, // Mevcut pozisyonda sabit tut
+              x: currentBlock.x,
+            },
+          };
+
           // Async işlem yap
-          handleOperationAsync(prevState, selectedOperation, newY);
-          return prevState;
+          handleOperationAsync(updatedState, selectedOperation, newY).finally(
+            () => {
+              setIsDropping(false); // İşlem bitince flag'i kaldır
+            }
+          );
+
+          return updatedState;
         } else {
-          // İşlem yok - blok mevcut pozisyonda dur
+          // İşlem yok - blok mevcut pozisyonda dur ve yerleştir
           landBlockAsync(prevState);
           return prevState;
         }
