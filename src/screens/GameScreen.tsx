@@ -200,27 +200,28 @@ const GameScreen: React.FC<GameScreenProps> = ({
         const { selectedOperation } = prevState;
 
         if (selectedOperation === "add" || selectedOperation === "subtract") {
-          // İşlem yapılacak - bloğu engellemek için flag set et
+          // İşlem yapılacak - bloğu tamamen engellemek için flag set et
           setIsDropping(true);
 
-          // ÖNCE bloğu yerleştir
-          const updatedState = {
+          // Bloğu mevcut pozisyonda sabitleyerek güncellenmiş state döndür
+          const updatedState: GameState = {
             ...prevState,
             fallingBlock: {
               ...prevState.fallingBlock,
-              y: currentBlock.y, // Mevcut pozisyonda sabit tut
+              y: currentBlock.y, // Mevcut pozisyonda kal
               x: currentBlock.x,
             },
+            selectedOperation: "none" as Operation, // Tip belirtimi eklendi
           };
 
-          // Async işlem yap
-          handleOperationAsync(updatedState, selectedOperation, newY).finally(
+          // Async işlem yap - orijinal selectedOperation'ı kullan
+          handleOperationAsync(prevState, selectedOperation, newY).finally(
             () => {
               setIsDropping(false); // İşlem bitince flag'i kaldır
             }
           );
 
-          return updatedState;
+          return updatedState; // selectedOperation temizlenmiş state döndür
         } else {
           // İşlem yok - blok mevcut pozisyonda dur ve yerleştir
           landBlockAsync(prevState);
@@ -443,12 +444,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
-    // İlk patlama kontrolü - işlem sonucu değeri ile
+    // İlk patlama kontrolü - işlem sonucu değeri ile (BU COMBO DEĞİL!)
     const firstExplosion = checkExplosions(
       newGrid,
       fallingBlock.x,
       newY,
-      resultValue
+      resultValue,
+      false // isCombo = false - ilk patlama
     );
 
     let totalScore = firstExplosion.scoreGained;
@@ -469,7 +471,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Gravity uygula
     let finalGrid = applyGravity(newGrid);
 
-    // Combo patlamaları kontrol et
+    // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
+    let comboCount = 0; // Combo sayacı ekle
     while (true) {
       let hasMoreExplosions = false;
 
@@ -481,12 +484,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
               x,
               y,
               finalGrid[y][x].value!,
-              true
+              comboCount > 0 // SADECE 2. ve sonraki patlamalarda combo puanı ver
             );
 
             if (comboResult.scoreGained > 0) {
               totalScore += comboResult.scoreGained;
               hasMoreExplosions = true;
+              comboCount++; // Combo sayısını artır
 
               // Combo explosion animasyonlarını tetikle ve bekle
               await triggerExplosions(
@@ -540,12 +544,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
-    // ÖNİLK OLARAK patlama kontrolü yap
+    // ÖNİLK OLARAK patlama kontrolü yap (BU COMBO DEĞİL!)
     const firstExplosion = checkExplosions(
       newGrid,
       landingX,
       landingY,
-      fallingBlock.value
+      fallingBlock.value,
+      false // isCombo = false - ilk patlama
     );
 
     // OYUN BİTİŞ KONTROLÜ - sadece patlama yoksa ve üst seviyedeyse
@@ -601,7 +606,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Gravity uygula
     let finalGrid = applyGravity(newGrid);
 
-    // Combo patlamaları kontrol et
+    // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
+    let comboCount = 0; // Combo sayacı ekle
     while (true) {
       let hasMoreExplosions = false;
 
@@ -613,12 +619,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
               x,
               y,
               finalGrid[y][x].value!,
-              true
+              comboCount > 0 // SADECE 2. ve sonraki patlamalarda combo puanı ver
             );
 
             if (comboResult.scoreGained > 0) {
               totalScore += comboResult.scoreGained;
               hasMoreExplosions = true;
+              comboCount++; // Combo sayısını artır
 
               // Combo explosion animasyonlarını tetikle ve bekle
               await triggerExplosions(
@@ -824,8 +831,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const selectOperation = (operation: Operation) => {
-    if (isPaused || explosionActive) return;
-    soundManager.playButtonSound(); // Ses ekle
+    if (isPaused || explosionActive || isDropping) return; // isDropping kontrolü eklendi
+    soundManager.playButtonSound();
+
     setGameState((prevState) => ({
       ...prevState,
       selectedOperation:
