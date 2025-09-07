@@ -560,7 +560,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
-    // ÖNİLK OLARAK patlama kontrolü yap (BU COMBO DEĞİL!)
+    // ÖNİLK OLARAK patlama kontrolü yap
     const firstExplosion = checkExplosions(
       newGrid,
       landingX,
@@ -597,14 +597,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
         scoreSaveError = true;
       }
 
-      // State'i güncelle - skor kaydı başarısız olsa bile oyun biter
+      // State'i güncelle - OYUN BİTTİ
       setGameState((prevState) => ({
         ...prevState,
         isGameOver: true,
-        scoreSaveError: scoreSaveError, // Yeni alan ekleniyor
+        scoreSaveError: scoreSaveError,
       }));
 
       setIsProcessingGameOver(false);
+
+      // ÖNEMLİ: Burada return ile fonksiyondan çık
+      // Böylece aşağıdaki normal oyun devam etme kodu çalışmaz
       return;
     }
 
@@ -627,7 +630,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let finalGrid = applyGravity(newGrid);
 
     // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
-    let comboCount = 0; // Combo sayacı ekle
+    let comboCount = 0;
     while (true) {
       let hasMoreExplosions = false;
 
@@ -639,15 +642,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
               x,
               y,
               finalGrid[y][x].value!,
-              comboCount > 0 // SADECE 2. ve sonraki patlamalarda combo puanı ver
+              comboCount > 0
             );
 
             if (comboResult.scoreGained > 0) {
               totalScore += comboResult.scoreGained;
               hasMoreExplosions = true;
-              comboCount++; // Combo sayısını artır
+              comboCount++;
 
-              // Combo explosion animasyonlarını tetikle ve bekle
               await triggerExplosions(
                 comboResult.cellsToExplode,
                 comboResult.explosionType,
@@ -658,7 +660,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 y
               );
 
-              // Gravity tekrar uygula
               finalGrid = applyGravity(finalGrid);
               break;
             }
@@ -670,18 +671,18 @@ const GameScreen: React.FC<GameScreenProps> = ({
       if (!hasMoreExplosions) break;
     }
 
-    // Final state güncelle
+    // SADECE OYUN DEVAM EDİYORSA bu final state güncelle
     const newScore = state.score + totalScore;
 
-    setGameState({
-      ...state,
+    setGameState((prevState) => ({
+      ...prevState,
       grid: finalGrid,
       fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
       level: Math.floor(newScore / 1300) + 1,
       gameSpeed: calculateGameSpeed(Math.floor(newScore / 1300) + 1),
-    });
+    }));
   };
 
   const moveBlockLeft = () => {
