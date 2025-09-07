@@ -93,6 +93,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     setIsLevelTransitioning(false);
   };
   const [isDropping, setIsDropping] = useState<boolean>(false);
+  const [isProcessingLanding, setIsProcessingLanding] = useState(false);
 
   // Seviye geçiş kontrolü
   const prevLevelRef = useRef(gameState.level);
@@ -131,7 +132,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       isPaused ||
       explosionActive ||
       isLevelTransitioning ||
-      isDropping
+      isDropping ||
+      isProcessingLanding
     ) {
       if (gameIntervalRef.current) {
         clearInterval(gameIntervalRef.current);
@@ -157,6 +159,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     explosionActive,
     isLevelTransitioning,
     isDropping,
+    isProcessingLanding,
   ]);
 
   // Geri tuşu kontrolü
@@ -179,69 +182,74 @@ const GameScreen: React.FC<GameScreenProps> = ({
   const moveBlockDownRef = useRef(() => {});
 
   moveBlockDownRef.current = () => {
-    if (explosionActive || isDropping) return;
+    if (explosionActive || isDropping || isProcessingLanding) return; // YENİ kontrol ekle
 
     setGameState((prevState) => {
-      if (!prevState.fallingBlock || prevState.isGameOver) return prevState;
+      if (
+        !prevState.fallingBlock ||
+        prevState.isGameOver ||
+        isProcessingLanding
+      )
+        return prevState;
 
       const currentBlock = prevState.fallingBlock;
       const newY = currentBlock.y + 1;
 
       // Alt sınıra ulaştı mı?
       if (newY >= GRID_HEIGHT) {
-        // Async landBlock çağır
-        landBlockAsync(prevState);
+        // Landing işlemini başlat
+        setIsProcessingLanding(true);
+        landBlockAsync(prevState).finally(() => {
+          setIsProcessingLanding(false);
+        });
         return prevState;
       }
 
       // Hedef hücre dolu mu?
       if (prevState.grid[newY][currentBlock.x].value !== null) {
-        // Dolu hücreye iniyor - işlem kontrolü yap
         const { selectedOperation } = prevState;
 
         if (selectedOperation === "add" || selectedOperation === "subtract") {
-          // İşlem yapılacak - bloğu tamamen engellemek için flag set et
           setIsDropping(true);
+          setIsProcessingLanding(true); // YENİ: Processing flag'i set et
 
-          // Bloğu mevcut pozisyonda sabitleyerek güncellenmiş state döndür
           const updatedState: GameState = {
             ...prevState,
             fallingBlock: {
               ...prevState.fallingBlock,
-              y: currentBlock.y, // Mevcut pozisyonda kal
+              y: currentBlock.y,
               x: currentBlock.x,
             },
             selectedOperation: "none" as Operation,
           };
 
-          // Async işlem yap - orijinal selectedOperation'ı kullan
           handleOperationAsync(prevState, selectedOperation, newY).finally(
             () => {
               setIsDropping(false);
+              setIsProcessingLanding(false); 
             }
           );
 
           return updatedState;
         } else {
-          // İşlem yok - bloğu engellemek için flag set et
           setIsDropping(true);
+          setIsProcessingLanding(true); 
 
-          // Bloğu mevcut pozisyonda sabitleyerek güncellenmiş state döndür
           const updatedState: GameState = {
             ...prevState,
             fallingBlock: {
               ...prevState.fallingBlock,
-              y: currentBlock.y, // Mevcut pozisyonda kal
+              y: currentBlock.y,
               x: currentBlock.x,
             },
           };
 
-          // Async landBlock çağır - güncellenmiş state ile
           landBlockAsync(updatedState).finally(() => {
             setIsDropping(false);
+            setIsProcessingLanding(false); 
           });
 
-          return updatedState; // Güncellenmiş state döndür
+          return updatedState;
         }
       }
 
