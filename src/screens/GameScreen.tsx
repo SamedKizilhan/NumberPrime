@@ -67,6 +67,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
   playerNickname,
 }) => {
   const { t } = useTranslation();
+
   const [gameState, setGameState] = useState<GameState>({
     grid: createEmptyGrid(),
     fallingBlock: createNewFallingBlock(),
@@ -76,6 +77,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
     level: 1,
     gameSpeed: calculateGameSpeed(1),
   });
+
+  // DEBUG: gameState değişikliklerini izle
+  useEffect(() => {
+    console.log("🟦 GameState changed:");
+    console.log("🟦 isGameOver:", gameState.isGameOver);
+    console.log("🟦 scoreSaveError:", gameState.scoreSaveError);
+    console.log("🟦 score:", gameState.score);
+  }, [gameState.isGameOver, gameState.scoreSaveError, gameState.score]);
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [explosions, setExplosions] = useState<Explosion[]>([]);
@@ -226,14 +235,14 @@ const GameScreen: React.FC<GameScreenProps> = ({
           handleOperationAsync(prevState, selectedOperation, newY).finally(
             () => {
               setIsDropping(false);
-              setIsProcessingLanding(false); 
+              setIsProcessingLanding(false);
             }
           );
 
           return updatedState;
         } else {
           setIsDropping(true);
-          setIsProcessingLanding(true); 
+          setIsProcessingLanding(true);
 
           const updatedState: GameState = {
             ...prevState,
@@ -246,7 +255,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
           landBlockAsync(updatedState).finally(() => {
             setIsDropping(false);
-            setIsProcessingLanding(false); 
+            setIsProcessingLanding(false);
           });
 
           return updatedState;
@@ -568,25 +577,25 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
-    // ÖNİLK OLARAK patlama kontrolü yap
     const firstExplosion = checkExplosions(
       newGrid,
       landingX,
       landingY,
       fallingBlock.value,
-      false // isCombo = false - ilk patlama
+      false
     );
 
-    // OYUN BİTİŞ KONTROLÜ - sadece patlama yoksa ve üst seviyedeyse
+    // OYUN BİTİŞ KONTROLÜ
     if (!firstExplosion.hasNeighborMatch && landingY <= 0) {
+      console.log("🔴 GAME OVER DETECTED!");
+      console.log("🔴 landingY:", landingY);
+      console.log("🔴 hasNeighborMatch:", firstExplosion.hasNeighborMatch);
+
       setIsProcessingGameOver(true);
+      console.log("🔴 Processing game over set to TRUE");
 
-      console.log("Game over detected! Setting game over state...");
-
-      // Failure sesini çal
       soundManager.playFailureSound();
 
-      // Skoru kaydet - async olarak
       const finalScore: PlayerScore = {
         id: Date.now().toString(),
         nickname: playerNickname,
@@ -598,24 +607,56 @@ const GameScreen: React.FC<GameScreenProps> = ({
       let scoreSaveError = false;
 
       try {
-        await FirebaseLeaderboard.saveGlobalScore(finalScore);
-        console.log("Score saved successfully");
+        console.log("🔴 Attempting to save score to Firebase...");
+
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Firebase timeout")), 5000);
+        });
+
+        await Promise.race([
+          FirebaseLeaderboard.saveGlobalScore(finalScore),
+          timeoutPromise,
+        ]);
+
+        console.log("🟢 Score saved successfully");
       } catch (error) {
-        console.error("Score save error:", error);
+        console.error("🔴 Score save error:", error);
         scoreSaveError = true;
+        console.log("🔴 scoreSaveError set to:", scoreSaveError);
       }
 
-      // State'i güncelle - OYUN BİTTİ
-      setGameState((prevState) => ({
-        ...prevState,
-        isGameOver: true,
-        scoreSaveError: scoreSaveError,
-      }));
+      console.log(
+        "🔴 About to set game state - isGameOver: true, scoreSaveError:",
+        scoreSaveError
+      );
 
+      // State'i güncelle - OYUN BİTTİ
+      setGameState((prevState) => {
+        console.log("🔴 Inside setGameState callback");
+        console.log("🔴 prevState.isGameOver:", prevState.isGameOver);
+        console.log(
+          "🔴 Setting isGameOver to true and scoreSaveError to:",
+          scoreSaveError
+        );
+
+        const newState = {
+          ...prevState,
+          isGameOver: true,
+          scoreSaveError: scoreSaveError,
+        };
+
+        console.log("🔴 New state created:", {
+          isGameOver: newState.isGameOver,
+          scoreSaveError: newState.scoreSaveError,
+        });
+
+        return newState;
+      });
+
+      console.log("🔴 setGameState called, setting processing to false");
       setIsProcessingGameOver(false);
 
-      // ÖNEMLİ: Burada return ile fonksiyondan çık
-      // Böylece aşağıdaki normal oyun devam etme kodu çalışmaz
+      console.log("🔴 Returning from landBlockAsync");
       return;
     }
 
@@ -888,6 +929,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   if (gameState.isGameOver) {
+    console.log("🟢 Rendering game over screen");
+    console.log("🟢 scoreSaveError:", gameState.scoreSaveError);
+
     const nextTitleInfo = getNextTitleRequirement(gameState.score);
 
     return (
