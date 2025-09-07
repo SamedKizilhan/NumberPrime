@@ -34,7 +34,7 @@
     "no": "No",
     "yes": "Yes",
     "nextTitle": "Next Title",
-    "pointsToNext": "You need {{points}} more points",
+    "pointsToNext": "Reach {{points}} points to unlock the next title.",
     "maxTitleReached": "You’ve earned the highest title! Now it’s time to become number one!"
   },
   "leaderboard": {

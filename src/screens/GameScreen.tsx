@@ -211,21 +211,37 @@ const GameScreen: React.FC<GameScreenProps> = ({
               y: currentBlock.y, // Mevcut pozisyonda kal
               x: currentBlock.x,
             },
-            selectedOperation: "none" as Operation, // Tip belirtimi eklendi
+            selectedOperation: "none" as Operation,
           };
 
           // Async işlem yap - orijinal selectedOperation'ı kullan
           handleOperationAsync(prevState, selectedOperation, newY).finally(
             () => {
-              setIsDropping(false); // İşlem bitince flag'i kaldır
+              setIsDropping(false);
             }
           );
 
-          return updatedState; // selectedOperation temizlenmiş state döndür
+          return updatedState;
         } else {
-          // İşlem yok - blok mevcut pozisyonda dur ve yerleştir
-          landBlockAsync(prevState);
-          return prevState;
+          // İşlem yok - bloğu engellemek için flag set et
+          setIsDropping(true);
+
+          // Bloğu mevcut pozisyonda sabitleyerek güncellenmiş state döndür
+          const updatedState: GameState = {
+            ...prevState,
+            fallingBlock: {
+              ...prevState.fallingBlock,
+              y: currentBlock.y, // Mevcut pozisyonda kal
+              x: currentBlock.x,
+            },
+          };
+
+          // Async landBlock çağır - güncellenmiş state ile
+          landBlockAsync(updatedState).finally(() => {
+            setIsDropping(false);
+          });
+
+          return updatedState; // Güncellenmiş state döndür
         }
       }
 
@@ -524,8 +540,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
-      level: Math.floor(newScore / 1500) + 1,
-      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
+      level: Math.floor(newScore / 1300) + 1,
+      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1300) + 1),
     });
   };
 
@@ -659,8 +675,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
-      level: Math.floor(newScore / 1500) + 1,
-      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1500) + 1),
+      level: Math.floor(newScore / 1300) + 1,
+      gameSpeed: calculateGameSpeed(Math.floor(newScore / 1300) + 1),
     });
   };
 
@@ -884,7 +900,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
               </Text>
               <Text style={styles.nextTitlePoints}>
                 {t("game.pointsToNext", {
-                  points: nextTitleInfo.requiredScore - gameState.score,
+                  points: nextTitleInfo.requiredScore,
                 })}
               </Text>
             </>

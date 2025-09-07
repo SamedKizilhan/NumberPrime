@@ -258,7 +258,7 @@ export const getNextTitleRequirement = (
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
   const baseSpeed = 747;
-  const speedIncrease = (level - 1) * 61;
+  const speedIncrease = (level - 1) * 67; 
   return Math.max(237, baseSpeed - speedIncrease);
 
 };

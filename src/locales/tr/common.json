@@ -34,7 +34,7 @@
     "no": "Hayır",
     "yes": "Evet",
     "nextTitle": "Sonraki Unvan",
-    "pointsToNext": "{{points}} puana daha ihtiyacın var",
+    "pointsToNext": "Bir sonraki unvana ulaşmak için {{points}} puana ulaşmalısın.",
     "maxTitleReached": "En yüksek unvana ulaştın! Şimdi birinci olma zamanı!"
   },
   "leaderboard": {
