@@ -20,6 +20,7 @@ export interface GameState {
   selectedOperation: "none" | "add" | "subtract";
   level: number;
   gameSpeed: number;
+  scoreSaveError?: boolean;
 }
 
 export interface PlayerScore {

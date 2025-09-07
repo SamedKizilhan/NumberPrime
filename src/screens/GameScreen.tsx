@@ -587,17 +587,21 @@ const GameScreen: React.FC<GameScreenProps> = ({
         title: t(getPlayerTitleKey(state.score)),
       };
 
+      let scoreSaveError = false;
+
       try {
         await FirebaseLeaderboard.saveGlobalScore(finalScore);
         console.log("Score saved successfully");
       } catch (error) {
         console.error("Score save error:", error);
+        scoreSaveError = true;
       }
 
-      // State'i güncelle
+      // State'i güncelle - skor kaydı başarısız olsa bile oyun biter
       setGameState((prevState) => ({
         ...prevState,
         isGameOver: true,
+        scoreSaveError: scoreSaveError, // Yeni alan ekleniyor
       }));
 
       setIsProcessingGameOver(false);
@@ -883,6 +887,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
         <Text style={styles.gameOverScore}>
           {t("game.finalScore", { score: gameState.score })}
         </Text>
+
+        {/* Skor kaydetme hatası varsa uyarı göster */}
+        {gameState.scoreSaveError && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>{t("game.scoreSaveError")}</Text>
+            <Text style={styles.errorSubtitle}>
+              {t("game.scoreSaveErrorSubtitle")}
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.gameOverTitle}>
           {t(getPlayerTitleKey(gameState.score))}
         </Text>
@@ -1120,6 +1135,26 @@ const styles = StyleSheet.create({
     color: "#ffd700",
     fontSize: 18,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  errorContainer: {
+    backgroundColor: "#ff4757",
+    padding: 15,
+    borderRadius: 10,
+    marginVertical: 15,
+    width: "90%",
+    alignItems: "center",
+  },
+  errorTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  errorSubtitle: {
+    color: "#fff",
+    fontSize: 14,
     textAlign: "center",
   },
 });

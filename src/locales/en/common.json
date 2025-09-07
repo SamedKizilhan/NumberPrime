@@ -35,7 +35,9 @@
     "yes": "Yes",
     "nextTitle": "Next Title",
     "pointsToNext": "Reach {{points}} points to unlock the next title.",
-    "maxTitleReached": "You’ve earned the highest title! Now it’s time to become number one!"
+    "maxTitleReached": "You’ve earned the highest title! Now it’s time to become number one!",
+    "scoreSaveError": "Score could not be saved! Check your internet connection.",
+    "scoreSaveErrorSubtitle": "Game completed but your score could not be saved to the server."
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -82,7 +84,7 @@
   "titles": {
     "numPrimeMaster": "NumPrime Master",
     "primeMaster": "Prime Master",
-    "primeGuardian":"Prime Guardian",
+    "primeGuardian": "Prime Guardian",
     "mathGenius": "Math Genius",
     "numberSage": "Number Sage",
     "calculationExpert": "Calculation Expert",

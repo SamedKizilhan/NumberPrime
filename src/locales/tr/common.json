@@ -35,7 +35,9 @@
     "yes": "Evet",
     "nextTitle": "Sonraki Unvan",
     "pointsToNext": "Bir sonraki unvana ulaşmak için {{points}} puana ulaşmalısın.",
-    "maxTitleReached": "En yüksek unvana ulaştın! Şimdi birinci olma zamanı!"
+    "maxTitleReached": "En yüksek unvana ulaştın! Şimdi birinci olma zamanı!",
+    "scoreSaveError": "Skor kaydedilemedi! İnternet bağlantınızı kontrol edin.",
+    "scoreSaveErrorSubtitle": "Oyun tamamlandı ancak skorunuz sunucuya kaydedilemedi."
   },
   "leaderboard": {
     "title": "Skor Tablosu",
