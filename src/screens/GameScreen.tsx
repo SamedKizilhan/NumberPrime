@@ -9,6 +9,7 @@ import {
   BackHandler,
   TouchableOpacity,
   SafeAreaView,
+  AppState,
 } from "react-native";
 import GameGrid, { CELL_SIZE } from "../components/GameGrid";
 import GameControls from "../components/GameControls";
@@ -178,6 +179,32 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     return () => backHandler.remove();
   }, []);
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "background" || nextAppState === "inactive") {
+        // Oyun aktifse ve pause değilse otomatik pause yap
+        if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
+          console.log("🎮 Game going to background - auto pausing");
+          setIsPaused(true);
+          soundManager.pauseBackgroundMusic();
+        }
+      } else if (nextAppState === "active") {
+        // Ön plana geldiğinde eğer pause durumdaysa pause ekranında kal
+        if (isPaused && !gameState.isGameOver) {
+          console.log("🎮 Game came to foreground - staying paused");
+          // Hiçbir şey yapma, kullanıcı manuel resume etsin
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => subscription?.remove();
+  }, [gameState.isGameOver, isPaused, isLevelTransitioning]);
 
   // moveBlockDown fonksiyonunu ref olarak sakla
   const moveBlockDownRef = useRef(() => {});
@@ -579,7 +606,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
     // OYUN BİTİŞ KONTROLÜ
     if (!firstExplosion.hasNeighborMatch && landingY <= 0) {
-  
       setIsProcessingGameOver(true);
 
       soundManager.playFailureSound();
@@ -891,7 +917,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   if (gameState.isGameOver) {
-
     const nextTitleInfo = getNextTitleRequirement(gameState.score);
 
     return (
