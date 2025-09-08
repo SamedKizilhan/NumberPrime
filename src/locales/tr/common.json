@@ -49,7 +49,10 @@
     "playFirstGame": "İlk oyunu oyna ve lider tablosunda yer al!",
     "you": "Sen",
     "yourRank": "Senin Sıralan",
-    "rankInfo": "{{total}} oyuncu arasında {{rank}}. sıradasın"
+    "rankInfo": "{{total}} oyuncu arasında {{rank}}. sıradasın",
+    "errorTitle": "Bağlantı Hatası",
+    "errorMessage": "Skor tablosu yüklenemiyor.\nİnternet bağlantınızı kontrol edin.",
+    "retry": "TEKRAR DENE"
   },
   "credits": {
     "title": "Müzikler ve Atıflar",
@@ -82,9 +85,9 @@
     "userNameTooShort": "Kullanıcı adı en az 3 karakter olmalı!"
   },
   "titles": {
-    "numPrimeMaster":"NumPrime Ustası",
+    "numPrimeMaster": "NumPrime Ustası",
     "primeMaster": "Asal Sayı Ustası",
-    "primeGuardian":"Asal Sayı Muhafızı",
+    "primeGuardian": "Asal Sayı Muhafızı",
     "mathGenius": "Matematik Dehası",
     "numberSage": "Sayı Bilgini",
     "calculationExpert": "Hesap Uzmanı",

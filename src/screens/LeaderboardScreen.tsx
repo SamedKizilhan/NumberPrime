@@ -34,6 +34,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
 
   // Android geri tuşu kontrolü
   useEffect(() => {
@@ -55,9 +56,25 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   const loadLeaderboard = async () => {
     try {
       console.log("Loading leaderboard for:", playerNickname);
-      const data = await FirebaseLeaderboard.getGlobalLeaderboardWithPlayer(
-        playerNickname
-      );
+      setHasError(false);
+
+      // Timeout wrapper fonksiyonu
+      const loadWithTimeout = async () => {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(
+            () => reject(new Error("Leaderboard yükleme timeout")),
+            7000
+          );
+        });
+
+        return Promise.race([
+          FirebaseLeaderboard.getGlobalLeaderboardWithPlayer(playerNickname),
+          timeoutPromise,
+        ]);
+      };
+
+      const data = await loadWithTimeout();
+
       console.log("Leaderboard data:", data);
 
       setTop47(data.top47);
@@ -66,9 +83,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
       setTotalPlayers(data.totalPlayers);
     } catch (error) {
       console.error("Error loading global leaderboard:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Bilinmeyen hata";
-      Alert.alert("Hata", "Leaderboard yüklenirken hata: " + errorMessage);
+      setHasError(true);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -81,6 +96,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
   const onRefresh = () => {
     setRefreshing(true);
+    setHasError(false); // Yenileme sırasında hata durumunu sıfırla
     loadLeaderboard();
   };
 
@@ -173,6 +189,41 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#00d2d3" />
           <Text style={styles.loadingText}>{t("leaderboard.loading")}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.title}>{t("leaderboard.title")}</Text>
+          <View style={styles.spacer} />
+        </View>
+
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>{t("leaderboard.errorTitle")}</Text>
+          <Text style={styles.errorMessage}>
+            {t("leaderboard.errorMessage")}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              setIsLoading(true);
+              setHasError(false);
+              loadLeaderboard();
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.retryButtonText}>{t("leaderboard.retry")}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -408,6 +459,43 @@ const styles = StyleSheet.create({
     color: "#444",
     fontSize: 14,
     textAlign: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  errorIcon: {
+    fontSize: 60,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    color: "#e94560",
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  errorMessage: {
+    color: "#666",
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  retryButton: {
+    backgroundColor: "#00d2d3",
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    minWidth: 120,
+    alignItems: "center",
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
 

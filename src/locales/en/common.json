@@ -49,7 +49,10 @@
     "playFirstGame": "Play your first game and get on the leaderboard!",
     "you": "You",
     "yourRank": "Your Rank",
-    "rankInfo": "{{rank}}th out of {{total}} players"
+    "rankInfo": "{{rank}}th out of {{total}} players",
+    "errorTitle": "Connection Error",
+    "errorMessage": "Cannot load leaderboard.\nPlease check your internet connection.",
+    "retry": "TRY AGAIN"
   },
   "credits": {
     "title": "Music & Credits",
