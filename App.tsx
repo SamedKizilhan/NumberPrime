@@ -105,7 +105,6 @@ export default function App() {
             if (currentScreen === "game") {
               await soundManager.safePlayBackgroundMusic();
             } else {
-              // Menu, leaderboard, credits, support ekranlarında menu müziği
               await soundManager.ensureMenuMusicPlaying();
             }
           } catch (error) {
@@ -122,15 +121,23 @@ export default function App() {
 
     return () => {
       subscription?.remove();
+      console.log("App.tsx: AppState subscription temizlendi");
+    };
+  }, [currentScreen]);
+
+  // Uygulama gerçekten kapanırken cleanup
+  useEffect(() => {
+    const handleBeforeUnload = () => {
       const soundManager = SoundManager.getInstance();
-      soundManager.fullCleanup();
+      soundManager.cleanup(); // fullCleanup() değil!
 
       const iapManager = IAPManager.getInstance();
       iapManager.cleanup();
-
-      console.log("App.tsx: Tüm manager'lar temizlendi");
     };
-  }, [currentScreen]);
+
+    // Sadece gerçek app close için
+    return handleBeforeUnload;
+  }, []);
 
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {
