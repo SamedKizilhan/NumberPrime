@@ -649,6 +649,44 @@ class SoundManager {
     await this.playBackgroundMusic();
   }
 
+  // Mevcut müziğin çalıp çalmadığını kontrol et
+  async isBackgroundMusicPlaying(): Promise<boolean> {
+    if (this.backgroundMusic) {
+      try {
+        const status = await this.backgroundMusic.getStatusAsync();
+        return status.isLoaded && status.isPlaying;
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  async isMenuMusicPlaying(): Promise<boolean> {
+    if (this.menuMusic) {
+      try {
+        const status = await this.menuMusic.getStatusAsync();
+        return status.isLoaded && status.isPlaying;
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // Güvenli müzik başlatma (çoklu çağrı koruması ile)
+  async safePlayBackgroundMusic() {
+    if (!this.isMuted && !(await this.isBackgroundMusicPlaying())) {
+      await this.playBackgroundMusic();
+    }
+  }
+
+  async safePlayMenuMusic() {
+    if (!this.isMuted && !(await this.isMenuMusicPlaying())) {
+      await this.playMenuMusic();
+    }
+  }
+
   // Ses kontrolü
   toggleMute() {
     this.isMuted = !this.isMuted;

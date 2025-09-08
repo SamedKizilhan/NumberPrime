@@ -22,7 +22,7 @@ import {
   UserProfile,
 } from "./src/utils/StorageUtils";
 import SoundManager from "./src/utils/SoundManager";
-import IAPManager from './src/utils/IAPManager';
+import IAPManager from "./src/utils/IAPManager";
 
 export type Screen = "menu" | "game" | "leaderboard" | "credits" | "support";
 
@@ -88,11 +88,31 @@ export default function App() {
   // SoundManager cleanup - uygulama kapanırken
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
+      const soundManager = SoundManager.getInstance();
+
       if (nextAppState === "background" || nextAppState === "inactive") {
-        // Uygulama arka plana geçince tüm müzikleri durdur
-        const soundManager = SoundManager.getInstance();
+        console.log("🔴 App going to background - pausing music");
         soundManager.pauseBackgroundMusic();
         soundManager.pauseMenuMusic();
+      } else if (nextAppState === "active") {
+        console.log(
+          "🟢 App becoming active - resuming music for screen:",
+          currentScreen
+        );
+
+        // Küçük bir gecikme ile müziği güvenli şekilde başlat
+        setTimeout(async () => {
+          try {
+            if (currentScreen === "game") {
+              await soundManager.safePlayBackgroundMusic();
+            } else {
+              // Menu, leaderboard, credits, support ekranlarında menu müziği
+              await soundManager.safePlayMenuMusic();
+            }
+          } catch (error) {
+            console.log("Music resume error:", error);
+          }
+        }, 500);
       }
     };
 
@@ -101,7 +121,6 @@ export default function App() {
       handleAppStateChange
     );
 
-    // Component unmount olduğunda (uygulama tamamen kapanırken)
     return () => {
       subscription?.remove();
       const soundManager = SoundManager.getInstance();
@@ -112,7 +131,7 @@ export default function App() {
 
       console.log("App.tsx: Tüm manager'lar temizlendi");
     };
-  }, []);
+  }, [currentScreen]); // currentScreen'i dependency olarak ekle
 
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {
