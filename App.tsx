@@ -100,14 +100,13 @@ export default function App() {
           currentScreen
         );
 
-        // Küçük bir gecikme ile müziği güvenli şekilde başlat
         setTimeout(async () => {
           try {
             if (currentScreen === "game") {
               await soundManager.safePlayBackgroundMusic();
             } else {
               // Menu, leaderboard, credits, support ekranlarında menu müziği
-              await soundManager.safePlayMenuMusic();
+              await soundManager.ensureMenuMusicPlaying();
             }
           } catch (error) {
             console.log("Music resume error:", error);
@@ -131,7 +130,7 @@ export default function App() {
 
       console.log("App.tsx: Tüm manager'lar temizlendi");
     };
-  }, [currentScreen]); // currentScreen'i dependency olarak ekle
+  }, [currentScreen]);
 
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {
@@ -163,7 +162,7 @@ export default function App() {
     const soundManager = SoundManager.getInstance();
     soundManager.cancelPendingBackgroundMusicResume();
     await soundManager.pauseBackgroundMusic();
-    await soundManager.restartMenuMusic();
+    await soundManager.playMenuMusic();
 
     setCurrentScreen("menu");
   };
@@ -179,7 +178,9 @@ export default function App() {
   };
 
   const handleBackToMenu = async () => {
-    // Leaderboard'dan veya Credits'ten menu'ye dönerken menu müziği çalmaya devam etsin
+    // Menu ekranlarından menu'ye dönerken menu müziği devam etsin
+    const soundManager = SoundManager.getInstance();
+    await soundManager.ensureMenuMusicPlaying();
     setCurrentScreen("menu");
   };
 

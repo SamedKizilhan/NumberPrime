@@ -85,7 +85,10 @@ class SoundManager {
       try {
         // Önce background müziği durdur
         if (this.backgroundMusic) {
-          await this.backgroundMusic.pauseAsync();
+          const bgStatus = await this.backgroundMusic.getStatusAsync();
+          if (bgStatus.isLoaded && bgStatus.isPlaying) {
+            await this.backgroundMusic.pauseAsync();
+          }
         }
 
         // Menu müziğini çal
@@ -95,6 +98,8 @@ class SoundManager {
             await this.menuMusic.setVolumeAsync(this.musicVolume);
             await this.menuMusic.playAsync();
             console.log("Menu müzik başlatıldı");
+          } else {
+            console.log("Menu müzik zaten çalıyor");
           }
         }
       } catch (error) {
@@ -646,7 +651,7 @@ class SoundManager {
 
   // Yeni fonksiyon: Ana menü için müzik (kaldığı yerden devam)
   async startMenuMusic() {
-    await this.playBackgroundMusic();
+    await this.playMenuMusic();
   }
 
   // Mevcut müziğin çalıp çalmadığını kontrol et
@@ -684,6 +689,23 @@ class SoundManager {
   async safePlayMenuMusic() {
     if (!this.isMuted && !(await this.isMenuMusicPlaying())) {
       await this.playMenuMusic();
+    }
+  }
+
+  // YENİ FONKSİYON: Menu müziği devam ettir (pause etmeden)
+  async ensureMenuMusicPlaying() {
+    if (!this.isMuted && this.menuMusic) {
+      try {
+        const status = await this.menuMusic.getStatusAsync();
+        if (status.isLoaded && !status.isPlaying) {
+          // Sadece durmuşsa başlat, çalıyorsa dokunma
+          await this.menuMusic.setVolumeAsync(this.musicVolume);
+          await this.menuMusic.playAsync();
+          console.log("Menu müzik devam ettirildi");
+        }
+      } catch (error) {
+        console.log("Menu müzik devam ettirme hatası:", error);
+      }
     }
   }
 

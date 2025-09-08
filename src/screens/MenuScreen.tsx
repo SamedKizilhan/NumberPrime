@@ -45,7 +45,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   useEffect(() => {
     const startMenuMusic = async () => {
       const soundManager = SoundManager.getInstance();
-      await soundManager.playMenuMusic();
+      await soundManager.ensureMenuMusicPlaying();
     };
 
     startMenuMusic();
@@ -351,7 +351,8 @@ const styles = StyleSheet.create({
   },
   logoNum: {
     color: "#e94560", //e94560
-    textShadowColor: "rgba(233, 69, 96, 0.8)",    textShadowOffset: { width: 2, height: 2 },
+    textShadowColor: "rgba(233, 69, 96, 0.8)",
+    textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 10,
   },
   logoPrime: {
@@ -579,27 +580,28 @@ const styles = StyleSheet.create({
     borderColor: "#00d2d3",
   },
   bottomControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
     paddingHorizontal: 10,
     zIndex: 0,
-  },supportButton: {
-    backgroundColor: '#16213e',
+  },
+  supportButton: {
+    backgroundColor: "#16213e",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 2.5,
-    borderColor: '#e94560',
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderColor: "#e94560",
+    flexDirection: "row",
+    alignItems: "center",
     marginLeft: 15,
   },
   supportButtonText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#e94560',
+    fontWeight: "700",
+    color: "#e94560",
   },
 });
 
