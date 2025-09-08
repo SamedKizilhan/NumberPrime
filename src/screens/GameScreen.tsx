@@ -185,14 +185,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
       if (nextAppState === "background" || nextAppState === "inactive") {
         // Oyun aktifse ve pause değilse otomatik pause yap
         if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
-          console.log("🎮 Game going to background - auto pausing");
           setIsPaused(true);
           soundManager.pauseBackgroundMusic();
         }
       } else if (nextAppState === "active") {
         // Ön plana geldiğinde eğer pause durumdaysa pause ekranında kal
         if (isPaused && !gameState.isGameOver) {
-          console.log("🎮 Game came to foreground - staying paused");
           // Hiçbir şey yapma, kullanıcı manuel resume etsin
         }
       }

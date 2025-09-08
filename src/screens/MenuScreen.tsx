@@ -52,15 +52,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log("MenuScreen - playerNickname changed:", playerNickname);
     if (playerNickname && playerNickname.trim().length >= 3) {
       setIsNicknameSet(true);
       setInputNickname(playerNickname);
-      console.log("Setting isNicknameSet to true for:", playerNickname);
     } else {
       setIsNicknameSet(false);
       setInputNickname("");
-      console.log("Setting isNicknameSet to false");
     }
   }, [playerNickname]);
 
@@ -76,7 +73,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   // Test fonksiyonu ekleyin (geçici)
   const testFirebase = async () => {
     try {
-      console.log("Testing Firebase with timeout...");
 
       // 5 saniye timeout ekleyelim
       const timeout = new Promise((_, reject) =>
@@ -86,7 +82,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
       const firebaseTest = FirebaseLeaderboard.checkNicknameExists("test");
 
       const result = await Promise.race([firebaseTest, timeout]);
-      console.log("Firebase test result:", result);
     } catch (error) {
       console.error(
         "Firebase test error:",
@@ -96,16 +91,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
   const handleStartGame = async () => {
-    console.log(
-      "handleStartGame - isNicknameSet:",
-      isNicknameSet,
-      "playerNickname:",
-      playerNickname
-    );
 
     if (isNicknameSet && playerNickname) {
       // Zaten kayıtlı kullanıcı, direkt oyuna başla
-      console.log("Using saved nickname:", playerNickname);
       onStartGame();
       return;
     }
@@ -117,7 +105,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
 
     const nickname = inputNickname.trim();
-    console.log("Registering new nickname:", nickname);
 
     try {
       const nicknameExists = await FirebaseLeaderboard.checkNicknameExists(

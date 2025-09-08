@@ -74,9 +74,6 @@ export default function App() {
       const backHandler = BackHandler.addEventListener(
         "hardwareBackPress",
         () => {
-          console.log(
-            `GLOBAL: Geri tuşuna basıldı, current screen: ${currentScreen}`
-          );
           return false; // Event'i consume etme, alt seviyeye geçir
         }
       );
@@ -86,27 +83,25 @@ export default function App() {
   }, [currentScreen]);
 
   // SoundManager cleanup - uygulama kapanırken
+  // SoundManager cleanup - uygulama kapanırken
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
       const soundManager = SoundManager.getInstance();
 
       if (nextAppState === "background" || nextAppState === "inactive") {
-        console.log("🔴 App going to background - pausing music");
         soundManager.pauseBackgroundMusic();
         soundManager.pauseMenuMusic();
       } else if (nextAppState === "active") {
-        console.log(
-          "🟢 App becoming active - resuming music for screen:",
-          currentScreen
-        );
 
         setTimeout(async () => {
           try {
-            if (currentScreen === "game") {
-              await soundManager.safePlayBackgroundMusic();
-            } else {
+            // SADECE OYUN EKRANINDAPara DEĞILSE müziği başlat
+            if (currentScreen !== "game") {
+              // Menu, leaderboard, credits, support ekranlarında menu müziği
               await soundManager.ensureMenuMusicPlaying();
             }
+            // currentScreen === "game" ise hiçbir şey yapma
+            // Çünkü oyun zaten pause durumunda ve kullanıcı manuel resume edecek
           } catch (error) {
             console.log("Music resume error:", error);
           }
@@ -121,7 +116,6 @@ export default function App() {
 
     return () => {
       subscription?.remove();
-      console.log("App.tsx: AppState subscription temizlendi");
     };
   }, [currentScreen]);
 
