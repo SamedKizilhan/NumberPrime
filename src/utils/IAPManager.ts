@@ -26,8 +26,14 @@ class IAPManager {
   private purchaseUpdateSubscription: any = null;
   private purchaseErrorSubscription: any = null;
 
-  // Tip ürünleri tanımları
+  // Güncellenmiş tip ürünleri tanımları
   public readonly supportProducts: SupportProduct[] = [
+    {
+      id: "small_tip",
+      title: "Small Tip",
+      description: "Small support 🙏",
+      icon: "🙏",
+    },
     {
       id: "coffee_tip",
       title: "Coffee",
@@ -45,6 +51,12 @@ class IAPManager {
       title: "Premium",
       description: "Premium support 💎",
       icon: "💎",
+    },
+    {
+      id: "mega_support",
+      title: "Mega Support",
+      description: "Mega support & development 🚀",
+      icon: "🚀",
     },
   ];
 
@@ -127,6 +139,25 @@ class IAPManager {
     });
   }
 
+  // Bölge bazlı fiyat gösterimi için
+  public getLocalizedPricing(productId: string): string {
+    const product = this.products.find((p) => p.productId === productId);
+    if (product?.localizedPrice) {
+      return product.localizedPrice;
+    }
+
+    // Fallback fiyatlar (geliştirme ortamı için)
+    const fallbackPrices: { [key: string]: string } = {
+      small_tip: "₺14,90",
+      coffee_tip: "₺44,90",
+      pizza_tip: "₺89,90",
+      premium_support: "₺200,00",
+      mega_support: "₺450,00",
+    };
+
+    return fallbackPrices[productId] || "N/A";
+  }
+
   public async purchaseProduct(productId: string): Promise<void> {
     try {
       console.log("IAP: Requesting purchase for:", productId);
@@ -207,17 +238,25 @@ class IAPManager {
     return this.supportProducts.map((product) => ({
       ...product,
       localizedPrice:
-        product.id === "coffee_tip"
-          ? "$2.99"
+        product.id === "small_tip"
+          ? "₺14,90"
+          : product.id === "coffee_tip"
+          ? "₺44,90"
           : product.id === "pizza_tip"
-          ? "$9.99"
-          : "$19.99",
+          ? "₺89,90"
+          : product.id === "premium_support"
+          ? "₺200,00"
+          : "₺450,00",
       price:
-        product.id === "coffee_tip"
-          ? "2.99"
+        product.id === "small_tip"
+          ? "14.90"
+          : product.id === "coffee_tip"
+          ? "44.90"
           : product.id === "pizza_tip"
-          ? "6.99"
-          : "10.99",
+          ? "89.90"
+          : product.id === "premium_support"
+          ? "200.00"
+          : "450.00",
     }));
   }
 }
