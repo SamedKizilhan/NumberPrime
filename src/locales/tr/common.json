@@ -48,7 +48,7 @@
     "noScores": "Henüz skor bulunmuyor",
     "playFirstGame": "İlk oyunu oyna ve lider tablosunda yer al!",
     "you": "Sen",
-    "yourRank": "Senin Sıralan",
+    "yourRank": "Senin Sıralaman",
     "rankInfo": "{{total}} oyuncu arasında {{rank}}. sıradasın",
     "errorTitle": "Bağlantı Hatası",
     "errorMessage": "Skor tablosu yüklenemiyor.\nİnternet bağlantınızı kontrol edin.",
