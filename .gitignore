@@ -46,6 +46,3 @@ android/keystore.properties
 # Local gradle properties
 android/local.properties
 android/app/google-services.json
-
-# Firebase Config
-src/config/firebase-config.ts
