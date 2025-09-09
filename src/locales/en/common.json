@@ -12,8 +12,8 @@
     "support": "SUPPORT",
     "howToPlay": "HOW TO PLAY",
     "instruction1": "• Control and place falling numbers",
-    "instruction2": "• Combine equal numbers together",
-    "instruction3": "• Choose + or - operations to modify the block you land on",
+    "instruction2": "• Choose + or - operations to modify the block you land on",
+    "instruction3": "• Combine equal numbers together",
     "instruction4": "• Combining two equal prime numbers creates extra explosions, and the number 2 (the only even prime) gives more points"
   },
   "game": {

@@ -12,8 +12,8 @@
     "support": "DESTEK",
     "howToPlay": "NASIL OYNANIR",
     "instruction1": "• Düşen sayıları yöneterek yerleştir",
-    "instruction2": "• Eşit sayılar elde ederek bir araya getir",
-    "instruction3": "• + veya - işlemlerinden birini seçerek üzerine indiğin bloğu değiştirebilirsin",
+    "instruction2": "• + veya - işlemlerinden birini seçerek üzerine indiğin bloğu değiştirebilirsin",
+    "instruction3": "• Eşit sayılar elde ederek bir araya getir",
     "instruction4": "• İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift asal sayı olan 2 ise ekstra puan getirir"
   },
   "game": {
