@@ -94,6 +94,16 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.numprime.game'
+
+    // IAP için store flavors ekleyin
+    flavorDimensions "store"
+    
+    productFlavors {
+        play {
+            dimension "store"
+        }
+    }
+    
     defaultConfig {
         applicationId 'com.numprime.game'
         minSdkVersion rootProject.ext.minSdkVersion
