@@ -537,7 +537,6 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({ onBack }) => {
         <View style={styles.gameInfoCard}>
           <Text style={styles.gameInfoTitle}>{t("credits.gameInfo")}</Text>
           <Text style={styles.gameInfoText}>{t("menu.subtitle")}</Text>
-          <Text style={styles.versionText}>v1.0.0</Text>
         </View>
       </ScrollView>
 

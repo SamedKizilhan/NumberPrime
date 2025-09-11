@@ -148,11 +148,11 @@ class IAPManager {
 
     // Fallback fiyatlar (geliştirme ortamı için)
     const fallbackPrices: { [key: string]: string } = {
-      small_tip: "₺14,90",
-      coffee_tip: "₺44,90",
-      pizza_tip: "₺89,90",
-      premium_support: "₺200,00",
-      mega_support: "₺450,00",
+      small_tip: "₺39,90",
+      coffee_tip: "₺79,90",
+      pizza_tip: "₺149,90",
+      premium_support: "₺295,00",
+      mega_support: "₺495,00",
     };
 
     return fallbackPrices[productId] || "N/A";
@@ -239,24 +239,24 @@ class IAPManager {
       ...product,
       localizedPrice:
         product.id === "small_tip"
-          ? "₺14,90"
+          ? "₺39,90"
           : product.id === "coffee_tip"
-          ? "₺44,90"
+          ? "₺79,90"
           : product.id === "pizza_tip"
-          ? "₺89,90"
+          ? "₺149,90"
           : product.id === "premium_support"
-          ? "₺200,00"
-          : "₺450,00",
+          ? "₺295,00"
+          : "₺495,00",
       price:
         product.id === "small_tip"
-          ? "14.90"
+          ? "39.90"
           : product.id === "coffee_tip"
-          ? "44.90"
+          ? "79.90"
           : product.id === "pizza_tip"
-          ? "89.90"
+          ? "149.90"
           : product.id === "premium_support"
-          ? "200.00"
-          : "450.00",
+          ? "295.00"
+          : "495.00",
     }));
   }
 }

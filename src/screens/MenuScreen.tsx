@@ -9,6 +9,7 @@ import {
   Dimensions,
   Platform,
   Animated,
+  TouchableWithoutFeedback,
 } from "react-native";
 import SoundManager from "../utils/SoundManager";
 import { useTranslation } from "react-i18next";
@@ -73,7 +74,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   // Test fonksiyonu ekleyin (geçici)
   const testFirebase = async () => {
     try {
-
       // 5 saniye timeout ekleyelim
       const timeout = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Firebase timeout")), 5000)
@@ -91,7 +91,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   };
 
   const handleStartGame = async () => {
-
     if (isNicknameSet && playerNickname) {
       // Zaten kayıtlı kullanıcı, direkt oyuna başla
       onStartGame();
@@ -152,7 +151,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const instructionsHeight = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 200], // Yaklaşık instruction yüksekliği
+    outputRange: [0, 440], // Yaklaşık instruction yüksekliği
   });
 
   const rotateIcon = animationValue.interpolate({
@@ -210,16 +209,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </Text>
           )}
         </View>
-
-        <TouchableOpacity
-          style={styles.startButton}
-          onPress={handleStartGame}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.startButtonText}>
-            {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
-          </Text>
-        </TouchableOpacity>
+        {!isInstructionsOpen && (
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStartGame}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.startButtonText}>
+              {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
@@ -273,24 +273,34 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
         {/* Açılır Kapanır İçerik - OVERLAY olarak */}
         {isInstructionsOpen && (
-          <Animated.View
-            style={[styles.instructionsOverlay, { height: instructionsHeight }]}
-          >
-            <View style={styles.instructions}>
-              <Text style={styles.instructionText}>
-                {t("menu.instruction1")}
-              </Text>
-              <Text style={styles.instructionText}>
-                {t("menu.instruction2")}
-              </Text>
-              <Text style={styles.instructionText}>
-                {t("menu.instruction3")}
-              </Text>
-              <Text style={styles.instructionText}>
-                {t("menu.instruction4")}
-              </Text>
+          <TouchableWithoutFeedback onPress={toggleInstructions}>
+            <View style={styles.instructionsBackdrop}>
+              <Animated.View
+                style={[
+                  styles.instructionsOverlay,
+                  { height: instructionsHeight },
+                ]}
+              >
+                <View style={styles.instructions}>
+                  <Text style={styles.instructionText}>
+                    {t("menu.instruction1")}
+                  </Text>
+                  <Text style={styles.instructionText}>
+                    {t("menu.instruction2")}
+                  </Text>
+                  <Text style={styles.instructionText}>
+                    {t("menu.instruction3")}
+                  </Text>
+                  <Text style={styles.instructionText}>
+                    {t("menu.instruction4")}
+                  </Text>
+                  <Text style={styles.instructionText}>
+                    {t("menu.instruction5")}
+                  </Text>
+                </View>
+              </Animated.View>
             </View>
-          </Animated.View>
+          </TouchableWithoutFeedback>
         )}
       </View>
     </View>
@@ -543,6 +553,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    position: "relative",
+    zIndex: 0,
   },
 
   startButtonText: {
@@ -589,6 +601,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#e94560",
+  },
+  instructionsBackdrop: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.3)", // arka planı koyulaştırmak istersen
+    justifyContent: "flex-end", // paneli altta konumlandır
+    zIndex: 9999, // her şeyin üstünde olsun
   },
 });
 

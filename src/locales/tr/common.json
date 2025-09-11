@@ -11,10 +11,11 @@
     "music": "MÜZİKLER",
     "support": "DESTEK",
     "howToPlay": "NASIL OYNANIR",
-    "instruction1": "• Düşen sayıları yöneterek yerleştir",
-    "instruction2": "• + veya - işlemlerinden birini seçerek üzerine indiğin bloğu değiştirebilirsin",
-    "instruction3": "• Eşit sayılar elde ederek bir araya getir",
-    "instruction4": "• İki eşit asal sayıyı bir araya getirirsen ekstra patlar, tek çift asal sayı olan 2 ise ekstra puan getirir"
+    "instruction1": "• Oyunun temel amacı eşit sayılar içeren blokları yan yana getirip patlatarak puan kazanmak.",
+    "instruction2": "• Bunun için düşmekte olan bloğu sağ ve sol tuşları ile yönlendirmelisin ve gerekirse toplama(+) ve çıkarma(-) işlemlerini aktive edip üzerine indiğin blok içindeki sayıyı değiştirerek eşit sayılar elde etmeye çalışmalısın.",
+    "instruction3": "• Yukarıdan düşen bloklar sadece 1-47 arası rastgele bir sayı içeriyor. Asal sayı içeren bloklar mavi renkli, diğerleri ise kırmızı renkli bloklar olarak gözüküyor.",
+    "instruction4": "• Asal sayı içeren blokları bir araya getirip patlatmak ekstra puan getirir ve de asal sayılar içinde de özel olan 2 sayısı daha çok puan kazandırır.",
+    "instruction5": "• Bir bloğu indireceğin yere karar verdiğinde inmesini beklemek yerine aşağı ok işaretli buton ile hızlı bir şekilde indirebilirsin."
   },
   "game": {
     "score": "Skor",
@@ -73,8 +74,7 @@
     "thanksTitle": "🎵 Teşekkürler",
     "thanksText": "Tüm sesler Freesound.org'dan alınmıştır ve Creative Commons lisansı altındadır. Seslerini bizimle paylaştıkları için tüm yaratıcılara teşekkür ederiz.",
     "visitFreesound": "🌐 Freesound.org'u Ziyaret Et",
-    "gameInfo": "🎯 NumPrime",
-    "version": "v1.0.0",
+    "gameInfo": "NumPrime",
     "back": "← GERİ",
     "urlError": "URL açılamadı",
     "linkError": "Bağlantı açılırken bir hata oluştu"

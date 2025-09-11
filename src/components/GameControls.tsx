@@ -101,7 +101,7 @@ const GameControls: React.FC<GameControlsProps> = ({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingBottom: 5,
+    paddingBottom: 10,
     backgroundColor: "#1a1a2e",
     minHeight: 100,
     justifyContent: "center",

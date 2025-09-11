@@ -11,10 +11,11 @@
     "music": "MUSIC",
     "support": "SUPPORT",
     "howToPlay": "HOW TO PLAY",
-    "instruction1": "• Control and place falling numbers",
-    "instruction2": "• Choose + or - operations to modify the block you land on",
-    "instruction3": "• Combine equal numbers together",
-    "instruction4": "• Combining two equal prime numbers creates extra explosions, and the number 2 (the only even prime) gives more points"
+    "instruction1": "• The main objective is to earn points by bringing blocks containing equal numbers together and exploding them.",
+    "instruction2": "• To achieve this, you must guide the falling block using left and right controls, and when necessary, activate addition (+) and subtraction (-) operations to modify the number in the block you land on, trying to create equal numbers.",
+    "instruction3": "• Blocks falling from above contain only random numbers between 1-47. Blocks containing prime numbers appear as blue blocks, while others appear as red blocks.",
+    "instruction4": "• Bringing together and exploding blocks containing prime numbers grants extra points, and among prime numbers, the special number 2 provides even more points.",
+    "instruction5": "• When you decide where to drop a block, instead of waiting for it to fall, you can quickly drop it using the down arrow button."
   },
   "game": {
     "score": "Score",
@@ -73,8 +74,7 @@
     "thanksTitle": "🎵 Thanks",
     "thanksText": "All sounds are from Freesound.org and are under Creative Commons license. Thanks to all creators for sharing their sounds with us.",
     "visitFreesound": "🌐 Visit Freesound.org",
-    "gameInfo": "🎯 NumPrime",
-    "version": "v1.0.0",
+    "gameInfo": "NumPrime",
     "back": "← BACK",
     "urlError": "Could not open URL",
     "linkError": "An error occurred while opening the link"
