@@ -15,7 +15,7 @@ interface GameGridProps {
   explosions?: Array<{
     x: number;
     y: number;
-    type: "normal" | "prime" | "prime2" | "combo" | "special";
+    type: "normal" | "prime" | "prime2";
     id: string;
   }>;
 }
@@ -47,7 +47,7 @@ const GameGrid: React.FC<GameGridProps> = ({
     Array<{
       x: number;
       y: number;
-      type: "normal" | "prime" | "prime2" | "combo" | "special";
+      type: "normal" | "prime" | "prime2";
       id: string;
     }>
   >([]);
@@ -64,37 +64,21 @@ const GameGrid: React.FC<GameGridProps> = ({
   };
 
   const renderCell = (cell: GridCell, isFalling: boolean = false) => {
-    const isSpecialFalling = isFalling && fallingBlock?.isSpecial;
-    const isSpecialStatic = !isFalling && cell.isSpecial;
-
-    // Style priority: Special > Prime > Normal > Falling
+    // Style priority: Prime > Normal > Falling
     const cellStyle = [
       styles.cell,
-      // 1. Önce özel blok kontrolü
-      isSpecialFalling || isSpecialStatic ? styles.specialCell : null,
-      // 2. Özel blok DEĞİLSE ve düşüyorsa falling style
-      isFalling && !(isSpecialFalling || isSpecialStatic)
-        ? styles.fallingCell
-        : null,
-      // 3. Özel blok DEĞİLSE ve asal sayıysa prime style
-      !isSpecialFalling && !isSpecialStatic && cell.value && isPrime(cell.value)
-        ? styles.primeCell
-        : null,
-      // 4. Özel blok DEĞİLSE ve asal olmayan sayıysa normal style
-      !isSpecialFalling &&
-      !isSpecialStatic &&
-      cell.value &&
-      !isPrime(cell.value) &&
-      !isFalling
+      // 1. Düşüyorsa falling style
+      isFalling ? styles.fallingCell : null,
+      // 2. Düşmüyorsa ve asal sayıysa prime style
+      !isFalling && cell.value && isPrime(cell.value) ? styles.primeCell : null,
+      // 3. Düşmüyorsa ve asal olmayan sayıysa normal style
+      !isFalling && cell.value && !isPrime(cell.value)
         ? styles.normalCell
         : null,
     ].filter((style) => style !== null);
 
-    // Text color logic
-    let textColor = "#fff"; // Default beyaz
-    if (isSpecialFalling || isSpecialStatic) {
-      textColor = "#000000"; // Special blok için siyah
-    }
+    // Text color logic - her zaman beyaz
+    const textColor = "#fff";
 
     return (
       <View key={cell.id} style={cellStyle}>
@@ -108,9 +92,6 @@ const GameGrid: React.FC<GameGridProps> = ({
           >
             {cell.value}
           </Text>
-        )}
-        {(isSpecialFalling || isSpecialStatic) && (
-          <View style={styles.shimmerOverlay} />
         )}
       </View>
     );
@@ -135,7 +116,6 @@ const GameGrid: React.FC<GameGridProps> = ({
                     ...cell,
                     value: fallingBlock.value,
                     id: fallingBlock.id,
-                    isSpecial: fallingBlock.isSpecial,
                   };
                   return renderCell(fallingCell, true);
                 }
@@ -235,28 +215,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4, // Daha hafif gölge
     shadowRadius: 5,
     elevation: 5,
-  },
-  specialCell: {
-    backgroundColor: "#FFD700", // Altın rengi
-    shadowColor: "#FFD700",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 1,
-    shadowRadius: 15,
-    elevation: 15,
-    borderWidth: 2,
-    borderColor: "#FFF",
-  },
-  shimmerOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    borderRadius: 4,
   },
 });
 

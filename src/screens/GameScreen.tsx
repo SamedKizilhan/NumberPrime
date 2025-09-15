@@ -48,7 +48,7 @@ interface GameScreenProps {
 interface Explosion {
   x: number;
   y: number;
-  type: "normal" | "prime" | "prime2" | "combo";
+  type: "normal" | "prime" | "prime2";
   id: string;
 }
 
@@ -317,7 +317,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let hasNeighborMatch = false;
     let hasPrimeExplosion = false;
     let has2Explosion = false;
-    let explosionType: "normal" | "prime" | "prime2" | "combo" = "normal";
+    let explosionType: "normal" | "prime" | "prime2" = "normal";
 
     // 1. Komşu eşitlik kontrolü (sadece alt, sol, sağ - yukarı değil)
     const directions = [
@@ -406,7 +406,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const triggerExplosions = async (
     cellsToExplode: Set<string>,
-    explosionType: "normal" | "prime" | "prime2" | "combo",
+    explosionType: "normal" | "prime" | "prime2",
     hasNeighborMatch: boolean,
     hasPrimeExplosion: boolean,
     has2Explosion: boolean,
@@ -456,9 +456,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
 
     // Patlama seslerini çal
-    if (explosionType === "combo") {
-      soundManager.playComboSound();
-    } else if (has2Explosion) {
+    if (has2Explosion) {
       soundManager.playPrime2Sound();
     } else if (hasPrimeExplosion) {
       soundManager.playPrimeExplosionSound();
