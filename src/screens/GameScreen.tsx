@@ -96,6 +96,20 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
   const [isDropping, setIsDropping] = useState<boolean>(false);
   const [isProcessingLanding, setIsProcessingLanding] = useState(false);
+  const animateGravity = async (newGrid: any[][]): Promise<any[][]> => {
+    const finalGrid = applyGravity(newGrid);
+
+    // State'i güncelle (görsel güncelleme için)
+    setGameState((prevState) => ({
+      ...prevState,
+      grid: finalGrid,
+    }));
+
+    // Animasyon süresini bekle
+    await new Promise((resolve) => setTimeout(resolve, 470));
+
+    return finalGrid;
+  };
 
   // Seviye geçiş kontrolü
   const prevLevelRef = useRef(gameState.level);
@@ -518,10 +532,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       );
     }
 
-    // Gravity uygula
-    let finalGrid = applyGravity(newGrid);
-
-    await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
+    // Gravity uygula VE animasyonunu bekle
+    let finalGrid = await animateGravity(newGrid);
 
     // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
     let comboCount = 0; // Combo sayacı ekle
@@ -555,9 +567,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 y
               );
 
-              // Gravity tekrar uygula
-              finalGrid = applyGravity(finalGrid);
-              await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
+              // Her combo'dan sonra animasyonlu gravity
+              finalGrid = await animateGravity(finalGrid);
               break;
             }
           }
@@ -664,11 +675,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       );
     }
 
-    // Gravity uygula
-    let finalGrid = applyGravity(newGrid);
-
-    // YENİ: Blokların yerine yerleşmesi için bekleme süresi
-    await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
+    // Gravity uygula VE animasyonunu bekle
+    let finalGrid = await animateGravity(newGrid);
 
     // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
     let comboCount = 0;
@@ -701,9 +709,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
                 y
               );
 
-              finalGrid = applyGravity(finalGrid);
-              // YENİ: Combo'lar arasında da bekleme
-              await new Promise((resolve) => setTimeout(resolve, 700));
+              // Her combo'dan sonra animasyonlu gravity
+              finalGrid = await animateGravity(finalGrid);
               break;
             }
           }
