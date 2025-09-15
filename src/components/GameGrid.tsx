@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Dimensions, Animated } from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
 import {
   GridCell,
   FallingBlock,
@@ -21,7 +21,6 @@ interface GameGridProps {
 }
 
 const { width, height } = Dimensions.get("window");
-// Doğru tablet tespiti
 const isTablet = Math.min(width, height) > 700 || width > 1000 || height > 1000;
 const isSmallPhone = Math.min(width, height) <= 360;
 
@@ -35,9 +34,11 @@ if (isTablet) {
 } else {
   AVAILABLE_HEIGHT = height * 0.6;
 }
+
 const CELL_SIZE_BY_WIDTH = AVAILABLE_WIDTH / GRID_WIDTH;
 const CELL_SIZE_BY_HEIGHT = AVAILABLE_HEIGHT / GRID_HEIGHT;
 export const CELL_SIZE = Math.min(CELL_SIZE_BY_WIDTH, CELL_SIZE_BY_HEIGHT);
+
 const GameGrid: React.FC<GameGridProps> = ({
   grid,
   fallingBlock,
@@ -52,7 +53,6 @@ const GameGrid: React.FC<GameGridProps> = ({
     }>
   >([]);
 
-  // Yeni patlamalar geldiğinde state'i güncelle
   useEffect(() => {
     if (explosions.length > 0) {
       setActiveExplosions((prev) => [...prev, ...explosions]);
@@ -63,46 +63,19 @@ const GameGrid: React.FC<GameGridProps> = ({
     setActiveExplosions((prev) => prev.filter((exp) => exp.id !== explosionId));
   };
 
-  const renderCell = (cell: GridCell, isFalling: boolean = false) => {
-    // Style priority: Prime > Normal > Falling
+  const renderCell = (cell: GridCell) => {
     const cellStyle = [
       styles.cell,
-      // 1. Düşüyorsa VE prime ise prime style
-      isFalling && cell.value && isPrime(cell.value) ? styles.primeCell : null,
-      // 2. Düşüyorsa VE prime DEĞİLSE VE 0 DEĞİLSE falling style
-      isFalling && cell.value && !isPrime(cell.value) && cell.value !== 0
-        ? styles.fallingCell
-        : null,
-      // 3. Düşüyorsa VE 0 ise normal style
-      isFalling && cell.value === 0 ? styles.normalCell : null,
-      // 4. Düşmüyorsa ve asal sayıysa prime style
-      !isFalling && cell.value && isPrime(cell.value) ? styles.primeCell : null,
-      // 5. Düşmüyorsa ve asal olmayan sayıysa (0 dahil) normal style
-      !isFalling && cell.value && !isPrime(cell.value)
-        ? styles.normalCell
-        : null,
+      // Değer varsa ve prime ise prime style ekle
+      cell.value !== null && isPrime(cell.value) ? styles.primeCell : null,
+      // Değer varsa ve prime değilse normal style ekle
+      cell.value !== null && !isPrime(cell.value) ? styles.normalCell : null,
     ].filter((style) => style !== null);
-
-    const textColor = "#fff";
 
     return (
       <View key={cell.id} style={cellStyle}>
         {cell.value !== null && (
-          <Text
-            style={[
-              styles.cellText,
-              // Sadece düşen ve prime olmayan bloklar için falling text style
-              isFalling &&
-              cell.value &&
-              !isPrime(cell.value) &&
-              cell.value !== 0
-                ? styles.fallingCellText
-                : null,
-              { color: textColor },
-            ]}
-          >
-            {cell.value}
-          </Text>
+          <Text style={styles.cellText}>{cell.value}</Text>
         )}
       </View>
     );
@@ -128,7 +101,7 @@ const GameGrid: React.FC<GameGridProps> = ({
                     value: fallingBlock.value,
                     id: fallingBlock.id,
                   };
-                  return renderCell(fallingCell, true);
+                  return renderCell(fallingCell);
                 }
 
                 return renderCell(cell);
@@ -182,17 +155,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#1a1a2e",
   },
-  fallingCell: {
-    backgroundColor: "#e94560",
-    shadowColor: "#e94560",
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 10,
-  },
   primeCell: {
     backgroundColor: "#00d2d3",
     shadowColor: "#00d2d3",
@@ -204,28 +166,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  cellText: {
-    color: "#fff",
-    fontSize: CELL_SIZE * 0.35,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  fallingCellText: {
-    color: "#fff",
-    textShadowColor: "#000",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
   normalCell: {
-    backgroundColor: "#e94560", // Düşen blok ile aynı renk
+    backgroundColor: "#e94560",
     shadowColor: "#e94560",
     shadowOffset: {
       width: 0,
       height: 0,
     },
-    shadowOpacity: 0.4, // Daha hafif gölge
+    shadowOpacity: 0.4,
     shadowRadius: 5,
     elevation: 5,
+  },
+  cellText: {
+    color: "#fff",
+    fontSize: CELL_SIZE * 0.35,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

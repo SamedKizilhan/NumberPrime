@@ -33,7 +33,7 @@ export interface PlayerScore {
 
 export type Operation = "none" | "add" | "subtract";
 
-export const GRID_WIDTH = 7;
+export const GRID_WIDTH = 5;
 export const GRID_HEIGHT = 9;
 export const MIN_NUMBER = 1;
 export const MAX_NUMBER = 37;
