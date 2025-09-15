@@ -54,47 +54,45 @@ const GameControls: React.FC<GameControlsProps> = ({
   };
 
   return (
-    <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "#1a1a2e" }}>
-      <View style={styles.container}>
-        {/* Üst sıra - 4 tuş eşit aralıklarla */}
-        <View style={styles.topRow}>
-          {/* Sol yön tuşu - en solda */}
-          <TouchableOpacity
-            style={styles.movementButton}
-            onPress={onMoveLeft}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.movementButtonText}>◀</Text>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Üst sıra - 4 tuş eşit aralıklarla */}
+      <View style={styles.topRow}>
+        {/* Sol yön tuşu - en solda */}
+        <TouchableOpacity
+          style={styles.movementButton}
+          onPress={onMoveLeft}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.movementButtonText}>◀</Text>
+        </TouchableOpacity>
 
-          {/* Eksi tuşu */}
-          {renderOperationButton("subtract", "-")}
+        {/* Eksi tuşu */}
+        {renderOperationButton("subtract", "-")}
 
-          {/* Artı tuşu */}
-          {renderOperationButton("add", "+")}
+        {/* Artı tuşu */}
+        {renderOperationButton("add", "+")}
 
-          {/* Sağ yön tuşu - en sağda */}
-          <TouchableOpacity
-            style={styles.movementButton}
-            onPress={onMoveRight}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.movementButtonText}>▶</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Alt sıra - Aşağı tuşu (çubuk şeklinde) */}
-        <View style={styles.bottomRow}>
-          <TouchableOpacity
-            style={[styles.dropButton]}
-            onPress={onDropBlock}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.dropButtonText}>▼</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Sağ yön tuşu - en sağda */}
+        <TouchableOpacity
+          style={styles.movementButton}
+          onPress={onMoveRight}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.movementButtonText}>▶</Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      {/* Alt sıra - Aşağı tuşu (çubuk şeklinde) */}
+      <View style={styles.bottomRow}>
+        <TouchableOpacity
+          style={[styles.dropButton]}
+          onPress={onDropBlock}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.dropButtonText}>▼</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 

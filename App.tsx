@@ -1,3 +1,4 @@
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import SupportScreen from "./src/screens/SupportScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import "intl-pluralrules";
@@ -6,7 +7,6 @@ import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
-  SafeAreaView,
   View,
   Platform,
   BackHandler,
@@ -92,7 +92,6 @@ export default function App() {
         soundManager.pauseBackgroundMusic();
         soundManager.pauseMenuMusic();
       } else if (nextAppState === "active") {
-
         setTimeout(async () => {
           try {
             // SADECE OYUN EKRANINDAPara DEĞILSE müziği başlat
@@ -235,10 +234,12 @@ export default function App() {
   const Container = Platform.OS === "ios" ? SafeAreaView : View;
 
   return (
-    <Container style={styles.container}>
-      <StatusBar style="light" />
-      {renderScreen()}
-    </Container>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <StatusBar style="light" />
+        {renderScreen()}
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -246,9 +247,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1a1a2e",
-    // Android için ek paddingTop
-    ...(Platform.OS === "android" && {
-      paddingTop: 25, // Status bar için
-    }),
   },
 });
