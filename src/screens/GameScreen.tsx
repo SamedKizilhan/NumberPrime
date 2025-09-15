@@ -515,6 +515,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       fallingBlock: null, // Falling block'u temizle
     }));
 
+    await new Promise((resolve) => setTimeout(resolve, 290));
+
     // İlk patlama kontrolü - işlem sonucu değeri ile (BU COMBO DEĞİL!)
     const firstExplosion = checkExplosions(
       newGrid,
@@ -621,6 +623,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
       grid: newGrid,
       fallingBlock: null, // Falling block'u temizle
     }));
+
+    await new Promise((resolve) => setTimeout(resolve, 290));
 
     const firstExplosion = checkExplosions(
       newGrid,

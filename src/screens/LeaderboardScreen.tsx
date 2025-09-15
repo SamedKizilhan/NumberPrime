@@ -75,8 +75,6 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
 
       const data = await loadWithTimeout();
 
-      console.log("Leaderboard data:", data);
-
       setTop47(data.top47);
       setPlayerRank(data.playerRank);
       setPlayerScore(data.playerScore);
