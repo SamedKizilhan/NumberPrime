@@ -608,6 +608,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
+    // YENİ: Düşen bloğu hemen temizle
+    setGameState((prevState) => ({
+      ...prevState,
+      grid: newGrid,
+      fallingBlock: null, // Falling block'u temizle
+    }));
+
     const firstExplosion = checkExplosions(
       newGrid,
       landingX,
