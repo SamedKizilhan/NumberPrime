@@ -521,7 +521,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Gravity uygula
     let finalGrid = applyGravity(newGrid);
 
-    await new Promise((resolve) => setTimeout(resolve, 200)); // 200ms gravity animation
+    await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
 
     // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
     let comboCount = 0; // Combo sayacı ekle
@@ -557,7 +557,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
               // Gravity tekrar uygula
               finalGrid = applyGravity(finalGrid);
-              await new Promise((resolve) => setTimeout(resolve, 200)); // 200ms gravity animation
+              await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
               break;
             }
           }
@@ -668,7 +668,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     let finalGrid = applyGravity(newGrid);
 
     // YENİ: Blokların yerine yerleşmesi için bekleme süresi
-    await new Promise((resolve) => setTimeout(resolve, 200)); // 200ms gravity animation
+    await new Promise((resolve) => setTimeout(resolve, 700)); // 200ms gravity animation
 
     // COMBO patlamaları kontrol et - SADECE BURADA COMBO OLUR
     let comboCount = 0;
@@ -703,7 +703,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
               finalGrid = applyGravity(finalGrid);
               // YENİ: Combo'lar arasında da bekleme
-              await new Promise((resolve) => setTimeout(resolve, 200));
+              await new Promise((resolve) => setTimeout(resolve, 700));
               break;
             }
           }
