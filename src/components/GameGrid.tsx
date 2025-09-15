@@ -67,17 +67,22 @@ const GameGrid: React.FC<GameGridProps> = ({
     // Style priority: Prime > Normal > Falling
     const cellStyle = [
       styles.cell,
-      // 1. Düşüyorsa falling style
-      isFalling ? styles.fallingCell : null,
-      // 2. Düşmüyorsa ve asal sayıysa prime style
+      // 1. Düşüyorsa VE prime ise prime style
+      isFalling && cell.value && isPrime(cell.value) ? styles.primeCell : null,
+      // 2. Düşüyorsa VE prime DEĞİLSE VE 0 DEĞİLSE falling style
+      isFalling && cell.value && !isPrime(cell.value) && cell.value !== 0
+        ? styles.fallingCell
+        : null,
+      // 3. Düşüyorsa VE 0 ise normal style
+      isFalling && cell.value === 0 ? styles.normalCell : null,
+      // 4. Düşmüyorsa ve asal sayıysa prime style
       !isFalling && cell.value && isPrime(cell.value) ? styles.primeCell : null,
-      // 3. Düşmüyorsa ve asal olmayan sayıysa normal style
+      // 5. Düşmüyorsa ve asal olmayan sayıysa (0 dahil) normal style
       !isFalling && cell.value && !isPrime(cell.value)
         ? styles.normalCell
         : null,
     ].filter((style) => style !== null);
 
-    // Text color logic - her zaman beyaz
     const textColor = "#fff";
 
     return (
@@ -86,7 +91,13 @@ const GameGrid: React.FC<GameGridProps> = ({
           <Text
             style={[
               styles.cellText,
-              isFalling ? styles.fallingCellText : null,
+              // Sadece düşen ve prime olmayan bloklar için falling text style
+              isFalling &&
+              cell.value &&
+              !isPrime(cell.value) &&
+              cell.value !== 0
+                ? styles.fallingCellText
+                : null,
               { color: textColor },
             ]}
           >
