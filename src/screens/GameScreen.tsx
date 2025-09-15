@@ -508,6 +508,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
       value: fallingBlock.value,
     };
 
+    // YENİ: Düşen bloğu hemen temizle
+    setGameState((prevState) => ({
+      ...prevState,
+      grid: newGrid,
+      fallingBlock: null, // Falling block'u temizle
+    }));
+
     // İlk patlama kontrolü - işlem sonucu değeri ile (BU COMBO DEĞİL!)
     const firstExplosion = checkExplosions(
       newGrid,
@@ -582,15 +589,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
     // Final state güncelle
     const newScore = state.score + totalScore;
 
-    setGameState({
-      ...state,
+    setGameState((prevState) => ({
+      ...prevState,
       grid: finalGrid,
       fallingBlock: createNewBlock(),
       score: newScore,
       selectedOperation: "none",
       level: Math.floor(newScore / 1300) + 1,
       gameSpeed: calculateGameSpeed(Math.floor(newScore / 1300) + 1),
-    });
+    }));
   };
 
   const landBlockAsync = async (state: GameState) => {
