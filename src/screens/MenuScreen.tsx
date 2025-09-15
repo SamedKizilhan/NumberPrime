@@ -151,7 +151,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const instructionsHeight = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 440], // Yaklaşık instruction yüksekliği
+    outputRange: [0, 500], // Yaklaşık instruction yüksekliği
   });
 
   const rotateIcon = animationValue.interpolate({
