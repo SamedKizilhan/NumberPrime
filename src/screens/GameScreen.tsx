@@ -383,7 +383,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
       // 3. Combo bonusu (ikinci ve sonraki patlamalar için)
       if (isCombo && cellsToExplode.size > 0) {
-        explosionType = "combo";
         totalScore += 150;
       }
     }
@@ -436,21 +435,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
         x: explosionX,
         y: explosionY,
         id: `popup-${Date.now()}-200`,
-      };
-      setScorePopups((prev) => [...prev, popup]);
-    }
-
-    if (
-      explosionType === "combo" &&
-      explosionX !== undefined &&
-      explosionY !== undefined
-    ) {
-      const popup: ScorePopup = {
-        score: 150,
-        x: explosionX,
-        y: explosionY,
-        id: `popup-${Date.now()}-150`,
-        isCombo: true,
       };
       setScorePopups((prev) => [...prev, popup]);
     }
