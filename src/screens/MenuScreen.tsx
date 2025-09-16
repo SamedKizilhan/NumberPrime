@@ -41,6 +41,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const [isNicknameSet, setIsNicknameSet] = useState<boolean>(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [animationValue] = useState(new Animated.Value(0));
+  const [isLoadingGameSounds, setIsLoadingGameSounds] = useState(false);
 
   // Menu açıldığında müzik başlat (kaldığı yerden)
   useEffect(() => {
@@ -92,8 +93,31 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const handleStartGame = async () => {
     if (isNicknameSet && playerNickname) {
-      // Zaten kayıtlı kullanıcı, direkt oyuna başla
-      onStartGame();
+      // Background music hazır mı kontrol et
+      const soundManager = SoundManager.getInstance();
+
+      if (!soundManager.isBackgroundMusicReady()) {
+        setIsLoadingGameSounds(true);
+
+        try {
+          // Background music yüklenene kadar bekle
+          await soundManager.ensureBackgroundMusicReady();
+          setIsLoadingGameSounds(false);
+
+          // Oyunu başlat
+          onStartGame();
+        } catch (error) {
+          setIsLoadingGameSounds(false);
+          Alert.alert(
+            "Hata",
+            "Ses dosyaları yüklenemedi. Oyun sessiz başlayacak."
+          );
+          onStartGame();
+        }
+      } else {
+        // Background music hazır, direkt başlat
+        onStartGame();
+      }
       return;
     }
 
@@ -211,12 +235,20 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
         </View>
         {!isInstructionsOpen && (
           <TouchableOpacity
-            style={styles.startButton}
+            style={[
+              styles.startButton,
+              isLoadingGameSounds && { opacity: 0.6 },
+            ]}
             onPress={handleStartGame}
-            activeOpacity={0.8}
+            disabled={isLoadingGameSounds}
+            activeOpacity={0.7}
           >
             <Text style={styles.startButtonText}>
-              {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
+              {isLoadingGameSounds
+                ? "Loading Sounds..."
+                : isNicknameSet
+                ? t("menu.startGame")
+                : t("menu.saveAndStart")}
             </Text>
           </TouchableOpacity>
         )}
@@ -611,6 +643,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)", // arka planı koyulaştırmak istersen
     justifyContent: "flex-end", // paneli altta konumlandır
     zIndex: 9999, // her şeyin üstünde olsun
+  },
+  loadingContainer: {
+    marginTop: 10,
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#00d2d3",
+    fontSize: 14,
+    fontStyle: "italic",
   },
 });
 
