@@ -253,6 +253,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </TouchableOpacity>
         )}
 
+        {isLoadingGameSounds && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Preparing game sounds...</Text>
+          </View>
+        )}
+
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
           onPress={onShowLeaderboard}

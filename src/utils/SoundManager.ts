@@ -84,6 +84,17 @@ class SoundManager {
     }, 100);
   }
 
+  public isBackgroundMusicReady(): boolean {
+    return this.backgroundMusic !== null;
+  }
+
+  public async ensureBackgroundMusicReady(): Promise<void> {
+    if (!this.backgroundMusic) {
+      console.log("Background music yükleniyor...");
+      await this.loadBackgroundMusic();
+    }
+  }
+
   // Menu müziği çalma
   async playMenuMusic() {
     if (!this.isMuted && this.menuMusic) {
