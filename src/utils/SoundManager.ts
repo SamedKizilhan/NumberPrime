@@ -62,13 +62,18 @@ class SoundManager {
   }
 
   private async loadCriticalSounds() {
-    // Sadece menu müziği ve temel sesler
-    if (!this.menuMusic) {
-      const { sound } = await Audio.Sound.createAsync(
-        require("../../assets/sounds/MenuScreenMusic.mp3")
-      );
-      await sound.setIsLoopingAsync(true);
-      this.menuMusic = sound;
+    try {
+      // Menu müziği yükle
+      if (!this.menuMusic) {
+        const { sound } = await Audio.Sound.createAsync(
+          require("../../assets/sounds/MenuScreenMusic.mp3")
+        );
+        await sound.setIsLoopingAsync(true);
+        this.menuMusic = sound;
+        console.log("Menu music critical yüklendi");
+      }
+    } catch (error) {
+      console.log("Critical sounds yükleme hatası:", error);
     }
   }
 
@@ -140,31 +145,39 @@ class SoundManager {
   }
   // Background müziği pause et (oyun içi kullanım için)
   async pauseBackgroundMusicForGame() {
-    if (this.backgroundMusic) {
-      try {
-        const status = await this.backgroundMusic.getStatusAsync();
-        if (status.isLoaded && status.isPlaying) {
-          await this.backgroundMusic.pauseAsync();
-          console.log("Background müzik oyun için pause edildi");
-        }
-      } catch (error) {
-        console.log("Background müzik pause hatası:", error);
+    if (!this.backgroundMusic) {
+      console.log("Background music henüz yüklenmemiş - pause atlanıyor");
+      return;
+    }
+
+    try {
+      const status = await this.backgroundMusic.getStatusAsync();
+      if (status.isLoaded && status.isPlaying) {
+        await this.backgroundMusic.pauseAsync();
+        console.log("Background müzik oyun için pause edildi");
       }
+    } catch (error) {
+      console.log("Background müzik pause hatası:", error);
     }
   }
 
   // Background müziği resume et (oyun içi kullanım için)
   async resumeBackgroundMusicForGame() {
-    if (this.backgroundMusic && !this.isMuted) {
-      try {
-        const status = await this.backgroundMusic.getStatusAsync();
-        if (status.isLoaded && !status.isPlaying) {
-          await this.backgroundMusic.playAsync();
-          console.log("Background müzik oyun için resume edildi");
-        }
-      } catch (error) {
-        console.log("Background müzik resume hatası:", error);
+    if (!this.backgroundMusic) {
+      console.log("Background music henüz yüklenmemiş - resume atlanıyor");
+      return;
+    }
+
+    if (this.isMuted) return;
+
+    try {
+      const status = await this.backgroundMusic.getStatusAsync();
+      if (status.isLoaded && !status.isPlaying) {
+        await this.backgroundMusic.playAsync();
+        console.log("Background müzik oyun için resume edildi");
       }
+    } catch (error) {
+      console.log("Background müzik resume hatası:", error);
     }
   }
 
@@ -237,30 +250,25 @@ class SoundManager {
   }
 
   private async loadBackgroundMusic() {
+    if (this.backgroundMusic) return; // Zaten yüklüyse çık
+
     try {
-      const { sound: bgMusic } = await Audio.Sound.createAsync(
+      const { sound } = await Audio.Sound.createAsync(
         require("../../assets/sounds/background.mp3"),
         {
           volume: this.isAndroid
-            ? this.backgroundMusicVolume * 1.1
+            ? this.backgroundMusicVolume * 0.9
             : this.backgroundMusicVolume,
           shouldPlay: false,
           isLooping: true,
-          // Android için ek ayarlar
-          ...(this.isAndroid && {
-            progressUpdateIntervalMillis: 500,
-          }),
         }
       );
-      this.backgroundMusic = bgMusic;
-      console.log("Background müzik yüklendi");
 
-      // Android için hazırlık
-      if (this.isAndroid) {
-        await bgMusic.setStatusAsync({ shouldPlay: false });
-      }
-    } catch (e) {
-      console.log("Background müzik yüklenemedi:", e);
+      this.backgroundMusic = sound;
+      console.log("Background müzik yüklendi ve hazır");
+    } catch (error) {
+      console.log("Background müzik yükleme hatası:", error);
+      this.backgroundMusic = null;
     }
   }
 

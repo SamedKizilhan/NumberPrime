@@ -10,6 +10,7 @@ import {
   Platform,
   Animated,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import SoundManager from "../utils/SoundManager";
 import { useTranslation } from "react-i18next";
@@ -341,6 +342,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           </TouchableWithoutFeedback>
         )}
       </View>
+      {/* Loading Overlay - EN SON */}
+      {isLoadingGameSounds && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContent}>
+            <ActivityIndicator size="large" color="#00d2d3" />
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -654,10 +664,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: "center",
   },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(26, 26, 46, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  loadingContent: {
+    alignItems: 'center',
+  },
   loadingText: {
-    color: "#00d2d3",
-    fontSize: 14,
-    fontStyle: "italic",
+    color: '#00d2d3',
+    fontSize: 18,
+    marginTop: 20,
+    fontWeight: '600',
   },
 });
 
