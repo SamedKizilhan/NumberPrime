@@ -200,21 +200,16 @@ const GameScreen: React.FC<GameScreenProps> = ({
         // Oyun aktifse ve pause değilse otomatik pause yap
         if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
           setIsPaused(true);
-          soundManager.pauseBackgroundMusic();
-        }
-      } else if (nextAppState === "active") {
-        // Ön plana geldiğinde eğer pause durumdaysa pause ekranında kal
-        if (isPaused && !gameState.isGameOver) {
-          // Hiçbir şey yapma, kullanıcı manuel resume etsin
+          soundManager.pauseBackgroundMusicForGame();
         }
       }
+      // active durumunda hiçbir şey yapma - kullanıcı manuel resume etsin
     };
 
     const subscription = AppState.addEventListener(
       "change",
       handleAppStateChange
     );
-
     return () => subscription?.remove();
   }, [gameState.isGameOver, isPaused, isLevelTransitioning]);
 
@@ -916,16 +911,17 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return createNewFallingBlock();
   };
 
-  const togglePause = () => {
-    soundManager.playButtonSound(); // Ses ekle
-    const newPauseState = !isPaused;
-    setIsPaused(newPauseState);
+  const togglePause = async () => {
+    if (gameState.isGameOver || isLevelTransitioning) return;
 
-    // Müziği pause/resume et
-    if (newPauseState) {
-      soundManager.pauseBackgroundMusic();
+    if (isPaused) {
+      // Resume game
+      setIsPaused(false);
+      await soundManager.resumeBackgroundMusicForGame();
     } else {
-      soundManager.playBackgroundMusic();
+      // Pause game
+      setIsPaused(true);
+      await soundManager.pauseBackgroundMusicForGame();
     }
   };
 

@@ -138,11 +138,44 @@ class SoundManager {
       }
     }
   }
+  // Background müziği pause et (oyun içi kullanım için)
+  async pauseBackgroundMusicForGame() {
+    if (this.backgroundMusic) {
+      try {
+        const status = await this.backgroundMusic.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          await this.backgroundMusic.pauseAsync();
+          console.log("Background müzik oyun için pause edildi");
+        }
+      } catch (error) {
+        console.log("Background müzik pause hatası:", error);
+      }
+    }
+  }
 
-  // Menu müziği baştan başlatma
+  // Background müziği resume et (oyun içi kullanım için)
+  async resumeBackgroundMusicForGame() {
+    if (this.backgroundMusic && !this.isMuted) {
+      try {
+        const status = await this.backgroundMusic.getStatusAsync();
+        if (status.isLoaded && !status.isPlaying) {
+          await this.backgroundMusic.playAsync();
+          console.log("Background müzik oyun için resume edildi");
+        }
+      } catch (error) {
+        console.log("Background müzik resume hatası:", error);
+      }
+    }
+  }
+
+  // Menu müziğini baştan başlat (ana menüye dönünce)
   async restartMenuMusic() {
     if (!this.isMuted && this.menuMusic) {
       try {
+        // Önce background müziği tamamen durdur
+        await this.pauseBackgroundMusic();
+
+        // Menu müziğini dur ve baştan başlat
         await this.menuMusic.stopAsync();
         await this.menuMusic.setVolumeAsync(this.musicVolume);
         await this.menuMusic.playAsync();

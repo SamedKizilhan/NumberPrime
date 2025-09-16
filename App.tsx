@@ -148,7 +148,6 @@ export default function App() {
       await handleNicknameSet(nickname.trim());
     }
 
-    // Menu müziğini durdur ve oyun müziğini başlat
     const soundManager = SoundManager.getInstance();
     await soundManager.pauseMenuMusic();
     await soundManager.startGameMusic();
@@ -157,11 +156,11 @@ export default function App() {
   };
 
   const handleGameEnd = async () => {
-    // Oyun müziğini durdur ve menu müziğini başlat
+    // Oyun müziğini durdur ve menu müziğini baştan başlat
     const soundManager = SoundManager.getInstance();
     soundManager.cancelPendingBackgroundMusicResume();
     await soundManager.pauseBackgroundMusic();
-    await soundManager.playMenuMusic();
+    await soundManager.restartMenuMusic(); // playMenuMusic yerine restartMenuMusic
 
     setCurrentScreen("menu");
   };
