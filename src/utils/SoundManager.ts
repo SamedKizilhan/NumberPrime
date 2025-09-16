@@ -35,11 +35,10 @@ class SoundManager {
   }
 
   async initialize() {
-    // Her seferinde yeniden yükle (cache problemini çöz)
     try {
       console.log("SoundManager initialize başlıyor...");
 
-      // Audio modunu ayarla
+      // Audio mode setup
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
@@ -48,35 +47,41 @@ class SoundManager {
         playThroughEarpieceAndroid: false,
       });
 
-      // Background müzik yükle
-      if (!this.backgroundMusic) {
-        this.backgroundMusic = new Audio.Sound();
-        await this.backgroundMusic.loadAsync(
-          require("../../assets/sounds/background.mp3")
-        );
-        await this.backgroundMusic.setIsLoopingAsync(true);
-        console.log("Background müzik yüklendi");
-      }
+      // ÖNCE sadece menu müziği yükle (hızlı başlangıç için)
+      await this.loadCriticalSounds();
 
-      // Menu müzik yükle
-      if (!this.menuMusic) {
-        this.menuMusic = new Audio.Sound();
-        await this.menuMusic.loadAsync(
-          require("../../assets/sounds/MenuScreenMusic.mp3")
-        );
-        await this.menuMusic.setIsLoopingAsync(true);
-        console.log("Menu müzik yüklendi");
-      }
-
-      // Mevcut sesleri kontrol et ve eksikse yükle
-      await this.ensureSoundsLoaded();
+      // Sonra diğer sesleri arka planda yükle
+      this.loadRemainingSounds(); // await YOK - paralel yükleme
 
       this.isInitialized = true;
-      console.log("SoundManager başarıyla initialize edildi");
+      console.log("Critical sounds yüklendi");
     } catch (error) {
       console.error("SoundManager initialize hatası:", error);
       this.isInitialized = true;
     }
+  }
+
+  private async loadCriticalSounds() {
+    // Sadece menu müziği ve temel sesler
+    if (!this.menuMusic) {
+      const { sound } = await Audio.Sound.createAsync(
+        require("../../assets/sounds/MenuScreenMusic.mp3")
+      );
+      await sound.setIsLoopingAsync(true);
+      this.menuMusic = sound;
+    }
+  }
+
+  private loadRemainingSounds() {
+    // Diğer sesleri arka planda yükle (async ama await yok)
+    setTimeout(async () => {
+      await this.loadBackgroundMusic();
+      if (this.isAndroid) {
+        await this.createSoundPools();
+      } else {
+        await this.loadSingleEffectSounds();
+      }
+    }, 100);
   }
 
   // Menu müziği çalma

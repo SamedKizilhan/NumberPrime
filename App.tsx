@@ -35,33 +35,32 @@ export default function App() {
   useEffect(() => {
     const initialize = async () => {
       try {
+        // Ses yüklemeyi PARALEL başlatın
+        const soundManager = SoundManager.getInstance();
+        const soundInitPromise = soundManager.initialize();
+
         // İlk olarak i18n'i başlat
         await initializeI18n();
         setIsI18nReady(true);
 
         // GEÇICI: User profile'ı sıfırla (sadece test için)
         // await AsyncStorage.removeItem("@NumPrime_UserProfile");
-        // console.log("User profile resetlendi");
 
         // Sonra kullanıcı profilini kontrol et
         const profile = await getUserProfile();
         if (profile && profile.nickname) {
           setPlayerNickname(profile.nickname);
         }
+        // Ses yüklemesinin bitmesini bekle
+        await soundInitPromise;
+
+        // Menu müziğini hemen başlat
+        await soundManager.playMenuMusic();
       } catch (error) {
         console.error("Error initializing app:", error);
-        setIsI18nReady(true); // Hata durumunda da devam et
+        setIsI18nReady(true);
       } finally {
         setIsCheckingUser(false);
-
-        // SoundManager'ı initialize et ve menu müziğini başlat
-        const initializeSound = async () => {
-          const soundManager = SoundManager.getInstance();
-          await soundManager.initialize();
-          await soundManager.playMenuMusic();
-        };
-
-        initializeSound();
       }
     };
 
