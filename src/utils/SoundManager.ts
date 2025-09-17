@@ -249,6 +249,30 @@ class SoundManager {
     }
   }
 
+  private async resetAndroidSoundPools() {
+    if (this.isAndroid) {
+      console.log("Android sound pools sıfırlanıyor...");
+
+      // Mevcut pool'ları temizle
+      for (const poolKey in this.soundPool) {
+        const pool = this.soundPool[poolKey];
+        for (const sound of pool) {
+          try {
+            await sound.unloadAsync();
+          } catch (e) {
+            console.log(`Pool sound unload error: ${e}`);
+          }
+        }
+      }
+
+      // Pool'ları sıfırla
+      this.soundPool = {};
+
+      // Yeniden oluştur
+      await this.createSoundPools();
+    }
+  }
+
   private async loadBackgroundMusic() {
     if (this.backgroundMusic) return; // Zaten yüklüyse çık
 
@@ -454,6 +478,10 @@ class SoundManager {
   }
 
   private async playFromPool(poolKey: string): Promise<void> {
+    if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
+      console.log(`${poolKey} pool boş - yeniden oluşturuluyor`);
+      await this.ensureSoundsLoaded();
+    }
     if (this.isMuted) return;
 
     if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
@@ -712,6 +740,7 @@ class SoundManager {
 
   // Yeni fonksiyon: Oyun için müzik başlat (her zaman baştan)
   async startGameMusic() {
+    await this.ensureSoundsLoaded();
     await this.restartBackgroundMusic();
   }
 
