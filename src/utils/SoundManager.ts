@@ -205,47 +205,30 @@ class SoundManager {
       await this.loadBackgroundMusic();
     }
 
-    // Effect sesler kontrolü
-    if (this.isAndroid) {
-      // Android pool kontrolü
-      const requiredPools = [
-        "explosion",
-        "primeExplosion",
-        "prime2",
-        "combo",
-        "button",
-        "move",
-        "drop",
-        "failure",
-      ];
+    // Effect sesler kontrolü - hem Android hem iOS için tekli sistem
+    const sounds = [
+      { prop: "explosionSound", name: "explosion" },
+      { prop: "buttonSound", name: "button" },
+      { prop: "moveSound", name: "move" },
+      { prop: "dropSound", name: "drop" },
+      { prop: "primeExplosionSound", name: "primeExplosion" },
+      { prop: "prime2Sound", name: "prime2" },
+      { prop: "comboSound", name: "combo" },
+      { prop: "failureSound", name: "failure" },
+    ];
 
-      for (const poolKey of requiredPools) {
-        if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
-          console.log(`${poolKey} pool eksik, yeniden oluşturuluyor...`);
-          await this.createSoundPools();
-          break; // Bir tane eksikse hepsini yeniden oluştur
-        }
+    let needReload = false;
+    for (const soundCheck of sounds) {
+      if (!(this as any)[soundCheck.prop]) {
+        needReload = true;
+        console.log(`${soundCheck.name} sesi eksik`);
+        break;
       }
-    } else {
-      // iOS ses kontrolü
-      const sounds = [
-        { prop: "explosionSound", loader: () => this.loadSingleEffectSounds() },
-        { prop: "buttonSound", loader: () => this.loadSingleEffectSounds() },
-        // Diğer sesler de aynı loader'ı kullanır
-      ];
+    }
 
-      let needReload = false;
-      for (const soundCheck of sounds) {
-        if (!(this as any)[soundCheck.prop]) {
-          needReload = true;
-          break;
-        }
-      }
-
-      if (needReload) {
-        console.log("iOS sesler eksik, yeniden yükleniyor...");
-        await this.loadSingleEffectSounds();
-      }
+    if (needReload) {
+      console.log("Sesler eksik, yeniden yükleniyor...");
+      await this.loadSingleEffectSounds();
     }
   }
 
@@ -297,85 +280,13 @@ class SoundManager {
   }
 
   private async loadEffectSounds() {
-    // Android için sound pool oluştur
-    if (this.isAndroid) {
-      await this.createSoundPools();
-    } else {
-      await this.loadSingleEffectSounds();
-    }
+    await this.loadSingleEffectSounds();
   }
 
   private async createSoundPools() {
-    console.log("Android sound pool oluşturuluyor...");
-
-    // Her efekt sesi için pool oluştur
-    const soundFiles = [
-      {
-        key: "explosion",
-        file: require("../../assets/sounds/explosion.mp3"),
-        volume: 0.9,
-      },
-      {
-        key: "primeExplosion",
-        file: require("../../assets/sounds/prime_explosion.mp3"),
-        volume: 1.0,
-      },
-      {
-        key: "prime2",
-        file: require("../../assets/sounds/prime2.mp3"),
-        volume: 0.7,
-      },
-      {
-        key: "combo",
-        file: require("../../assets/sounds/combo.mp3"),
-        volume: 0.9,
-      },
-      {
-        key: "button",
-        file: require("../../assets/sounds/button.mp3"),
-        volume: 0.3,
-      }, // Düşük ses
-      {
-        key: "move",
-        file: require("../../assets/sounds/move.mp3"),
-        volume: 0.75,
-      },
-      {
-        key: "drop",
-        file: require("../../assets/sounds/drop.mp3"),
-        volume: 0.3,
-      },
-      {
-        key: "failure",
-        file: require("../../assets/sounds/failure.mp3"),
-        volume: 0.8,
-      },
-    ];
-
-    for (const soundFile of soundFiles) {
-      this.soundPool[soundFile.key] = [];
-
-      for (let i = 0; i < this.poolSize; i++) {
-        try {
-          const { sound } = await Audio.Sound.createAsync(soundFile.file, {
-            volume: this.effectsVolume * (soundFile.volume || 0.7), // Her ses için özel volume
-            shouldPlay: false,
-            isLooping: false,
-          });
-
-          await sound.setStatusAsync({ shouldPlay: false });
-          this.soundPool[soundFile.key].push(sound);
-        } catch (error) {
-          console.log(`${soundFile.key} pool item ${i} yüklenemedi:`, error);
-        }
-      }
-
-      console.log(
-        `${soundFile.key} pool oluşturuldu: ${
-          this.soundPool[soundFile.key].length
-        } item`
-      );
-    }
+    console.log("Android pool sistemi devre dışı - tekli sistem kullanılıyor");
+    // Pool sistemi yerine tekli sistem kullan
+    await this.loadSingleEffectSounds();
   }
 
   private async loadSingleEffectSounds() {
@@ -478,41 +389,43 @@ class SoundManager {
   }
 
   private async playFromPool(poolKey: string): Promise<void> {
-    if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
-      console.log(`${poolKey} pool boş - yeniden oluşturuluyor`);
-      await this.ensureSoundsLoaded();
-    }
     if (this.isMuted) return;
 
-    if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
-      console.log(`${poolKey} pool eksik, çalıştırılamıyor`);
+    // Android için de tekli sistem kullan
+    const soundMapping: { [key: string]: Audio.Sound | null } = {
+      explosion: this.explosionSound,
+      primeExplosion: this.primeExplosionSound,
+      prime2: this.prime2Sound,
+      combo: this.comboSound,
+      button: this.buttonSound,
+      move: this.moveSound,
+      drop: this.dropSound,
+      failure: this.failureSound,
+    };
+
+    const sound = soundMapping[poolKey];
+    if (!sound) {
+      console.log(`${poolKey} sesi yüklü değil`);
       return;
     }
 
     try {
-      // Pool'dan kullanılabilir bir ses bul
-      for (let i = 0; i < this.soundPool[poolKey].length; i++) {
-        const sound = this.soundPool[poolKey][i];
-        const status = await sound.getStatusAsync();
-
-        if (status.isLoaded) {
-          if (!status.isPlaying) {
-            await sound.setPositionAsync(0); // Baştan başlat
-            await sound.playAsync();
-            console.log(`${poolKey} sesi çalındı (pool ${i})`);
-            return;
-          }
-        }
-      }
-
-      // Tüm sesler meşgulse, ilkini durdur ve tekrar çal
-      const firstSound = this.soundPool[poolKey][0];
-      await firstSound.stopAsync();
-      await firstSound.setPositionAsync(0);
-      await firstSound.playAsync();
-      console.log(`${poolKey} sesi zorla çalındı (ilk pool)`);
+      await sound.replayAsync();
+      console.log(`${poolKey} sesi çalındı (tekli sistem)`);
     } catch (error) {
-      console.log(`${poolKey} pool çalma hatası:`, error);
+      console.log(`${poolKey} sesi çalma hatası:`, error);
+
+      // Hata durumunda sesi yeniden yüklemeyi dene
+      try {
+        await this.loadSingleEffectSounds();
+        const reloadedSound = soundMapping[poolKey];
+        if (reloadedSound) {
+          await reloadedSound.replayAsync();
+          console.log(`${poolKey} sesi yeniden yüklendi ve çalındı`);
+        }
+      } catch (retryError) {
+        console.log(`${poolKey} sesi retry hatası:`, retryError);
+      }
     }
   }
 
