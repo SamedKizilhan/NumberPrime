@@ -454,28 +454,37 @@ class SoundManager {
   }
 
   private async playFromPool(poolKey: string): Promise<void> {
-    if (!this.isMuted && this.soundPool[poolKey]) {
-      // Boş bir ses bul
-      for (const sound of this.soundPool[poolKey]) {
-        try {
-          const status = await sound.getStatusAsync();
-          if (status.isLoaded && !status.isPlaying) {
-            await sound.replayAsync();
+    if (this.isMuted) return;
+
+    if (!this.soundPool[poolKey] || this.soundPool[poolKey].length === 0) {
+      console.log(`${poolKey} pool eksik, çalıştırılamıyor`);
+      return;
+    }
+
+    try {
+      // Pool'dan kullanılabilir bir ses bul
+      for (let i = 0; i < this.soundPool[poolKey].length; i++) {
+        const sound = this.soundPool[poolKey][i];
+        const status = await sound.getStatusAsync();
+
+        if (status.isLoaded) {
+          if (!status.isPlaying) {
+            await sound.setPositionAsync(0); // Baştan başlat
+            await sound.playAsync();
+            console.log(`${poolKey} sesi çalındı (pool ${i})`);
             return;
           }
-        } catch (error) {
-          console.log(`Pool ses ${poolKey} çalma hatası:`, error);
         }
       }
 
-      // Hepsi meşgulse ilkini kullan
-      try {
-        const firstSound = this.soundPool[poolKey][0];
-        await firstSound.stopAsync();
-        await firstSound.replayAsync();
-      } catch (error) {
-        console.log(`Pool ses ${poolKey} fallback hatası:`, error);
-      }
+      // Tüm sesler meşgulse, ilkini durdur ve tekrar çal
+      const firstSound = this.soundPool[poolKey][0];
+      await firstSound.stopAsync();
+      await firstSound.setPositionAsync(0);
+      await firstSound.playAsync();
+      console.log(`${poolKey} sesi zorla çalındı (ilk pool)`);
+    } catch (error) {
+      console.log(`${poolKey} pool çalma hatası:`, error);
     }
   }
 
