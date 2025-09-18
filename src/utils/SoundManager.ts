@@ -154,6 +154,8 @@ class SoundManager {
 
   // Background müziği pause et (oyun içi kullanım için)
   async pauseBackgroundMusicForGame() {
+    console.log("pauseBackgroundMusicForGame çağrıldı");
+
     if (!this.backgroundMusic) {
       console.log("Background music henüz yüklenmemiş - pause atlanıyor");
       return;
@@ -167,9 +169,27 @@ class SoundManager {
       this.setGamePaused(true);
 
       const status = await this.backgroundMusic.getStatusAsync();
-      if (status.isLoaded && status.isPlaying) {
+      console.log("Background music status:", status);
+
+      if (status.isLoaded) {
+        // ÖNEMLİ: shouldPlay'i false yap ki otomatik başlamasın
+        await this.backgroundMusic.setStatusAsync({
+          shouldPlay: false,
+        });
+
+        // Sonra pause et
         await this.backgroundMusic.pauseAsync();
         console.log("Background müzik oyun için pause edildi");
+
+        // Pause sonrası durumu kontrol et
+        const afterStatus = await this.backgroundMusic.getStatusAsync();
+        if (afterStatus.isLoaded) {
+          console.log("Pause sonrası status:", {
+            isLoaded: afterStatus.isLoaded,
+            isPlaying: afterStatus.isPlaying,
+            shouldPlay: afterStatus.shouldPlay,
+          });
+        }
       }
     } catch (error) {
       console.log("Background müzik pause hatası:", error);
@@ -194,6 +214,11 @@ class SoundManager {
     try {
       const status = await this.backgroundMusic.getStatusAsync();
       if (status.isLoaded && !status.isPlaying) {
+        // ÖNEMLİ: shouldPlay'i true yap
+        await this.backgroundMusic.setStatusAsync({
+          shouldPlay: true,
+        });
+
         await this.backgroundMusic.playAsync();
         console.log("Background müzik oyun için resume edildi");
       }
