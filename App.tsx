@@ -31,6 +31,10 @@ export default function App() {
   const [playerNickname, setPlayerNickname] = useState<string>("");
   const [isCheckingUser, setIsCheckingUser] = useState<boolean>(true);
   const [isI18nReady, setIsI18nReady] = useState<boolean>(false);
+  const [gamePaused, setGamePaused] = useState<boolean>(false);
+  const handleGamePause = (paused: boolean) => {
+    setGamePaused(paused);
+  };
 
   useEffect(() => {
     const initialize = async () => {
@@ -81,28 +85,30 @@ export default function App() {
     }
   }, [currentScreen]);
 
-  // SoundManager cleanup - uygulama kapanırken
-  // SoundManager cleanup - uygulama kapanırken
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
       const soundManager = SoundManager.getInstance();
 
       if (nextAppState === "background" || nextAppState === "inactive") {
         soundManager.pauseMenuMusic();
-        // Oyun ekranında DEĞİLSE background müziği de durdur
         if (currentScreen !== "game") {
           soundManager.pauseBackgroundMusic();
         }
       } else if (nextAppState === "active") {
         setTimeout(async () => {
           try {
-            // SADECE OYUN EKRANINDA DEĞILSE müziği başlat
             if (currentScreen !== "game") {
-              // Menu, leaderboard, credits, support ekranlarında menu müziği
               await soundManager.ensureMenuMusicPlaying();
+            } else {
+              // Oyun ekranındaysak VE pause durumu değilse müziği başlatma
+              if (!soundManager.isGameCurrentlyPaused()) {
+                console.log(
+                  "Oyun pause değil - müzik başlatılmıyor (manuel resume gerekli)"
+                );
+              } else {
+                console.log("Oyun pause durumunda - müzik başlatılmıyor");
+              }
             }
-            // currentScreen === "game" ise hiçbir şey yapma
-            // Çünkü oyun zaten pause durumunda ve kullanıcı manuel resume edecek
           } catch (error) {
             console.log("Music resume error:", error);
           }
@@ -114,10 +120,7 @@ export default function App() {
       "change",
       handleAppStateChange
     );
-
-    return () => {
-      subscription?.remove();
-    };
+    return () => subscription?.remove();
   }, [currentScreen]);
 
   // Uygulama gerçekten kapanırken cleanup

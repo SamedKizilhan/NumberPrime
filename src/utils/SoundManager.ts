@@ -2,6 +2,7 @@ import { Audio } from "expo-av";
 import { Platform } from "react-native";
 
 class SoundManager {
+  private isGamePaused: boolean = false;
   private backgroundMusicResumeTimeout: NodeJS.Timeout | null = null;
   private temporaryPauseTimeout: NodeJS.Timeout | null = null;
   private static instance: SoundManager;
@@ -25,7 +26,6 @@ class SoundManager {
   // Android için ek ayarlar
   private isAndroid: boolean = Platform.OS === "android";
   private soundPool: { [key: string]: Audio.Sound[] } = {}; // Sound pool for Android
-  private poolSize: number = 3; // Her ses için 3 instance
 
   static getInstance(): SoundManager {
     if (!SoundManager.instance) {
@@ -140,6 +140,18 @@ class SoundManager {
       }
     }
   }
+
+  // Pause durumunu set et
+  setGamePaused(paused: boolean) {
+    this.isGamePaused = paused;
+    console.log(`Game pause durumu: ${paused}`);
+  }
+
+  // Pause durumunu kontrol et
+  isGameCurrentlyPaused(): boolean {
+    return this.isGamePaused;
+  }
+
   // Background müziği pause et (oyun içi kullanım için)
   async pauseBackgroundMusicForGame() {
     if (!this.backgroundMusic) {
@@ -150,6 +162,9 @@ class SoundManager {
     try {
       // Önce tüm timeout'ları iptal et
       this.cancelPendingBackgroundMusicResume();
+
+      // Game pause durumunu set et
+      this.setGamePaused(true);
 
       const status = await this.backgroundMusic.getStatusAsync();
       if (status.isLoaded && status.isPlaying) {
@@ -171,6 +186,9 @@ class SoundManager {
     if (this.isMuted) return;
 
     try {
+      // Game pause durumunu set et
+      this.setGamePaused(false);
+
       const status = await this.backgroundMusic.getStatusAsync();
       if (status.isLoaded && !status.isPlaying) {
         await this.backgroundMusic.playAsync();
