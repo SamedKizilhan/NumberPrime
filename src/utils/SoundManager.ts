@@ -81,11 +81,8 @@ class SoundManager {
     // Diğer sesleri arka planda yükle (async ama await yok)
     setTimeout(async () => {
       await this.loadBackgroundMusic();
-      if (this.isAndroid) {
-        await this.createSoundPools();
-      } else {
-        await this.loadSingleEffectSounds();
-      }
+      await this.loadSingleEffectSounds(); // Pool sistemi kaldırıldı
+      console.log("Tüm geri kalan sesler yüklendi");
     }, 100);
   }
 
@@ -232,30 +229,6 @@ class SoundManager {
     }
   }
 
-  private async resetAndroidSoundPools() {
-    if (this.isAndroid) {
-      console.log("Android sound pools sıfırlanıyor...");
-
-      // Mevcut pool'ları temizle
-      for (const poolKey in this.soundPool) {
-        const pool = this.soundPool[poolKey];
-        for (const sound of pool) {
-          try {
-            await sound.unloadAsync();
-          } catch (e) {
-            console.log(`Pool sound unload error: ${e}`);
-          }
-        }
-      }
-
-      // Pool'ları sıfırla
-      this.soundPool = {};
-
-      // Yeniden oluştur
-      await this.createSoundPools();
-    }
-  }
-
   private async loadBackgroundMusic() {
     if (this.backgroundMusic) return; // Zaten yüklüyse çık
 
@@ -280,12 +253,6 @@ class SoundManager {
   }
 
   private async loadEffectSounds() {
-    await this.loadSingleEffectSounds();
-  }
-
-  private async createSoundPools() {
-    console.log("Android pool sistemi devre dışı - tekli sistem kullanılıyor");
-    // Pool sistemi yerine tekli sistem kullan
     await this.loadSingleEffectSounds();
   }
 
@@ -660,6 +627,42 @@ class SoundManager {
   // Yeni fonksiyon: Ana menü için müzik (kaldığı yerden devam)
   async startMenuMusic() {
     await this.playMenuMusic();
+  }
+
+  // Tüm effect sesler yüklenmiş mi kontrol et
+  public areEffectSoundsReady(): boolean {
+    const requiredSounds = [
+      this.explosionSound,
+      this.buttonSound,
+      this.moveSound,
+      this.dropSound,
+      this.primeExplosionSound,
+      this.prime2Sound,
+      this.comboSound,
+      this.failureSound,
+    ];
+
+    return requiredSounds.every((sound) => sound !== null);
+  }
+
+  // Tüm effect sesler hazır olana kadar bekle
+  public async ensureAllSoundsReady(): Promise<void> {
+    if (!this.backgroundMusic) {
+      console.log("Background music yükleniyor...");
+      await this.loadBackgroundMusic();
+    }
+
+    if (!this.areEffectSoundsReady()) {
+      console.log("Effect sesler yükleniyor...");
+      await this.loadSingleEffectSounds();
+    }
+
+    console.log("Tüm sesler hazır!");
+  }
+
+  // Loading durumunu kontrol et
+  public isFullyReady(): boolean {
+    return this.backgroundMusic !== null && this.areEffectSoundsReady();
   }
 
   // Mevcut müziğin çalıp çalmadığını kontrol et

@@ -94,15 +94,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
   const handleStartGame = async () => {
     if (isNicknameSet && playerNickname) {
-      // Background music hazır mı kontrol et
+      // Tüm sesler hazır mı kontrol et
       const soundManager = SoundManager.getInstance();
 
-      if (!soundManager.isBackgroundMusicReady()) {
+      if (!soundManager.isFullyReady()) {
         setIsLoadingGameSounds(true);
 
         try {
-          // Background music yüklenene kadar bekle
-          await soundManager.ensureBackgroundMusicReady();
+          // Tüm sesler yüklenene kadar bekle
+          await soundManager.ensureAllSoundsReady();
           setIsLoadingGameSounds(false);
 
           // Oyunu başlat
@@ -116,7 +116,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
           onStartGame();
         }
       } else {
-        // Background music hazır, direkt başlat
+        // Tüm sesler hazır, direkt başlat
         onStartGame();
       }
       return;
@@ -245,19 +245,9 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             activeOpacity={0.7}
           >
             <Text style={styles.startButtonText}>
-              {isLoadingGameSounds
-                ? "Loading Sounds..."
-                : isNicknameSet
-                ? t("menu.startGame")
-                : t("menu.saveAndStart")}
+              {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
             </Text>
           </TouchableOpacity>
-        )}
-
-        {isLoadingGameSounds && (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Preparing game sounds...</Text>
-          </View>
         )}
 
         <TouchableOpacity
@@ -665,24 +655,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(26, 26, 46, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(26, 26, 46, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 9999,
   },
   loadingContent: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
-    color: '#00d2d3',
+    color: "#00d2d3",
     fontSize: 18,
     marginTop: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
