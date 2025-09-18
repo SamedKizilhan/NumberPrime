@@ -194,13 +194,26 @@ const GameScreen: React.FC<GameScreenProps> = ({
     return () => backHandler.remove();
   }, []);
 
+  const togglePause = async () => {
+    if (gameState.isGameOver || isLevelTransitioning) return;
+
+    if (isPaused) {
+      // Resume game
+      setIsPaused(false);
+      await soundManager.resumeBackgroundMusicForGame();
+    } else {
+      // Pause game
+      setIsPaused(true);
+      await soundManager.pauseBackgroundMusicForGame();
+    }
+  };
+
   useEffect(() => {
     const handleAppStateChange = (nextAppState: string) => {
       if (nextAppState === "background" || nextAppState === "inactive") {
         // Oyun aktifse ve pause değilse otomatik pause yap
         if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
-          setIsPaused(true);
-          soundManager.pauseBackgroundMusicForGame();
+          togglePause();
         }
       }
       // active durumunda hiçbir şey yapma - kullanıcı manuel resume etsin
@@ -211,7 +224,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
       handleAppStateChange
     );
     return () => subscription?.remove();
-  }, [gameState.isGameOver, isPaused, isLevelTransitioning]);
+  }, [gameState.isGameOver, isPaused, isLevelTransitioning, togglePause]);
 
   // moveBlockDown fonksiyonunu ref olarak sakla
   const moveBlockDownRef = useRef(() => {});
@@ -909,20 +922,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
   const createNewBlock = (): FallingBlock => {
     return createNewFallingBlock();
-  };
-
-  const togglePause = async () => {
-    if (gameState.isGameOver || isLevelTransitioning) return;
-
-    if (isPaused) {
-      // Resume game
-      setIsPaused(false);
-      await soundManager.resumeBackgroundMusicForGame();
-    } else {
-      // Pause game
-      setIsPaused(true);
-      await soundManager.pauseBackgroundMusicForGame();
-    }
   };
 
   if (gameState.isGameOver) {

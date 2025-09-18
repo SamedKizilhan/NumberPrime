@@ -88,12 +88,12 @@ export default function App() {
       const soundManager = SoundManager.getInstance();
 
       if (nextAppState === "background" || nextAppState === "inactive") {
-        soundManager.pauseBackgroundMusic();
+        soundManager.pauseBackgroundMusicForGame();
         soundManager.pauseMenuMusic();
       } else if (nextAppState === "active") {
         setTimeout(async () => {
           try {
-            // SADECE OYUN EKRANINDAPara DEĞILSE müziği başlat
+            // SADECE OYUN EKRANINDA DEĞILSE müziği başlat
             if (currentScreen !== "game") {
               // Menu, leaderboard, credits, support ekranlarında menu müziği
               await soundManager.ensureMenuMusicPlaying();
