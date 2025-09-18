@@ -148,6 +148,9 @@ class SoundManager {
     }
 
     try {
+      // Önce tüm timeout'ları iptal et
+      this.cancelPendingBackgroundMusicResume();
+
       const status = await this.backgroundMusic.getStatusAsync();
       if (status.isLoaded && status.isPlaying) {
         await this.backgroundMusic.pauseAsync();

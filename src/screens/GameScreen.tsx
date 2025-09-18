@@ -209,22 +209,23 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === "background" || nextAppState === "inactive") {
-        // Oyun aktifse ve pause değilse otomatik pause yap
-        if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
-          togglePause();
-        }
+  const handleAppStateChange = async (nextAppState: string) => {
+    if (nextAppState === "background" || nextAppState === "inactive") {
+      // Oyun aktifse ve pause değilse otomatik pause yap
+      if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
+        console.log("Arka plana atıldı - pause yapılıyor");
+        setIsPaused(true);
+        await soundManager.pauseBackgroundMusicForGame();
       }
-      // active durumunda hiçbir şey yapma - kullanıcı manuel resume etsin
-    };
+    }
+  };
 
-    const subscription = AppState.addEventListener(
-      "change",
-      handleAppStateChange
-    );
-    return () => subscription?.remove();
-  }, [gameState.isGameOver, isPaused, isLevelTransitioning, togglePause]);
+  const subscription = AppState.addEventListener(
+    "change",
+    handleAppStateChange
+  );
+  return () => subscription?.remove();
+}, [gameState.isGameOver, isPaused, isLevelTransitioning]);
 
   // moveBlockDown fonksiyonunu ref olarak sakla
   const moveBlockDownRef = useRef(() => {});

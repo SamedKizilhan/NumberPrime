@@ -88,8 +88,11 @@ export default function App() {
       const soundManager = SoundManager.getInstance();
 
       if (nextAppState === "background" || nextAppState === "inactive") {
-        soundManager.pauseBackgroundMusicForGame();
         soundManager.pauseMenuMusic();
+        // Oyun ekranında DEĞİLSE background müziği de durdur
+        if (currentScreen !== "game") {
+          soundManager.pauseBackgroundMusic();
+        }
       } else if (nextAppState === "active") {
         setTimeout(async () => {
           try {
