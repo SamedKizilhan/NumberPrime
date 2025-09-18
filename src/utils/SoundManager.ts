@@ -185,10 +185,13 @@ class SoundManager {
 
     if (this.isMuted) return;
 
-    try {
-      // Game pause durumunu set et
-      this.setGamePaused(false);
+    // Oyun pause durumundaysa müzik başlatma
+    if (this.isGamePaused) {
+      console.log("Oyun hala pause durumunda - müzik başlatılmadı");
+      return;
+    }
 
+    try {
       const status = await this.backgroundMusic.getStatusAsync();
       if (status.isLoaded && !status.isPlaying) {
         await this.backgroundMusic.playAsync();
@@ -419,6 +422,12 @@ class SoundManager {
 
   // Background müzik kontrolleri
   async playBackgroundMusic() {
+    // Oyun pause durumundaysa müzik başlatma
+    if (this.isGamePaused) {
+      console.log("Oyun pause durumunda - background müzik başlatılmadı");
+      return;
+    }
+
     if (!this.isMuted && this.backgroundMusic) {
       try {
         const status = await this.backgroundMusic.getStatusAsync();
@@ -438,6 +447,12 @@ class SoundManager {
 
   // Yeni fonksiyon: Müziği baştan başlat
   async restartBackgroundMusic() {
+    // Oyun pause durumundaysa müzik başlatma
+    if (this.isGamePaused) {
+      console.log("Oyun pause durumunda - background müzik restart edilmedi");
+      return;
+    }
+
     if (!this.isMuted && this.backgroundMusic) {
       try {
         await this.backgroundMusic.stopAsync();
@@ -659,6 +674,8 @@ class SoundManager {
 
   // Yeni fonksiyon: Oyun için müzik başlat (her zaman baştan)
   async startGameMusic() {
+    // Oyun başlarken pause durumunu sıfırla
+    this.setGamePaused(false);
     await this.ensureSoundsLoaded();
     await this.restartBackgroundMusic();
   }
@@ -731,6 +748,12 @@ class SoundManager {
 
   // Güvenli müzik başlatma (çoklu çağrı koruması ile)
   async safePlayBackgroundMusic() {
+    // Oyun pause durumundaysa müzik başlatma
+    if (this.isGamePaused) {
+      console.log("Oyun pause durumunda - safe background müzik başlatılmadı");
+      return;
+    }
+
     if (!this.isMuted && !(await this.isBackgroundMusicPlaying())) {
       await this.playBackgroundMusic();
     }

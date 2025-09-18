@@ -198,34 +198,45 @@ const GameScreen: React.FC<GameScreenProps> = ({
     if (gameState.isGameOver || isLevelTransitioning) return;
 
     if (isPaused) {
-      // Resume game
+      // Resume game - ÖNCE pause durumunu güncelle
+      soundManager.setGamePaused(false);
       setIsPaused(false);
       await soundManager.resumeBackgroundMusicForGame();
     } else {
       // Pause game
       setIsPaused(true);
-      await soundManager.pauseBackgroundMusicForGame();
+      await soundManager.pauseBackgroundMusicForGame(); // Bu zaten setGamePaused(true) yapıyor
     }
   };
 
   useEffect(() => {
-  const handleAppStateChange = async (nextAppState: string) => {
-    if (nextAppState === "background" || nextAppState === "inactive") {
-      // Oyun aktifse ve pause değilse otomatik pause yap
-      if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
-        console.log("Arka plana atıldı - pause yapılıyor");
-        setIsPaused(true);
-        await soundManager.pauseBackgroundMusicForGame();
-      }
-    }
-  };
+    const handleAppStateChange = async (nextAppState: string) => {
+      console.log(
+        `AppState changed to: ${nextAppState}, isPaused: ${isPaused}`
+      );
 
-  const subscription = AppState.addEventListener(
-    "change",
-    handleAppStateChange
-  );
-  return () => subscription?.remove();
-}, [gameState.isGameOver, isPaused, isLevelTransitioning]);
+      if (nextAppState === "background" || nextAppState === "inactive") {
+        if (!gameState.isGameOver && !isPaused && !isLevelTransitioning) {
+          console.log("Arka plana atıldı - pause yapılıyor");
+          setIsPaused(true);
+          await soundManager.pauseBackgroundMusicForGame();
+        }
+      } else if (nextAppState === "active") {
+        console.log("Uygulama aktif - müzik durumu kontrol ediliyor");
+        const isPausedNow = await soundManager.isGameCurrentlyPaused();
+        const isMusicPlaying = await soundManager.isBackgroundMusicPlaying();
+        console.log(
+          `Game pause: ${isPausedNow}, Music playing: ${isMusicPlaying}`
+        );
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+    return () => subscription?.remove();
+  }, [gameState.isGameOver, isPaused, isLevelTransitioning]);
 
   // moveBlockDown fonksiyonunu ref olarak sakla
   const moveBlockDownRef = useRef(() => {});

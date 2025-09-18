@@ -162,11 +162,14 @@ export default function App() {
   };
 
   const handleGameEnd = async () => {
-    // Oyun müziğini durdur ve menu müziğini baştan başlat
     const soundManager = SoundManager.getInstance();
     soundManager.cancelPendingBackgroundMusicResume();
+
+    // Oyun bitince pause durumunu sıfırla
+    soundManager.setGamePaused(false);
+
     await soundManager.pauseBackgroundMusic();
-    await soundManager.restartMenuMusic(); // playMenuMusic yerine restartMenuMusic
+    await soundManager.restartMenuMusic();
 
     setCurrentScreen("menu");
   };
