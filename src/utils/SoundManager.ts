@@ -456,19 +456,22 @@ class SoundManager {
 
   // Yeni fonksiyon: Müziği geçici durdur ve sonra devam ettir
   async pauseBackgroundMusicTemporarily(durationMs: number = 3000) {
-    if (this.backgroundMusic) {
+    if (this.backgroundMusic && !this.isGamePaused) {
+      // Oyun pause değilse
       try {
-        // Önceki timeout'ları iptal et
         this.cancelPendingBackgroundMusicResume();
-
         await this.backgroundMusic.pauseAsync();
         console.log(`Background müzik ${durationMs}ms için duraklatıldı`);
 
-        // Belirtilen süre sonra tekrar başlat
         this.temporaryPauseTimeout = setTimeout(async () => {
           try {
-            await this.playBackgroundMusic();
-            console.log("Background müzik otomatik olarak devam etti");
+            // Timeout sırasında oyun pause olmuş mu kontrol et
+            if (!this.isGamePaused) {
+              await this.playBackgroundMusic();
+              console.log("Background müzik otomatik olarak devam etti");
+            } else {
+              console.log("Oyun pause durumunda - müzik başlatılmadı");
+            }
             this.temporaryPauseTimeout = null;
           } catch (error) {
             console.log("Background müzik otomatik devam hatası:", error);
@@ -477,6 +480,8 @@ class SoundManager {
       } catch (error) {
         console.log("Background müzik geçici durdurma hatası:", error);
       }
+    } else if (this.isGamePaused) {
+      console.log("Oyun pause durumunda - geçici durdurma atlandı");
     }
   }
 
@@ -599,24 +604,37 @@ class SoundManager {
 
   async playFailureSound() {
     if (this.isAndroid) {
-      // Android için - müziği kısa süre durdur
-      await this.pauseBackgroundMusicTemporarily(2000); // 2 saniye
-      await this.playFromPool("failure");
+      // Android için - müziği kısa süre durdur ama pause durumunda otomatik başlatma
+      if (this.isGamePaused) {
+        // Oyun pause'daysa müziği durdurmaya gerek yok, zaten durdurulmuş
+        await this.playFromPool("failure");
+      } else {
+        await this.pauseBackgroundMusicTemporarily(2000);
+        await this.playFromPool("failure");
+      }
     } else {
-      // iOS için - kontrol edilebilir timeout
+      // iOS için - pause durumu kontrolü ekle
       if (!this.isMuted && this.failureSound) {
         try {
-          // Önceki timeout varsa iptal et
           this.cancelPendingBackgroundMusicResume();
 
-          await this.pauseBackgroundMusic();
-          await this.failureSound.replayAsync();
+          if (!this.isGamePaused) {
+            // Oyun pause değilse normal işlem
+            await this.pauseBackgroundMusic();
+            await this.failureSound.replayAsync();
 
-          // iOS için otomatik resume - kontrol edilebilir timeout
-          this.backgroundMusicResumeTimeout = setTimeout(() => {
-            this.playBackgroundMusic();
-            this.backgroundMusicResumeTimeout = null;
-          }, 2500);
+            // iOS için otomatik resume - sadece oyun pause değilse
+            this.backgroundMusicResumeTimeout = setTimeout(() => {
+              if (!this.isGamePaused) {
+                // Timeout sırasında pause olmuş mu kontrol et
+                this.playBackgroundMusic();
+              }
+              this.backgroundMusicResumeTimeout = null;
+            }, 2500);
+          } else {
+            // Oyun pause'daysa sadece failure sesini çal
+            await this.failureSound.replayAsync();
+          }
         } catch (error) {
           console.log("Failure sesi hatası:", error);
         }
