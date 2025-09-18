@@ -16,6 +16,7 @@ import GameScreen from "./src/screens/GameScreen";
 import MenuScreen from "./src/screens/MenuScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import CreditsScreen from "./src/screens/CreditsScreen";
+import HowToPlayScreen from "./src/screens/HowToPlayScreen";
 import {
   getUserProfile,
   saveUserProfile,
@@ -24,7 +25,13 @@ import {
 import SoundManager from "./src/utils/SoundManager";
 import IAPManager from "./src/utils/IAPManager";
 
-export type Screen = "menu" | "game" | "leaderboard" | "credits" | "support";
+export type Screen =
+  | "menu"
+  | "game"
+  | "leaderboard"
+  | "credits"
+  | "support"
+  | "howToPlay";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("menu");
@@ -137,6 +144,11 @@ export default function App() {
     return handleBeforeUnload;
   }, []);
 
+  const handleShowHowToPlay = async () => {
+    // Menu müziği çalmaya devam etsin
+    setCurrentScreen("howToPlay");
+  };
+
   const handleNicknameSet = async (nickname: string) => {
     const profile: UserProfile = {
       nickname: nickname,
@@ -205,6 +217,7 @@ export default function App() {
             onShowLeaderboard={handleLeaderboard}
             onShowCredits={handleShowCredits}
             onShowSupport={handleShowSupport}
+            onShowHowToPlay={handleShowHowToPlay}
             playerNickname={playerNickname}
             setPlayerNickname={handleNicknameSet}
           />
@@ -227,6 +240,8 @@ export default function App() {
         return <SupportScreen onBack={handleBackToMenu} />;
       case "credits":
         return <CreditsScreen onBack={handleBackToMenu} />;
+      case "howToPlay": // YENİ CASE
+        return <HowToPlayScreen onBack={handleBackToMenu} />;
       default:
         return null;
     }

@@ -22,6 +22,7 @@ interface MenuScreenProps {
   onShowLeaderboard: () => void;
   onShowCredits: () => void;
   onShowSupport: () => void;
+  onShowHowToPlay: () => void;
   playerNickname: string;
   setPlayerNickname: (nickname: string) => void;
 }
@@ -33,6 +34,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   onShowLeaderboard,
   onShowCredits,
   onShowSupport,
+  onShowHowToPlay,
   playerNickname,
   setPlayerNickname,
 }) => {
@@ -40,7 +42,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
   const soundManager = SoundManager.getInstance();
   const [inputNickname, setInputNickname] = useState<string>("");
   const [isNicknameSet, setIsNicknameSet] = useState<boolean>(false);
-  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [animationValue] = useState(new Animated.Value(0));
   const [isLoadingGameSounds, setIsLoadingGameSounds] = useState(false);
 
@@ -162,23 +163,6 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }
   };
 
-  const toggleInstructions = () => {
-    const toValue = isInstructionsOpen ? 0 : 1;
-
-    Animated.timing(animationValue, {
-      toValue,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-
-    setIsInstructionsOpen(!isInstructionsOpen);
-  };
-
-  const instructionsHeight = animationValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 500], // Yaklaşık instruction yüksekliği
-  });
-
   const rotateIcon = animationValue.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "180deg"],
@@ -234,21 +218,17 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             </Text>
           )}
         </View>
-        {!isInstructionsOpen && (
-          <TouchableOpacity
-            style={[
-              styles.startButton,
-              isLoadingGameSounds && { opacity: 0.6 },
-            ]}
-            onPress={handleStartGame}
-            disabled={isLoadingGameSounds}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.startButtonText}>
-              {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
-            </Text>
-          </TouchableOpacity>
-        )}
+
+        <TouchableOpacity
+          style={[styles.startButton, isLoadingGameSounds && { opacity: 0.6 }]}
+          onPress={handleStartGame}
+          disabled={isLoadingGameSounds}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.startButtonText}>
+            {isNicknameSet ? t("menu.startGame") : t("menu.saveAndStart")}
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
@@ -277,7 +257,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             styles.secondaryButton,
             styles.instructionsToggle,
           ]}
-          onPress={toggleInstructions}
+          onPress={onShowHowToPlay} // toggleInstructions yerine
           activeOpacity={0.7}
         >
           <Text style={[styles.buttonText, styles.secondaryButtonText]}>
@@ -299,40 +279,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
             <Text style={styles.supportButtonText}>❤️ {t("menu.support")}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Açılır Kapanır İçerik - OVERLAY olarak */}
-        {isInstructionsOpen && (
-          <TouchableWithoutFeedback onPress={toggleInstructions}>
-            <View style={styles.instructionsBackdrop}>
-              <Animated.View
-                style={[
-                  styles.instructionsOverlay,
-                  { height: instructionsHeight },
-                ]}
-              >
-                <View style={styles.instructions}>
-                  <Text style={styles.instructionText}>
-                    {t("menu.instruction1")}
-                  </Text>
-                  <Text style={styles.instructionText}>
-                    {t("menu.instruction2")}
-                  </Text>
-                  <Text style={styles.instructionText}>
-                    {t("menu.instruction3")}
-                  </Text>
-                  <Text style={styles.instructionText}>
-                    {t("menu.instruction4")}
-                  </Text>
-                  <Text style={styles.instructionText}>
-                    {t("menu.instruction5")}
-                  </Text>
-                </View>
-              </Animated.View>
-            </View>
-          </TouchableWithoutFeedback>
-        )}
       </View>
-      {/* Loading Overlay - EN SON */}
+
       {isLoadingGameSounds && (
         <View style={styles.loadingOverlay}>
           <View style={styles.loadingContent}>
