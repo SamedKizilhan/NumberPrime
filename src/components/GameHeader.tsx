@@ -37,7 +37,6 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 
       {/* Orta - Next Block Preview */}
       <View style={styles.centerSection}>
-        <Text style={styles.nextLabel}>{t("game.nextBlock")}</Text>
         <View
           style={[
             styles.nextBlockContainer,
@@ -50,15 +49,17 @@ const GameHeader: React.FC<GameHeaderProps> = ({
 
       {/* Sağ taraf - Score ve Level */}
       <View style={styles.rightSection}>
-        <Text style={styles.scoreText}>{score}</Text>
-        <Text style={styles.levelText}>
-          {t("game.level")} {level}
-        </Text>
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreText}>{score}</Text>
+          <Text style={styles.levelText}>
+            {t("game.level")} {level}
+          </Text>
+        </View>
       </View>
 
-      {/* Pause Button - Tam sağ üstte */}
+      {/* Pause Button - En sağda */}
       <TouchableOpacity style={styles.pauseButton} onPress={onPause}>
-        <Text style={styles.pauseText}>{t("game.pause")}</Text>
+        <Text style={styles.pauseIcon}>⏸️</Text>
       </TouchableOpacity>
     </View>
   );
@@ -81,12 +82,18 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   centerSection: {
+    position: "absolute",
+    left: 0,
+    right: 0,
     alignItems: "center",
-    paddingHorizontal: 15,
+    justifyContent: "center",
   },
   rightSection: {
     flex: 1,
     alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingRight: 50, // Pause button için alan bırak
   },
   playerName: {
     color: "#fff",
@@ -100,6 +107,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     maxWidth: 120,
   },
+  scoreContainer: {
+    alignItems: "flex-end",
+  },
   scoreText: {
     color: "#ffd700",
     fontSize: 20,
@@ -110,16 +120,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
   },
-  nextLabel: {
-    color: "#a0a0a0",
-    fontSize: 10,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
+
   nextBlockContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
+    width: 50,
+    height: 50,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
@@ -143,24 +148,25 @@ const styles = StyleSheet.create({
   },
   nextBlockValue: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
   pauseButton: {
     position: "absolute",
     right: 15,
-    top: 12,
+    top: "60%",
+    transform: [{ translateY: -15 }],
+    width: 40,
+    height: 40,
     backgroundColor: "rgba(0, 210, 211, 0.1)",
     borderWidth: 1,
     borderColor: "#00d2d3",
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 17,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  pauseText: {
-    color: "#00d2d3",
-    fontSize: 12,
-    fontWeight: "600",
+  pauseIcon: {
+    fontSize: 16,
   },
 });
 
