@@ -18,6 +18,7 @@
     "instruction5": "• Bir bloğu indireceğin yere karar verdiğinde inmesini beklemek yerine aşağı ok işaretli buton ile hızlı bir şekilde indirebilirsin."
   },
   "game": {
+    "nextBlock": "SONRAKİ",
     "score": "Skor",
     "level": "Seviye",
     "pause": "DURAKLA",

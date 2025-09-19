@@ -54,6 +54,18 @@ export const createNewFallingBlock = (): FallingBlock => {
   };
 };
 
+// Next block preview oluşturma
+export const createNextBlock = (): FallingBlock => {
+  const centerX = Math.floor(GRID_WIDTH / 2);
+
+  return {
+    value: generateRandomNumber(),
+    x: centerX,
+    y: 0,
+    id: `next-${Date.now()}-${Math.random()}`,
+  };
+};
+
 // Matematik işlemi yapma - sadece add ve subtract
 export const performOperation = (
   fallingValue: number,
@@ -258,7 +270,6 @@ export const getNextTitleRequirement = (
 // Oyun hızı hesaplama
 export const calculateGameSpeed = (level: number): number => {
   const baseSpeed = 747;
-  const speedIncrease = (level - 1) * 67; 
+  const speedIncrease = (level - 1) * 67;
   return Math.max(237, baseSpeed - speedIncrease);
-
 };

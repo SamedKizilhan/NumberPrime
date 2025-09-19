@@ -18,6 +18,7 @@
     "instruction5": "• When you decide where to drop a block, instead of waiting for it to fall, you can quickly drop it using the down arrow button."
   },
   "game": {
+    "nextBlock": "NEXT",
     "score": "Score",
     "level": "Level",
     "pause": "PAUSE",

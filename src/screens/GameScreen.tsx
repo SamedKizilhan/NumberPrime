@@ -79,6 +79,9 @@ const GameScreen: React.FC<GameScreenProps> = ({
     gameSpeed: calculateGameSpeed(1),
   });
 
+  const [nextBlock, setNextBlock] = useState<FallingBlock>(() =>
+    createNewFallingBlock()
+  );
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [explosions, setExplosions] = useState<Explosion[]>([]);
   const [explosionActive, setExplosionActive] = useState<boolean>(false);
@@ -933,7 +936,13 @@ const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const createNewBlock = (): FallingBlock => {
-    return createNewFallingBlock();
+    // Bir sonraki bloğu kullan
+    const newBlock = nextBlock;
+
+    // Yeni bir next block oluştur
+    setNextBlock(createNewFallingBlock());
+
+    return newBlock;
   };
 
   if (gameState.isGameOver) {
@@ -1057,6 +1066,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
         level={gameState.level}
         playerNickname={playerNickname}
         playerTitle={t(getPlayerTitleKey(gameState.score))}
+        nextBlock={nextBlock}
         onPause={togglePause}
       />
 
