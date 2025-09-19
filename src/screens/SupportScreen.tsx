@@ -106,12 +106,20 @@ const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onBack}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backButtonText}>{t("support.back")}</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>{t("support.title")}</Text>
-        <Text style={styles.subtitle}>{t("support.subtitle")}</Text>
       </View>
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.subtitle}>{t("support.subtitle")}</Text>
+
         {/* Welcome Message */}
         <View style={styles.welcomeCard}>
           <Text style={styles.welcomeTitle}>{t("support.welcomeTitle")}</Text>
@@ -139,17 +147,6 @@ const SupportScreen: React.FC<SupportScreenProps> = ({ onBack }) => {
           <Text style={styles.thankYouText}>{t("support.thankYouText")}</Text>
         </View>
       </ScrollView>
-
-      {/* Back Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={onBack}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.backButtonText}>{t("support.back")}</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -175,22 +172,40 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingTop: 60,
-    paddingBottom: 20,
     paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#16213e",
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "rgba(0, 210, 211, 0.1)",
+    borderWidth: 1,
+    borderColor: "#00d2d3",
+  },
+  backButtonText: {
+    color: "#00d2d3",
+    fontSize: 16,
+    fontWeight: "600",
   },
   title: {
-    fontSize: 28,
+    flex: 1,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 8,
+    color: "#00d2d3",
     textAlign: "center",
+    marginRight: 80,
   },
   subtitle: {
     fontSize: 16,
     color: "#a0a0a0",
     textAlign: "center",
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
 
   // Content
@@ -329,20 +344,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
     paddingTop: 20,
-  },
-  backButton: {
-    backgroundColor: "#0f4c75",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#00d2d3",
-  },
-  backButtonText: {
-    color: "#00d2d3",
-    fontSize: 18,
-    fontWeight: "bold",
   },
 });
 

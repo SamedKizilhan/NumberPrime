@@ -56,7 +56,7 @@
     "retry": "TEKRAR DENE"
   },
   "credits": {
-    "title": "Müzikler ve Atıflar",
+    "title": "Atıflar",
     "subtitle": "Kullanılan sesler için teşekkürler",
     "backgroundMusic": "Oyun Müziği",
     "menuMusic": "Menü Müziği",
@@ -122,19 +122,19 @@
     "back": "← GERİ",
     "objective": {
       "title": "Oyun Amacı",
-      "text": "Ana amaç, eşit sayılar içeren blokları bir araya getirip patlatarak puan kazanmaktır. En büyük patlamaları oluşturmak için hamlelerinizi stratejik olarak planlayın!"
+      "text": "Ana amaç, eşit sayılar içeren blokları bir araya getirip patlatarak puan kazanmaktır."
     },
     "controls": {
       "title": "Oyun Kontrolleri",
-      "text": "Düşen bloğu hareket ettirmek için sol ve sağ oklarını kullanın. Gerektiğinde, eşit sayılar oluşturmaya çalışarak, iniş yapacağınız bloktaki sayıyı değiştirmek için toplama (+) ve çıkarma (-) işlemlerini etkinleştirin."
+      "text": "Düşen bloğu hareket ettirmek için sol ve sağ oklarını kullanın. Gerektiğinde, eşit sayılar oluşturmaya çalışarak, iniş yapacağınız bloktaki sayıyı değiştirmek için toplama (+) veya çıkarma (-) işlem butonlarını etkinleştirebilirsiniz."
     },
     "blocks": {
       "title": "Blok Türleri",
-      "text": "Yukarıdan düşen bloklar 1-37 arası rastgele sayılar içerir. Asal sayılar mavi bloklar şeklinde, bileşik sayılar ise kırmızı bloklar şeklinde görünür."
+      "text": "Yukarıdan düşen bloklar 1-37 arası rastgele sayılar içerir. Asal sayılar mavi bloklar şeklinde, asal olmayan sayılar ise kırmızı bloklar şeklinde görünür."
     },
     "primes": {
       "title": "Asal Sayı Bonusu",
-      "text": "Asal sayılar içeren blokları bir araya getirip patlatmak ekstra puan verir! Asal sayılar arasında özel sayı 2 daha da fazla bonus puan sağlar."
+      "text": "Asal sayılar içeren blokları bir araya getirip patlatmak ekstra puan verir! Asal sayılar arasında özel olan 2 sayısı daha da fazla bonus puan sağlar."
     },
     "quickDrop": {
       "title": "Hızlı Düşürme",

@@ -122,7 +122,7 @@
     "back": "← BACK",
     "objective": {
       "title": "Game Objective",
-      "text": "The main objective is to earn points by bringing blocks containing equal numbers together and exploding them. Plan your moves strategically to create the biggest explosions!"
+      "text": "The main objective is to earn points by bringing blocks containing equal numbers together and exploding them."
     },
     "controls": {
       "title": "Game Controls",

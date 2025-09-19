@@ -176,12 +176,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+            activeOpacity={0.7}
+          >
             <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
           </TouchableOpacity>
-
           <Text style={styles.title}>{t("leaderboard.title")}</Text>
-          <View style={styles.spacer} />
         </View>
 
         <View style={styles.loadingContainer}>
@@ -196,12 +198,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+            activeOpacity={0.7}
+          >
             <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
           </TouchableOpacity>
-
           <Text style={styles.title}>{t("leaderboard.title")}</Text>
-          <View style={styles.spacer} />
         </View>
 
         <View style={styles.errorContainer}>
@@ -230,12 +234,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onBack}
+          activeOpacity={0.7}
+        >
           <Text style={styles.backButtonText}>{t("leaderboard.back")}</Text>
         </TouchableOpacity>
-
         <Text style={styles.title}>{t("leaderboard.title")}</Text>
-        <View style={styles.spacer} />
       </View>
 
       <ScrollView
@@ -291,16 +297,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: "#16213e",
-    borderBottomWidth: 2,
-    borderBottomColor: "#0f3460",
+    borderBottomWidth: 1,
+    borderBottomColor: "#16213e",
   },
   backButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "rgba(0, 210, 211, 0.1)",
+    borderWidth: 1,
+    borderColor: "#00d2d3",
   },
   backButtonText: {
     color: "#00d2d3",
@@ -308,12 +316,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   title: {
-    color: "#fff",
-    fontSize: 20,
+    flex: 1,
+    fontSize: 24,
     fontWeight: "bold",
-  },
-  spacer: {
-    width: 60,
+    color: "#00d2d3",
+    textAlign: "center",
+    marginRight: 80, // Back button genişliği kadar offset
   },
   loadingContainer: {
     flex: 1,
